@@ -4,7 +4,7 @@ from collections import OrderedDict
 from argparse import ArgumentParser
 from multiprocessing import Pool
 from multiprocessing.pool import ThreadPool
-from functools import partial
+import functools
 from datetime import datetime
 from bs4 import BeautifulSoup
 import xmltodict
@@ -19,9 +19,324 @@ import re
 data_path   = './'
 
 
+class Term:
+	def __init__(self, term, force=False, dry_run=False, output_type='json'):
+		self.term = term
+		self.dry_run = dry_run
+		self.force_download = force
+		self.output_type = output_type
+		self.courses = {}
+
+		print('Starting', self.term)
+		create_database()
+
+		# Get the XML data, and immediately write it out.
+		self.load()
+		if not self.raw_term_data:
+			return
+
+		self.process()
+
+	def request_term_from_server(self):
+		url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?searchyearterm=' \
+			+  str(self.term) \
+			+ '&searchkeywords=&searchdepts=&searchgereqs=&searchopenonly=off&' \
+			+ 'searchlabonly=off&searchfsnum=&searchtimeblock=' \
+
+		request = requests.get(url)
+
+		if 'Sorry, there\'s been an error.' in request.text:
+			print('Error in', url)
+			print('Whoops! Made another error in the server.')
+			if 'The request has exceeded the allowable time limit' in request.text:
+				print('And that error is exceeding the time limit. Again.')
+				print('We should probably do something about that.')
+
+			return
+
+		return request.text
+
+	def fix_invalid_xml(self):
+		# Replace any invalid XML entities with &amp;
+		regex = re.compile(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)')
+		subst = "&amp;"
+		cleaned = re.sub(regex, subst, raw)
+		return cleaned
+
+	def load_data_from_server(self):
+		raw_data = self.request_term_from_server(self.term)
+		valid_data = self.fix_invalid_xml()
+		save_data(valid_data, self.xml_term_path)
+		print(self.xml_term_path)
+		return valid_data
+
+	def load(self):
+		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
+
+		if not self.force_download:
+			try:
+				print('Loading', self.term, 'from disk')
+				raw_data = load_data_from_file(self.xml_term_path)
+			except FileNotFoundError:
+				print('Requesting', self.term, 'from server')
+				raw_data = self.load_data_from_server()
+		else:
+			print('Forced to request', self.term, 'from server')
+			raw_data = self.load_data_from_server()
+
+		pydict = xmltodict.parse(raw_data)
+		if pydict['searchresults']:
+			self.raw_term_data = pydict['searchresults']['course']
+		else:
+			print('No data returned for', self.term)
+
+	def process(self):
+		# Process the raw data into a Python dictionary
+		with ThreadPool(processes=4) as pool:
+			mapped_course_processor = functools.partial(Course, 
+				term=self.term, 
+				output_type=self.output_type,
+				dry_run=self.dry_run)
+			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
+
+		for processed_course in mapped_courses:
+			course = processed_course.details
+			self.courses[course['clbid']] = course
+
+			if not self.dry_run:
+				with sqlite3.connect('courses.db') as connection:
+					c = connection.cursor()
+					# create a sql query with named placeholders automatically from the course dict
+					no_list_course = {key: '/'.join(item) if type(item) is list else item for key, item in course.items()}
+					columns = ', '.join(no_list_course.keys())
+					placeholders = ':'+', :'.join(no_list_course.keys())
+					query = 'INSERT OR REPLACE INTO courses (%s) VALUES (%s)' % (columns, placeholders)
+					connection.execute(query, no_list_course)
+					connection.commit()
+
+		ordered_term_data = OrderedDict(sorted(self.courses.items()))
+
+		if not self.dry_run:
+			if self.output_type == 'csv':
+				csv_term_data = sorted(courses.values(), key=lambda course: course['clbid'])
+				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
+
+			elif self.output_type == 'json':
+				json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
+				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
+
+			else:
+				print('What kind of file is a "' + str(self.output_type) + '" file?')
+
+		print('Done with', self.term)
+
+departments = {
+	'AR': 'ART',
+	'AS': 'ASIAN',
+	'BI': 'BIO',
+	'CH': 'CHEM',
+	'EC': 'ECON',
+	'ES': 'ENVST',
+	'HI': 'HIST',
+	'MU': 'MUSIC',
+	'PH': 'PHIL',
+	'PS': 'PSCI',
+	'RE': 'REL',
+	'SA': 'SOAN'
+}
+
+course_types = {
+	'L': 'Lab',
+	'D': 'Discussion',
+	'S': 'Seminar',
+	'T': 'Topic',
+	'F': 'FLAC',
+	'R': 'Research'
+}
+
+class Course:
+	def __init__(self, details, term, dry_run, output_type):
+		self.output_type = output_type
+		self.details = details
+		self.dry_run = dry_run
+		self.term = term
+
+		self.details = {}
+		self.padded_clbid = ''
+
+		self.process()
+
+	def request_detailed_course_data(self):
+		url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + self.padded_clbid
+		time.sleep(.5)
+		request = requests.get(url)
+		return request.text
+
+	def get_details(self):
+		html_term_path = data_path + 'details/' + str(self.padded_clbid) + '.html'
+
+		try:
+			# print('Loading', self.padded_clbid, 'from disk')
+			raw_data = load_data_from_file(html_term_path)
+		except FileNotFoundError:
+			# print('Nope. Requesting', self.padded_clbid, 'from server')
+			raw_data = self.request_detailed_course_data()
+			save_data(raw_data, html_term_path)
+
+		soup = BeautifulSoup(raw_data, 'lxml')
+		strings = soup('p')
+
+		apology = 'Sorry, no description'
+
+		# TODO: Update this to be more infallible if the description runs to
+		# multiple lines.
+
+		if apology in strings[0].text or apology in strings[1].text:
+			self.details['desc'] = strings[0].text
+		else:
+			self.details['title'] = strings[1].text
+			if self.details.get('title'):
+				# Remove extra spaces from the string
+				self.details['title'] = ' '.join(self.details['title'].split())
+				# Remove the course time info from the end
+				self.details['title'] = self.details['title'].split('(')[0]
+				# Remove anything before the first colon; reinsert the rest of the colons.
+				self.details['title'] = ':'.join(self.details['title'].split(':')[1:]).strip()
+
+			self.details['desc'] = ' '.join(strings[2].text.split()) if strings[2].text else ''
+
+		if (self.details.get('desc') == '') or (apology in self.details['desc']):
+			self.details['desc'] = None
+		if self.details.get('title') == '':
+			self.details['title'] = None
+
+	def break_apart_departments(self):
+		# Split apart the departments, because 'AR/AS' is actually
+		# ['ART', 'ASIAN'] departments.
+		split = self.details['deptname'].split('/')
+		self.details['depts'] = [
+			departments[dept] if dept in departments.keys() else dept for dept in split
+		]
+
+	def split_and_flip_instructors(self):
+		# Take a string like 'Bridges IV, William H.' and split/flip it
+		# to 'William H. Bridges IV'. Oh, and do that for each professor.
+		if self.details['profs']:
+			self.details['profs'] = parse_links_for_text(self.details['profs'])
+			flippedProfs = []
+			for prof in self.details['profs']:
+				stringToSplit = prof.split(',')
+				actualName = ''
+				for namePart in reversed(stringToSplit):
+					namePart = namePart.strip()
+					actualName += namePart + ' '
+				flippedProfs.append(actualName.strip())
+			self.details['profs'] = flippedProfs
+
+	def clean(self):
+		# Unescape &amp; in course names
+		self.details['name'] = self.details['coursename'].replace('&amp;', '&')
+		del self.details['coursename']
+
+		self.details['sect'] = self.details['coursesection']
+		del self.details['coursesection']
+
+		# Remove <br> tags from the 'notes' field.
+		if self.details['notes']:
+			self.details['notes'] = self.details['notes'].replace('<br>', ' ')
+			self.details['notes'] = ' '.join(self.details['notes'].split())
+
+		# Remove coursestatus and varcredits
+		del self.details['coursestatus']
+		del self.details['varcredits']
+
+		# Flesh out coursesubtype
+		if self.details['coursesubtype'] and self.details['coursesubtype'] in course_types:
+			self.details['type'] = course_types[self.details['coursesubtype']]
+		else:
+			self.details['type'] = self.details['coursesubtype']
+			print(self.details['type'], 'doesn\'t appear in the types list.')
+		del self.details['coursesubtype']
+
+		# Break apart dept names into lists
+		self.break_apart_departments()
+		del self.details['deptname']
+
+		# Turn numbers into numbers
+		self.details['clbid']   = int(self.details['clbid'])
+		if 'X' not in self.details['coursenumber']:
+			self.details['num'] = int(self.details['coursenumber'])
+		else:
+			self.details['num'] = self.details['coursenumber']
+		del self.details['coursenumber']
+		self.details['credits'] = float(self.details['credits'])
+		self.details['crsid']   = int(self.details['crsid'])
+		if self.details['groupid']: self.details['groupid'] = int(self.details['groupid'])
+
+		# Turn booleans into booleans
+		self.details['pf'] = True if self.details['pn'] is 'Y' else False
+		del self.details['pn']
+
+		# Add the term, year, and semester
+		# term looks like 20083, where the first four are the year and the last one is the semester
+		self.details['term'] = self.term
+		self.details['year'] = int(str(self.term)[:4])  # Get the first four digits
+		self.details['sem']  = int(str(self.term)[4])   # Get the last digit
+
+		# Add the course level
+		if type(self.details['num']) is int:
+			self.details['level'] = int(self.details['num'] / 100) * 100
+		elif 'X' in self.details['num']:
+			self.details['level'] = int(self.details['num'][0]) * 100
+		else:
+			raise UserWarning('Course number is weird in', self.details)
+
+		# Shorten meetinglocations, meetingtimes, and instructors
+		self.details['places'] = self.details['meetinglocations']
+		del self.details['meetinglocations']
+		self.details['times']  = self.details['meetingtimes']
+		del self.details['meetingtimes']
+		self.details['profs']  = self.details['instructors']
+		del self.details['instructors']
+
+		# Pull the text contents out of various HTML elements as lists
+		self.split_and_flip_instructors()
+		if self.details['gereqs']: self.details['gereqs'] = parse_links_for_text(self.details['gereqs'])
+		if self.details['places']: self.details['places'] = parse_links_for_text(self.details['places'])
+		if self.details['times']:  self.details['times']  = get_contents_of_br_as_list(self.details['times'])
+
+	def process(self):
+		# save the full clbid
+		self.padded_clbid = self.details['clbid']
+		self.clean()
+
+		# update merges two dicts
+		self.get_details()
+
+		if self.output_type == 'csv':
+			self.details = OrderedDict(sorted(self.details.items()))
+		else:
+			if self.details.get('title') == self.details.get('name'):
+				del self.details['name']
+			if not self.details.get('title') and self.details.get('name'):
+				self.details['title'] = self.details['name']
+			cleanedcourse = {key: value for key, value in self.details.items() if value is not None}
+			self.details = OrderedDict(sorted(cleanedcourse.items()))
+
+
 ########
 # Utilities
 ######
+
+def parse_links_for_text(stringWithLinks):
+	soup = BeautifulSoup(stringWithLinks, 'lxml')
+	return [link.get_text() for link in soup.find_all('a')]
+
+
+def get_contents_of_br_as_list(stringWithBr):
+	soup = BeautifulSoup(stringWithBr, 'lxml')
+	return [item for item in soup.strings]
+
 
 def ensure_dir_exists(folder):
 	'''Make sure that a folder exists.'''
@@ -43,14 +358,6 @@ def save_data(data, filepath):
 		outfile.write(data)
 
 	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
-
-
-def load_data_from_server(term, xml_term_path):
-	raw_data = request_term_from_server(term)
-	valid_data = fix_invalid_xml(raw_data)
-	save_data(valid_data, xml_term_path)
-	print(xml_term_path)
-	return valid_data
 
 
 def save_data_as_csv(data, filepath):
@@ -140,326 +447,6 @@ def find_terms(start_year=None, end_year=None):
 	return term_list
 
 
-########
-# Requests
-######
-
-def request_term_from_server(term):
-	url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?searchyearterm=' \
-		+  str(term) \
-		+ '&searchkeywords=&searchdepts=&searchgereqs=&searchopenonly=off&' \
-		+ 'searchlabonly=off&searchfsnum=&searchtimeblock=' \
-
-	request = requests.get(url)
-
-	if 'Sorry, there\'s been an error.' in request.text:
-		print('Error in', url)
-		print('Whoops! Made another error in the server.')
-		if 'The request has exceeded the allowable time limit' in request.text:
-			print('And that error is exceeding the time limit. Again.')
-			print('We should probably do something about that.')
-
-		return
-
-	return request.text
-
-
-def request_detailed_course_data(clbid):
-	url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + clbid
-	time.sleep(.5)
-	request = requests.get(url)
-	return request.text
-
-
-########
-# Loading
-######
-
-def fix_invalid_xml(raw):
-	# print(raw)
-	regex = re.compile(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)')
-	test_str = "&apos;M2&SC280&apos;);\"&gt;M 2 & SC280&lt;"
-	subst = "&amp;"
-	cleaned = re.sub(regex, subst, raw)
-	return cleaned
-
-
-def get_term(term, force=False):
-	xml_term_path = data_path + 'raw_xml/' + str(term) + '.xml'
-
-	if not force:
-		try:
-			print('Loading', term, 'from disk')
-			raw_data = load_data_from_file(xml_term_path)
-		except FileNotFoundError:
-			print('Requesting', term, 'from server')
-			raw_data = load_data_from_server(term, xml_term_path)
-	else:
-		print('Forced to request', term, 'from server')
-		raw_data = load_data_from_server(term, xml_term_path)
-
-	pydict = xmltodict.parse(raw_data)
-	if pydict['searchresults']:
-		return pydict['searchresults']['course']
-	else:
-		print('No data returned for', term)
-
-
-def get_detailed_course_data(clbid):
-	html_term_path = data_path + 'details/' + str(clbid) + '.html'
-
-	try:
-		# print('Loading', clbid, 'from disk')
-		raw_data = load_data_from_file(html_term_path)
-	except FileNotFoundError:
-		# print('Nope. Requesting', clbid, 'from server')
-		raw_data = request_detailed_course_data(clbid)
-		save_data(raw_data, html_term_path)
-
-	soup = BeautifulSoup(raw_data, 'lxml')
-	strings = soup('p')
-
-	course = {
-		'title': None,
-		'desc': None
-	}
-
-	apology = 'Sorry, no description'
-
-	# TODO: Update this to be more infallible if the description runs to
-	# multiple lines.
-
-	if apology in strings[0].text or apology in strings[1].text:
-		course['desc'] = strings[0].text
-	else:
-		course['title'] = strings[1].text
-		if course['title']:
-			# Remove extra spaces from the string
-			course['title'] = ' '.join(course['title'].split())
-			# Remove the course time info from the end
-			course['title'] = course['title'].split('(')[0]
-			# Remove anything before the first colon; reinsert the rest of the colons.
-			course['title'] = ':'.join(course['title'].split(':')[1:]).strip()
-
-		course['desc'] = ' '.join(strings[2].text.split()) if strings[2].text else ''
-
-	if course['desc'] == '' or apology in course['desc']:
-		course['desc'] = None
-	if course['title'] == '':
-		course['title'] = None
-
-	return course
-
-
-########
-# Parsing Tools
-######
-
-departments = {
-	'AR': 'ART',
-	'AS': 'ASIAN',
-	'BI': 'BIO',
-	'CH': 'CHEM',
-	'EC': 'ECON',
-	'ES': 'ENVST',
-	'HI': 'HIST',
-	'MU': 'MUSIC',
-	'PH': 'PHIL',
-	'PS': 'PSCI',
-	'RE': 'REL',
-	'SA': 'SOAN'
-}
-
-course_types = {
-	'L': 'Lab',
-	'D': 'Discussion',
-	'S': 'Seminar',
-	'T': 'Topic',
-	'F': 'FLAC',
-	'R': 'Research'
-}
-
-
-def parseLinksForText(stringWithLinks):
-	soup = BeautifulSoup(stringWithLinks, 'lxml')
-	return [link.get_text() for link in soup.find_all('a')]
-
-
-def getContentsOfBrAsList(stringWithBr):
-	soup = BeautifulSoup(stringWithBr, 'lxml')
-	return [item for item in soup.strings]
-
-
-def breakApartDepartments(stringToBreak):
-	# Split apart the departments, because 'AR/AS' is actually
-	# ['ART', 'ASIAN'] departments.
-	broken = stringToBreak.split('/')
-	return [departments[dept] if dept in departments.keys() else dept for dept in broken]
-
-
-def splitAndFlipInstructors(instructors):
-	# Take a string like 'Bridges IV, William H.' and split/flip it
-	# to 'William H. Bridges IV'. Oh, and do that for each professor.
-	flippedProfs = []
-	for prof in instructors:
-		stringToSplit = prof.split(',')
-		actualName = ''
-		for namePart in reversed(stringToSplit):
-			namePart = namePart.strip()
-			actualName += namePart + ' '
-		flippedProfs.append(actualName.strip())
-	return flippedProfs
-
-
-########
-# Processing
-######
-
-def clean_course(course, term):
-	# Unescape &amp; in course names
-	course['name'] = course['coursename'].replace('&amp;', '&')
-	del course['coursename']
-
-	course['sect'] = course['coursesection']
-	del course['coursesection']
-
-	# Remove <br> tags from the 'notes' field.
-	if course['notes']:
-		course['notes'] = course['notes'].replace('<br>', ' ')
-		course['notes'] = ' '.join(course['notes'].split())
-
-	# Remove coursestatus and varcredits
-	del course['coursestatus']
-	del course['varcredits']
-
-	# Flesh out coursesubtype
-	if course['coursesubtype'] and course['coursesubtype'] in course_types:
-		course['type'] = course_types[course['coursesubtype']]
-	else:
-		course['type'] = course['coursesubtype']
-		print(course['type'], 'doesn\'t appear in the types list.')
-	del course['coursesubtype']
-
-	# Break apart dept names into lists
-	course['depts'] = breakApartDepartments(course['deptname'])
-	del course['deptname']
-
-	# Turn numbers into numbers
-	course['clbid']   = int(course['clbid'])
-	if 'X' not in course['coursenumber']:
-		course['num'] = int(course['coursenumber'])
-	else:
-		course['num'] = course['coursenumber']
-	del course['coursenumber']
-	course['credits'] = float(course['credits'])
-	course['crsid']   = int(course['crsid'])
-	if course['groupid']: course['groupid'] = int(course['groupid'])
-
-	# Turn booleans into booleans
-	course['pf'] = True if course['pn'] is 'Y' else False
-	del course['pn']
-
-	# Add the term, year, and semester
-	# term looks like 20083, where the first four are the year and the last one is the semester
-	course['term'] = term
-	course['year'] = int(str(term)[:4])  # Get the first four digits
-	course['sem']  = int(str(term)[4])   # Get the last digit
-
-	# Add the course level
-	if type(course['num']) is int:
-		course['level'] = int(course['num'] / 100) * 100
-	elif 'X' in course['num']:
-		course['level'] = int(course['num'][0]) * 100
-	else:
-		raise UserWarning('Course number is weird in', course)
-
-	# Shorten meetinglocations, meetingtimes, and instructors
-	course['places'] = course['meetinglocations']
-	del course['meetinglocations']
-	course['times']  = course['meetingtimes']
-	del course['meetingtimes']
-	course['profs']  = course['instructors']
-	del course['instructors']
-
-	# Pull the text contents out of various HTML elements as lists
-	if course['profs']:  course['profs']  = splitAndFlipInstructors(parseLinksForText(course['profs']))
-	if course['gereqs']: course['gereqs'] = parseLinksForText(course['gereqs'])
-	if course['places']: course['places'] = parseLinksForText(course['places'])
-	if course['times']:  course['times']  = getContentsOfBrAsList(course['times'])
-
-	return course
-
-
-def process_course(course, term, csv_output=False):
-	# save the full clbid
-	padded_clbid = course['clbid']
-	course = clean_course(course, term)
-
-	# update merges two dicts
-	detailed_course = get_detailed_course_data(padded_clbid)
-	course.update(detailed_course)
-
-	if csv_output:
-		return OrderedDict(sorted(course.items()))
-	else:
-		if course['title'] == course['name']:
-			del course['name']
-		if not course['title'] and course['name']:
-			course['title'] = course['name']
-		cleanedcourse = {}
-		cleanedcourse.update((key, value) for key, value in course.items() if value is not None)
-		return OrderedDict(sorted(cleanedcourse.items()))
-
-
-########
-# Main
-######
-
-def term_processor(term, data=[], force=False, csv_output=False, dry_run=False):
-	print('Starting', term)
-
-	create_database()
-
-	# Get the XML data, and immediately write it out.
-	raw_term_data = get_term(term, force=force)
-	if not raw_term_data:
-		return
-	term_data = {}
-
-	# Process the raw data into a Python dictionary
-	with ThreadPool(processes=4) as pool:
-		mapped_course_processor = partial(process_course, term=term, csv_output=csv_output)
-		mapped_courses = pool.map(mapped_course_processor, raw_term_data)
-
-	for processed_course in mapped_courses:
-		clbid = processed_course['clbid']
-		term_data[clbid] = processed_course
-		data.append(processed_course)
-
-		with sqlite3.connect('courses.db') as connection:
-			c = connection.cursor()
-			# create a sql query with named placeholders automatically from the course dict
-			no_list_course = {key: '/'.join(item) if type(item) is list else item for key, item in processed_course.items()}
-			columns = ', '.join(no_list_course.keys())
-			placeholders = ':'+', :'.join(no_list_course.keys())
-			query = 'INSERT OR REPLACE INTO courses (%s) VALUES (%s)' % (columns, placeholders)
-			connection.execute(query, no_list_course)
-			connection.commit()
-
-	ordered_term_data = OrderedDict(sorted(term_data.items()))
-
-	if not dry_run:
-		if csv_output:
-			csv_term_data = sorted(term_data.values(), key=lambda course: course['clbid'])
-			save_data_as_csv(csv_term_data, data_path + 'terms/' + str(term) + '.csv')
-
-		else:  # then JSON output
-			json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
-			save_data(json_term_data, data_path + 'terms/' + str(term) + '.json')
-
-	print('Done with', term)
-
-
 def main():
 	global output_type
 
@@ -499,7 +486,10 @@ def main():
 
 	all_terms = []
 	with Pool(processes=4) as pool:
-		mapped_term_processor = partial(term_processor, force=args.force, csv_output=args.csv_output, dry_run=args.dry)
+		mapped_term_processor = functools.partial(Term, 
+			force=args.force, 
+			output_type='csv' if args.csv_output else 'json', 
+			dry_run=args.dry)
 		pool.map(mapped_term_processor, terms)
 
 	sorted_terms = {}
