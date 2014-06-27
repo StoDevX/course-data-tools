@@ -427,7 +427,6 @@ def term_processor(term, data=[], force=False, csv_output=False, dry_run=False):
 	term_data = {}
 
 	# Process the raw data into a Python dictionary
-	# for course in raw_term_data:
 	with ThreadPool(processes=4) as pool:
 		mapped_course_processor = partial(process_course, term=term, csv_output=csv_output)
 		mapped_courses = pool.map(mapped_course_processor, raw_term_data)
