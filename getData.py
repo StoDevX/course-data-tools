@@ -469,16 +469,6 @@ def main():
 			str(deptstr) + ' ' + str(course['num'])
 		filtered_data.add(times)
 
-	# print(sorted(filtered_data))
-
-	# print(
-	# 	json.dumps(
-	# 		OrderedDict(sorted(sorted_terms.items())),
-	# 		indent='  ',
-	# 		separators=(',', ': ')
-	# 	)
-	# )
-
 
 if __name__ == '__main__':
 	main()
