@@ -9,6 +9,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import xmltodict
 import requests
+import sqlite3
 import json
 import time
 import csv
@@ -61,6 +62,41 @@ def save_data_as_csv(data, filepath):
 		csv_file.writerows(data)
 
 	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
+
+
+def create_database():
+	with sqlite3.connect('courses.db') as connection:
+		c = connection.cursor()
+		c.execute('''CREATE TABLE IF NOT exists courses (
+			id         INTEGER PRIMARY KEY,
+			clbid      INTEGER UNIQUE,
+			crsid      INTEGER,
+			depts      TEXT,
+			sect       TEXT,
+			num        INTEGER,
+			name       TEXT,
+			title      TEXT,
+			desc       TEXT,
+			notes      TEXT,
+			halfcredit INTEGER,
+			varcredits BOOLEAN,
+			status     TEXT,
+			type       TEXT,
+			credits    FLOAT,
+			groupid    INTEGER,
+			grouptype  TEXT,
+			pf         BOOLEAN,
+			term       TEXT,
+			year       INTEGER,
+			sem        INTEGER,
+			level      INTEGER,
+			places     TEXT,
+			times      TEXT,
+			profs      TEXT,
+			gereqs     TEXT,
+			prereqs    TEXT,
+			coreqs     TEXT)
+		''')
 
 
 ########
@@ -382,6 +418,8 @@ def process_course(course, term, csv_output=False):
 def term_processor(term, data=[], force=False, csv_output=False, dry_run=False):
 	print('Starting', term)
 
+	create_database()
+
 	# Get the XML data, and immediately write it out.
 	raw_term_data = get_term(term, force=force)
 	if not raw_term_data:
@@ -398,6 +436,16 @@ def term_processor(term, data=[], force=False, csv_output=False, dry_run=False):
 		clbid = processed_course['clbid']
 		term_data[clbid] = processed_course
 		data.append(processed_course)
+
+		with sqlite3.connect('courses.db') as connection:
+			c = connection.cursor()
+			# create a sql query with named placeholders automatically from the course dict
+			no_list_course = {key: '/'.join(item) if type(item) is list else item for key, item in processed_course.items()}
+			columns = ', '.join(no_list_course.keys())
+			placeholders = ':'+', :'.join(no_list_course.keys())
+			query = 'INSERT OR REPLACE INTO courses (%s) VALUES (%s)' % (columns, placeholders)
+			connection.execute(query, no_list_course)
+			connection.commit()
 
 	ordered_term_data = OrderedDict(sorted(term_data.items()))
 
