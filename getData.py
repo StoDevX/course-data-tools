@@ -2,6 +2,9 @@
 
 from collections import OrderedDict
 from argparse import ArgumentParser
+from multiprocessing import Pool
+from multiprocessing.pool import ThreadPool
+from functools import partial
 from datetime import datetime
 from bs4 import BeautifulSoup
 import xmltodict
@@ -386,8 +389,12 @@ def term_processor(term, data=[], force=False, csv_output=False, dry_run=False):
 	term_data = {}
 
 	# Process the raw data into a Python dictionary
-	for course in raw_term_data:
-		processed_course = process_course(course, term, csv_output)
+	# for course in raw_term_data:
+	with ThreadPool(processes=4) as pool:
+		mapped_course_processor = partial(process_course, term=term, csv_output=csv_output)
+		mapped_courses = pool.map(mapped_course_processor, raw_term_data)
+
+	for processed_course in mapped_courses:
 		clbid = processed_course['clbid']
 		term_data[clbid] = processed_course
 		data.append(processed_course)
@@ -447,12 +454,9 @@ def main():
 			terms += find_terms(year, year)
 
 	all_terms = []
-	for term in terms:
-		term_processor(term,
-			data=all_terms,
-			force=args.force,
-			csv_output=args.csv_output,
-			dry_run=args.dry)
+	with Pool(processes=4) as pool:
+		mapped_term_processor = partial(term_processor, force=args.force, csv_output=args.csv_output, dry_run=args.dry)
+		pool.map(mapped_term_processor, terms)
 
 	sorted_terms = {}
 	filtered_data = set()
