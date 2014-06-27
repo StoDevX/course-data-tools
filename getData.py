@@ -38,7 +38,7 @@ def load_data_from_file(filename):
 def save_data(data, filepath):
 	ensure_dir_exists(filepath)
 	filename = os.path.split(filepath)[1]
-	with open(filepath, 'w+') as outfile:
+	with open(filepath, mode='w+', newline='\n') as outfile:
 		outfile.write(data)
 
 	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
