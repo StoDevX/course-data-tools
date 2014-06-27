@@ -401,17 +401,14 @@ def term_processor(term, data=[], force=False, csv_output=False, dry_run=False):
 
 	ordered_term_data = OrderedDict(sorted(term_data.items()))
 
-	if dry_run:
-		print('Done with', term)
-		return
+	if not dry_run:
+		if csv_output:
+			csv_term_data = sorted(term_data.values(), key=lambda course: course['clbid'])
+			save_data_as_csv(csv_term_data, data_path + 'terms/' + str(term) + '.csv')
 
-	if csv_output:
-		csv_term_data = sorted(term_data.values(), key=lambda course: course['clbid'])
-		save_data_as_csv(csv_term_data, data_path + 'terms/' + str(term) + '.csv')
-
-	else:  # then JSON output
-		json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
-		save_data(json_term_data, data_path + 'terms/' + str(term) + '.json')
+		else:  # then JSON output
+			json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
+			save_data(json_term_data, data_path + 'terms/' + str(term) + '.json')
 
 	print('Done with', term)
 
