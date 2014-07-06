@@ -1,3 +1,15 @@
+## getData.py
+Before using this script, you'll need a some other libraries:
+
+- Python 3.4 or greater (3.x might work, but I haven't tested)
+- beautifulsoup4
+- requests
+- lxml
+- xmltodict
+
+so a `pip3 install beautifulsoup4 requests lxml xmltodict` should do it.
+
+## TODO
 - [ ] TODO: Redo profs, depts, times, places, and gereqs as foreign keys to other tables in the db.
 - [ ] TODO: Implement the new CLI for getData.py
 
