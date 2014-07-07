@@ -97,8 +97,7 @@ class Term:
 		with ProcessPoolExecutor(max_workers=8) as pool:
 			mapped_course_processor = functools.partial(Course, 
 				term=self.term, 
-				output_type=self.output_type,
-				dry_run=self.dry_run)
+				output_type=self.output_type)
 
 			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
 
@@ -158,10 +157,9 @@ course_types = {
 }
 
 class Course:
-	def __init__(self, details, term, dry_run, output_type):
+	def __init__(self, details, term, output_type):
 		self.output_type = output_type
 		self.details = details
-		self.dry_run = dry_run
 		self.term = term
 
 		self.padded_clbid = ''
