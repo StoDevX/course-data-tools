@@ -32,6 +32,7 @@ class Term:
 		self.courses = {}
 
 		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
+		self.raw_term_data = None
 
 		# Get the XML data, and immediately write it out.
 		self.load()
