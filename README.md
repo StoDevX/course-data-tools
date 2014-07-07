@@ -9,11 +9,17 @@ Before using this script, you'll need a some other libraries:
 
 so a `pip3 install beautifulsoup4 requests lxml xmltodict` should do it.
 
+To use:
+
+`python3 getData.py --years 1994 1995 --terms 20141`
+
+Simply calling `python3 getData.py` will have it run on every term from 19941 to the current year.
+
 ## TODO
 - [ ] TODO: Redo profs, depts, times, places, and gereqs as foreign keys to other tables in the db.
-- [ ] TODO: Implement the new CLI for getData.py
 
-## New CLI for getData.py
+
+### New CLI for getData.py
 
 	$ ./getData.py --years 2012 2013 2014 --terms 19941 19911
 	Terms: 1991[1], 1994[1], 2012[1, 2, 3, 4, 5], 2013[1, 2, 3, 4, 5], 2014[1, 2, 3]
