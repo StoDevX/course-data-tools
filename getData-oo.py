@@ -429,7 +429,7 @@ def find_terms(start_year=None, end_year=None):
 
 	# St. Olaf publishes initial Fall, Interim, and Spring data in April of each year.
 	# Full data is published by August.
-	if start_year is not current_year:
+	if start_year is not current_year or start_year is end_year:
 		if current_month <= 3:
 			current_year += 0
 		elif current_month >= 4 and current_month <= 7:
