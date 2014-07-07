@@ -10,6 +10,7 @@ import xmltodict
 import functools
 import itertools
 import requests
+import hashlib
 import sqlite3
 import time
 import json
@@ -495,6 +496,30 @@ def pretty(lst):
 	return ', '.join(lst)
 
 
+def hash_files():
+	folder = 'terms'
+	output = {}
+
+	files = os.listdir(folder)
+	output[folder] = []
+	for filename in files:
+		path = folder + '/' + filename 
+		with open(path, 'rb') as infile:
+			info = {
+				'path': path, 
+				'hash': hashlib.sha1(infile.read()).hexdigest()
+			}
+			output[folder].append(OrderedDict(sorted(info.items())))
+	output[folder] = sorted(output[folder], key=lambda item: item['path'])
+
+	output = OrderedDict(sorted(output.items()))
+
+	with open('info.json', 'w') as outfile:
+		outfile.write(json.dumps(output, separators=(',',':')))
+
+	print('Hashed files; wrote info.json')
+
+
 def main():
 	global output_type
 
@@ -536,6 +561,8 @@ def main():
 	print('Terms:', pretty([year.get_terms() for year in years]))
 
 	[year.process() for year in years]
+
+	hash_files()
 
 	# sorted_terms = {}
 	# filtered_data = set()
