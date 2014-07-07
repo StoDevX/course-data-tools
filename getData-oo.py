@@ -427,10 +427,6 @@ def find_terms(start_year=None, end_year=None):
 	# from 2008 to the year before this one.
 	term_list = [year_plus_term(year, term) for year in most_years for term in all_terms]
 
-	# Sort the list of terms to 20081, 20082, 20091 (instead of 20081, 20091, 20082)
-	# (sorts in-place)
-	term_list.sort()
-
 	# St. Olaf publishes initial Fall, Interim, and Spring data in April of each year.
 	# Full data is published by August.
 	if start_year is not current_year:
@@ -442,6 +438,10 @@ def find_terms(start_year=None, end_year=None):
 			term_list += [year_plus_term(current_year, term) for term in all_terms]
 	else:
 		term_list += [year_plus_term(current_year, term) for term in all_terms]
+
+	# Sort the list of terms to 20081, 20082, 20091 (instead of 20081, 20091, 20082)
+	# (sorts in-place)
+	term_list.sort()
 
 	return term_list
 
