@@ -8,6 +8,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import xmltodict
 import functools
+import itertools
 import requests
 import sqlite3
 import time
@@ -20,17 +21,17 @@ data_path   = './'
 
 
 class Term:
-	def __init__(self, term, force=False, dry_run=False, output_type='json'):
+	def __init__(self, term, args=None):
 		self.term = term
-		self.year = int(str(self.term)[:4])  # Get the first four digits
-		self.semester  = int(str(self.term)[4])   # Get the last digit
+		self.year = int(str(self.term)[:4])      # Get the first four digits
+		self.semester  = int(str(self.term)[4])  # Get the last digit
 
-		self.dry_run = dry_run
-		self.force_download = force
-		self.output_type = output_type
+		self.dry_run = args.dry
+		self.force_download = args.force
+		self.output_type = args.output_type
 		self.courses = {}
 
-		print('Starting', self.term)
+		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
 
 		# Get the XML data, and immediately write it out.
 		self.load()
@@ -73,26 +74,26 @@ class Term:
 		return valid_data
 
 	def load(self):
-		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
-
 		if not self.force_download:
 			try:
-				print('Loading', self.term, 'from disk')
+				print('Loading', self.term)
 				raw_data = load_data_from_file(self.xml_term_path)
 			except FileNotFoundError:
-				print('Requesting', self.term, 'from server')
+				print('Requesting', self.term)
 				raw_data = self.load_data_from_server()
 		else:
-			print('Forced to request', self.term, 'from server')
+			print('Forced to request', self.term)
 			raw_data = self.load_data_from_server()
 
 		pydict = xmltodict.parse(raw_data)
 		if pydict['searchresults']:
 			self.raw_term_data = pydict['searchresults']['course']
 		else:
-			print('No data returned for', self.term)
+			print('No data for', self.term)
 
 	def process(self):
+		print('Editing', self.term)
+
 		# Process the raw data into a Python dictionary
 		with ProcessPoolExecutor(max_workers=8) as pool:
 			mapped_course_processor = functools.partial(Course, 
@@ -123,12 +124,12 @@ class Term:
 				csv_term_data = sorted(courses.values(), key=lambda course: course['clbid'])
 				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
 
-			elif self.output_type == 'json':
+			if self.output_type == 'json' or not self.output_type:
 				json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
 
 			else:
-				print('What kind of file is a "' + str(self.output_type) + '" file?')
+				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
 
 		print('Done with', self.term)
 
@@ -445,63 +446,49 @@ def find_terms(start_year=None, end_year=None):
 
 
 class Year:
-	def __init__(self, year, terms=None):
-		self.year  = year
-		self.terms = terms or find_terms(start_year=year, end_year=year)
+	def __init__(self, year, terms, args=None):
+		self.terms = terms[year]
+		self.year = year
+		self.args = args
 		self.termdata = []
-
+		self.completed = False
 
 	def process(self):
 		with ProcessPoolExecutor(max_workers=5) as pool:
-			mapped_term_processor = functools.partial(Term, 
-				force=False, 
-				output_type='json',
-				dry_run=True)
-
-			self.termdata = pool.map(mapped_term_processor, self.terms)
-			
-
-	def __repr__(self):
-		return str(self.year) + str([int(str(term)[4]) for term in self.terms])
+			mapped_term_processor = functools.partial(Term, args=self.args)
+			self.termdata = list(pool.map(mapped_term_processor, self.terms))
 
 	def get_terms(self):
-		return 
+		return str(self.year) + str([int(str(term)[4]) for term in self.terms])
 
 
-class Orchestrator:
-	def __init__(self, args):
-		# If terms are provided at the terminal, process only those terms.
-		# Otherwise, `args.terms` is None, so find_terms will run.
-		terms = args.terms or ([] if args.years else find_terms())
+def flattened(l):
+	# from http://caolanmcmahon.com/posts/flatten_for_python/
+	result = _flatten(l, lambda x: x)
+	while type(result) == list and len(result) and callable(result[0]):
+		if result[1] != []:
+			yield result[1]
+		result = result[0]([])
+	yield result
 
-		with ThreadPoolExecutor(max_workers=1) as pool:
-			years = pool.map(Year, args.years)
-			print('Terms:', [year for year in years])
 
-			print('Using cache for ')
+def _flatten(l, fn, val=[]):
+	if type(l) != list:
+		return fn(l)
+	if len(l) == 0:
+		return fn(val)
+	return [lambda x: _flatten(l[0], lambda y: _flatten(l[1:],fn,y), x), val]
 
-		# if args.years:
-		# 	for year in args.years:
-		# 		terms += find_terms(year, year)
 
-		# all_terms = []
-		# 	mapped_term_processor = functools.partial(Term, 
-		# 		force=args.force, 
-		# 		output_type='csv' if args.csv_output else 'json', 
-		# 		dry_run=args.dry)
-		# 	pool.map(mapped_term_processor, terms)
+def calculate_terms(terms, years):
+	terms = terms or []
+	years = years or []
+	calculated_terms = terms + [find_terms(start_year=year, end_year=year) for year in years]
+	return flattened(calculated_terms)
 
-		# sorted_terms = {}
-		# filtered_data = set()
-		# for course in all_terms:
-		# 	terms = ['Concurrent', 'Prerequisite', 'conjunction', 'Offered', 'Required', 'Open to']
-		# 	deptstr = '/'.join(course['depts'])
-		# 	prereqs = course.get('desc', '')
-		# 	times = ' | '.join(course.get('times', ''))
-		# 	sorted_terms[course['crsid']] = \
-		# 		str(deptstr) + ' ' + str(course['num'])
-		# 	filtered_data.add(times)
 
+def pretty(lst):
+	return ', '.join(lst)
 
 
 def main():
@@ -533,9 +520,29 @@ def main():
 
 	create_database()
 
-	orchestrator = Orchestrator(args)
+	# Create an amalgamation of single terms and entire years as terms
+	terms = calculate_terms(terms=args.terms, years=args.years)
+	termsGroupedByYears = {}
+	for key, group in itertools.groupby(terms, lambda term: int(str(term)[0:4])):
+		termsGroupedByYears[key] = list(group)
 
-	print(orchestrator.orchestrate)
+	# Fire up the Terms
+	mapped_year_processor = functools.partial(Year, args=args, terms=termsGroupedByYears)
+	years = list(map(mapped_year_processor, termsGroupedByYears))
+	print('Terms:', pretty([year.get_terms() for year in years]))
+
+	[year.process() for year in years]
+
+	# sorted_terms = {}
+	# filtered_data = set()
+	# for course in all_terms:
+	# 	terms = ['Concurrent', 'Prerequisite', 'conjunction', 'Offered', 'Required', 'Open to']
+	# 	deptstr = '/'.join(course['depts'])
+	# 	prereqs = course.get('desc', '')
+	# 	times = ' | '.join(course.get('times', ''))
+	# 	sorted_terms[course['crsid']] = \
+	# 		str(deptstr) + ' ' + str(course['num'])
+	# 	filtered_data.add(times)
 
 
 if __name__ == '__main__':
