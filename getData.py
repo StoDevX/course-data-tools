@@ -77,20 +77,20 @@ class Term:
 	def load(self):
 		if not self.force_download:
 			try:
-				print('Loading', self.term)
+				print('Loading', self.term, 'from disk')
 				raw_data = load_data_from_file(self.xml_term_path)
 			except FileNotFoundError:
-				print('Requesting', self.term)
+				print('Requesting', self.term, 'from server')
 				raw_data = self.load_data_from_server()
 		else:
-			print('Forced to request', self.term)
+			print('Forced to request', self.term, 'from server')
 			raw_data = self.load_data_from_server()
 
 		pydict = xmltodict.parse(raw_data)
 		if pydict['searchresults']:
 			self.raw_term_data = pydict['searchresults']['course']
 		else:
-			print('No data for', self.term)
+			print('No data returned for', self.term)
 
 	def process(self):
 		print('Editing', self.term)
@@ -412,6 +412,7 @@ def create_database():
 
 def year_plus_term(year, term):
 	return int(str(year) + str(term))
+
 
 def find_terms(start_year=None, end_year=None):
 	start_year    = start_year if start_year else 1994
