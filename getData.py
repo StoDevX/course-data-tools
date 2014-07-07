@@ -1,17 +1,18 @@
 #!/usr/local/bin/python3
 
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 from argparse import ArgumentParser
-from multiprocessing import Pool
-from multiprocessing.pool import ThreadPool
-import functools
 from datetime import datetime
 from bs4 import BeautifulSoup
 import xmltodict
+import functools
+import itertools
 import requests
 import sqlite3
-import json
 import time
+import json
 import csv
 import os
 import re
@@ -20,15 +21,18 @@ data_path   = './'
 
 
 class Term:
-	def __init__(self, term, force=False, dry_run=False, output_type='json'):
+	def __init__(self, term, args=None):
 		self.term = term
-		self.dry_run = dry_run
-		self.force_download = force
-		self.output_type = output_type
+		self.year = int(str(self.term)[:4])      # Get the first four digits
+		self.semester  = int(str(self.term)[4])  # Get the last digit
+
+		self.dry_run = args.dry
+		self.force_download = args.force
+		self.output_type = args.output_type
 		self.courses = {}
 
-		print('Starting', self.term)
-		create_database()
+		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
+		self.raw_term_data = None
 
 		# Get the XML data, and immediately write it out.
 		self.load()
@@ -56,7 +60,7 @@ class Term:
 
 		return request.text
 
-	def fix_invalid_xml(self):
+	def fix_invalid_xml(self, raw):
 		# Replace any invalid XML entities with &amp;
 		regex = re.compile(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)')
 		subst = "&amp;"
@@ -64,39 +68,39 @@ class Term:
 		return cleaned
 
 	def load_data_from_server(self):
-		raw_data = self.request_term_from_server(self.term)
-		valid_data = self.fix_invalid_xml()
+		raw_data = self.request_term_from_server()
+		valid_data = self.fix_invalid_xml(raw_data)
 		save_data(valid_data, self.xml_term_path)
 		print(self.xml_term_path)
 		return valid_data
 
 	def load(self):
-		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
-
 		if not self.force_download:
 			try:
-				print('Loading', self.term, 'from disk')
+				print('Loading', self.term)
 				raw_data = load_data_from_file(self.xml_term_path)
 			except FileNotFoundError:
-				print('Requesting', self.term, 'from server')
+				print('Requesting', self.term)
 				raw_data = self.load_data_from_server()
 		else:
-			print('Forced to request', self.term, 'from server')
+			print('Forced to request', self.term)
 			raw_data = self.load_data_from_server()
 
 		pydict = xmltodict.parse(raw_data)
 		if pydict['searchresults']:
 			self.raw_term_data = pydict['searchresults']['course']
 		else:
-			print('No data returned for', self.term)
+			print('No data for', self.term)
 
 	def process(self):
+		print('Editing', self.term)
+
 		# Process the raw data into a Python dictionary
-		with ThreadPool(processes=4) as pool:
+		with ProcessPoolExecutor(max_workers=8) as pool:
 			mapped_course_processor = functools.partial(Course, 
 				term=self.term, 
-				output_type=self.output_type,
-				dry_run=self.dry_run)
+				output_type=self.output_type)
+
 			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
 
 		for processed_course in mapped_courses:
@@ -121,12 +125,12 @@ class Term:
 				csv_term_data = sorted(courses.values(), key=lambda course: course['clbid'])
 				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
 
-			elif self.output_type == 'json':
+			if self.output_type == 'json' or not self.output_type:
 				json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
 
 			else:
-				print('What kind of file is a "' + str(self.output_type) + '" file?')
+				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
 
 		print('Done with', self.term)
 
@@ -155,13 +159,11 @@ course_types = {
 }
 
 class Course:
-	def __init__(self, details, term, dry_run, output_type):
+	def __init__(self, details, term, output_type):
 		self.output_type = output_type
 		self.details = details
-		self.dry_run = dry_run
 		self.term = term
 
-		self.details = {}
 		self.padded_clbid = ''
 
 		self.process()
@@ -303,7 +305,7 @@ class Course:
 		self.split_and_flip_instructors()
 		if self.details['gereqs']: self.details['gereqs'] = parse_links_for_text(self.details['gereqs'])
 		if self.details['places']: self.details['places'] = parse_links_for_text(self.details['places'])
-		if self.details['times']:  self.details['times']  = get_contents_of_br_as_list(self.details['times'])
+		if self.details['times']:  self.details['times']  = parse_paragraph_as_list(self.details['times'])
 
 	def process(self):
 		# save the full clbid
@@ -329,13 +331,11 @@ class Course:
 ######
 
 def parse_links_for_text(stringWithLinks):
-	soup = BeautifulSoup(stringWithLinks, 'lxml')
-	return [link.get_text() for link in soup.find_all('a')]
+	return [link.get_text() for link in BeautifulSoup(stringWithLinks, 'lxml').find_all('a')]
 
 
-def get_contents_of_br_as_list(stringWithBr):
-	soup = BeautifulSoup(stringWithBr, 'lxml')
-	return [item for item in soup.strings]
+def parse_paragraph_as_list(stringWithBr):
+	return [item for item in BeautifulSoup(stringWithBr, 'lxml').strings]
 
 
 def ensure_dir_exists(folder):
@@ -413,7 +413,6 @@ def create_database():
 def year_plus_term(year, term):
 	return int(str(year) + str(term))
 
-
 def find_terms(start_year=None, end_year=None):
 	start_year    = start_year if start_year else 1994
 	current_year  = end_year if end_year else datetime.now().year
@@ -428,13 +427,9 @@ def find_terms(start_year=None, end_year=None):
 	# from 2008 to the year before this one.
 	term_list = [year_plus_term(year, term) for year in most_years for term in all_terms]
 
-	# Sort the list of terms to 20081, 20082, 20091 (instead of 20081, 20091, 20082)
-	# (sorts in-place)
-	term_list.sort()
-
 	# St. Olaf publishes initial Fall, Interim, and Spring data in April of each year.
 	# Full data is published by August.
-	if start_year is not current_year:
+	if start_year is not current_year or start_year is end_year:
 		if current_month <= 3:
 			current_year += 0
 		elif current_month >= 4 and current_month <= 7:
@@ -444,7 +439,59 @@ def find_terms(start_year=None, end_year=None):
 	else:
 		term_list += [year_plus_term(current_year, term) for term in all_terms]
 
+	# Sort the list of terms to 20081, 20082, 20091 (instead of 20081, 20091, 20082)
+	# (sorts in-place)
+	term_list.sort()
+
 	return term_list
+
+
+class Year:
+	def __init__(self, year, terms, args=None):
+		self.terms = terms[year]
+		self.year = year
+		self.args = args
+		self.termdata = []
+		self.completed = False
+
+	def process(self):
+		with ProcessPoolExecutor(max_workers=5) as pool:
+			mapped_term_processor = functools.partial(Term, args=self.args)
+			self.termdata = list(pool.map(mapped_term_processor, self.terms))
+
+	def get_terms(self):
+		return str(self.year) + str([int(str(term)[4]) for term in self.terms])
+
+
+def flattened(l):
+	# from http://caolanmcmahon.com/posts/flatten_for_python/
+	result = _flatten(l, lambda x: x)
+	while type(result) == list and len(result) and callable(result[0]):
+		if result[1] != []:
+			yield result[1]
+		result = result[0]([])
+	yield result
+
+
+def _flatten(l, fn, val=[]):
+	if type(l) != list:
+		return fn(l)
+	if len(l) == 0:
+		return fn(val)
+	return [lambda x: _flatten(l[0], lambda y: _flatten(l[1:],fn,y), x), val]
+
+
+def calculate_terms(terms, years):
+	terms = terms or []
+	years = years or []
+	calculated_terms = terms + [find_terms(start_year=year, end_year=year) for year in years]
+	if not terms and not years:
+		calculated_terms = find_terms()
+	return flattened(calculated_terms)
+
+
+def pretty(lst):
+	return ', '.join(lst)
 
 
 def main():
@@ -452,56 +499,53 @@ def main():
 
 	argparser = ArgumentParser(description='Fetch term data from the SIS.')
 
-	argparser.add_argument('--terms',
-		type=int,
-		nargs='*',
-		help='Terms for which request data from the SIS')
+	argparser.add_argument('--terms', '-t',
+		type=int, nargs='*',
+		help='Terms for which to request data from the SIS.')
 
-	argparser.add_argument('--years',
-		type=int,
-		nargs='*',
-		help='Entire years for which request data from the SIS')
+	argparser.add_argument('--years', '-y',
+		type=int, nargs='*',
+		help='Entire years for which to request data from the SIS.')
 
 	argparser.add_argument('--force', '-f',
 		action='store_true',
-		help='Force reloading of the specified course')
+		help='Force reloading of the specified course.')
 
 	argparser.add_argument('--dry', '-d',
 		action='store_true',
 		help='Only print output; don\'t write files.')
 
-	argparser.add_argument('--csv-output',
-		action='store_true',
-		help='If set, the output will be in CSV files')
+	argparser.add_argument('--output-type',
+		type=str, nargs='?', choices=['json', 'csv'],
+		help='Sets the output filetype.')
 
 	args = argparser.parse_args()
 
-	# If terms are provided at the terminal, process only those terms.
-	# Otherwise, `args.terms` is None, so find_terms will run.
-	terms = args.terms or ([] if args.years else find_terms())
+	create_database()
 
-	if args.years:
-		for year in args.years:
-			terms += find_terms(year, year)
+	# Create an amalgamation of single terms and entire years as terms
+	terms = calculate_terms(terms=args.terms, years=args.years)
+	termsGroupedByYears = {}
+	for key, group in itertools.groupby(terms, lambda term: int(str(term)[0:4])):
+		termsGroupedByYears[key] = list(group)
 
-	all_terms = []
-	with Pool(processes=4) as pool:
-		mapped_term_processor = functools.partial(Term, 
-			force=args.force, 
-			output_type='csv' if args.csv_output else 'json', 
-			dry_run=args.dry)
-		pool.map(mapped_term_processor, terms)
+	# Fire up the Terms
+	mapped_year_processor = functools.partial(Year, args=args, terms=termsGroupedByYears)
+	years = list(map(mapped_year_processor, termsGroupedByYears))
+	print('Terms:', pretty([year.get_terms() for year in years]))
 
-	sorted_terms = {}
-	filtered_data = set()
-	for course in all_terms:
-		terms = ['Concurrent', 'Prerequisite', 'conjunction', 'Offered', 'Required', 'Open to']
-		deptstr = '/'.join(course['depts'])
-		prereqs = course.get('desc', '')
-		times = ' | '.join(course.get('times', ''))
-		sorted_terms[course['crsid']] = \
-			str(deptstr) + ' ' + str(course['num'])
-		filtered_data.add(times)
+	[year.process() for year in years]
+
+	# sorted_terms = {}
+	# filtered_data = set()
+	# for course in all_terms:
+	# 	terms = ['Concurrent', 'Prerequisite', 'conjunction', 'Offered', 'Required', 'Open to']
+	# 	deptstr = '/'.join(course['depts'])
+	# 	prereqs = course.get('desc', '')
+	# 	times = ' | '.join(course.get('times', ''))
+	# 	sorted_terms[course['crsid']] = \
+	# 		str(deptstr) + ' ' + str(course['num'])
+	# 	filtered_data.add(times)
 
 
 if __name__ == '__main__':
