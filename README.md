@@ -9,7 +9,7 @@ Before using this script, you'll need a some other libraries:
 
 so a `pip3 install beautifulsoup4 requests lxml xmltodict` should do it.
 
-To use:
+## Usage
 
 `python3 getData.py --years 1994 1995 --terms 20141`
 
