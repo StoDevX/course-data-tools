@@ -484,6 +484,8 @@ def calculate_terms(terms, years):
 	terms = terms or []
 	years = years or []
 	calculated_terms = terms + [find_terms(start_year=year, end_year=year) for year in years]
+	if not terms and not years:
+		calculated_terms = find_terms()
 	return flattened(calculated_terms)
 
 
