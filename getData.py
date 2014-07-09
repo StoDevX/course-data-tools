@@ -30,7 +30,7 @@ class Term:
 		self.dry_run = args.dry
 		self.force_download = args.force
 		self.output_type = args.output_type
-		self.courses = {}
+		self.courses = []
 
 		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
 		self.raw_term_data = None
@@ -106,7 +106,7 @@ class Term:
 
 		for processed_course in mapped_courses:
 			course = processed_course.details
-			self.courses[course['clbid']] = course
+			self.courses.append(course)
 
 			if not self.dry_run:
 				with sqlite3.connect('courses.db') as connection:
@@ -119,7 +119,7 @@ class Term:
 					connection.execute(query, no_list_course)
 					connection.commit()
 
-		ordered_term_data = OrderedDict(sorted(self.courses.items()))
+		ordered_term_data = sorted(self.courses, key=lambda course: course['clbid'])
 
 		if not self.dry_run:
 			if self.output_type == 'csv':
@@ -127,7 +127,7 @@ class Term:
 				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
 
 			if self.output_type == 'json' or not self.output_type:
-				json_term_data = json.dumps(ordered_term_data, indent='\t', separators=(',', ': '))
+				json_term_data = json.dumps({'courses': ordered_term_data}, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
 
 			else:
@@ -496,26 +496,29 @@ def pretty(lst):
 	return ', '.join(lst)
 
 
-def hash_files():
-	folder = 'terms'
+def json_folder_map(folders, kind):
 	output = {}
 
-	files = os.listdir(folder)
-	output[folder] = []
-	for filename in files:
-		path = folder + '/' + filename 
-		with open(path, 'rb') as infile:
-			info = {
-				'path': path, 
-				'hash': hashlib.sha1(infile.read()).hexdigest()
-			}
-			output[folder].append(OrderedDict(sorted(info.items())))
-	output[folder] = sorted(output[folder], key=lambda item: item['path'])
+	for folder_name in folders:
+		files = os.listdir(folder_name)
+		output[folder_name] = []
+		for filename in files:
+			path = folder_name + '/' + filename
+			with open(path, 'rb') as infile:
+				info = {
+					'path': path,
+					'hash': hashlib.sha1(infile.read()).hexdigest()
+				}
+				output[folder_name].append(OrderedDict(sorted(info.items())))
+		output[folder_name] = sorted(output[folder_name], key=lambda item: item['path'])
 
-	output = OrderedDict(sorted(output.items()))
+	output = OrderedDict(sorted(
+		{'info': OrderedDict(sorted(output.items())), 'type': kind}.items()
+	))
 
 	with open('info.json', 'w') as outfile:
-		outfile.write(json.dumps(output, separators=(',',':')))
+		outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
+		outfile.write('\n')
 
 	print('Hashed files; wrote info.json')
 
@@ -562,7 +565,7 @@ def main():
 
 	[year.process() for year in years]
 
-	hash_files()
+	json_folder_map(folders=['terms'], kind='courses')
 
 	# sorted_terms = {}
 	# filtered_data = set()
