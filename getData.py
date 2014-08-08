@@ -496,6 +496,10 @@ def pretty(lst):
 	return ', '.join(lst)
 
 
+def parse_year_from_filename(filename):
+	# ex: 19943.json -> 1994
+	return filename[0:4]
+
 def json_folder_map(folders, kind):
 	output = {}
 
@@ -507,7 +511,8 @@ def json_folder_map(folders, kind):
 			with open(path, 'rb') as infile:
 				info = {
 					'path': path,
-					'hash': hashlib.sha1(infile.read()).hexdigest()
+					'hash': hashlib.sha1(infile.read()).hexdigest(),
+					'year': parse_year_from_filename(filename)
 				}
 				output[folder_name].append(OrderedDict(sorted(info.items())))
 		output[folder_name] = sorted(output[folder_name], key=lambda item: item['path'])
