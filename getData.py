@@ -156,7 +156,8 @@ course_types = {
 	'S': 'Seminar',
 	'T': 'Topic',
 	'F': 'FLAC',
-	'R': 'Research'
+	'R': 'Research',
+	'E': 'Ensemble'
 }
 
 class Course:
