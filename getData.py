@@ -309,6 +309,12 @@ class Course:
 		if self.details['places']: self.details['places'] = parse_links_for_text(self.details['places'])
 		if self.details['times']:  self.details['times']  = parse_paragraph_as_list(self.details['times'])
 
+	def parse_prerequisites(self):
+		if self.details['desc'] and 'Prerequisite' in self.details['desc']:
+			desc = self.details['desc']
+			index = desc.index('Prerequisite')
+			print(desc[index:])
+
 	def process(self):
 		# save the full clbid
 		self.padded_clbid = self.details['clbid']
@@ -316,6 +322,8 @@ class Course:
 
 		# update merges two dicts
 		self.get_details()
+
+		# self.parse_prerequisites()
 
 		if self.output_type == 'csv':
 			self.details = OrderedDict(sorted(self.details.items()))

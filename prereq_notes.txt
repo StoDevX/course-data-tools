@@ -1,0 +1,50 @@
+Starts with one of `Prerequisite:`, `Prerequisites:`, or `Prerequisite/corequisite:`. Note that usage of the singular form of Prerequisite does not imply a single prerequisite.
+
+Can ignore sentences starting with "Counts towards", "Offered", "GE:", 
+
+Need to pull out things like "Materials fee", "P/N only", "offered", 'Taught in <langauge>', etc. for usage in other places.
+
+Watch out for:
+	- "Credit may be earned for either X or Y, but not both."
+	- "Prerequisite: three courses in area of study"
+	- "The course cannot be taken in conjunction with or after credit in Chemistry 121."
+	- "Open to..."
+	- "Prerequisites for certain offerings." (???!!!...)
+
+Should include some sort of "Possible Misunderstanding! Check Manually!" flag.
+
+Remove text about "Click on course title in the class and lab for more information about the course for that term." to reduce confusion within Gobbldygook.
+
+"minimum of one 270-level course (two recommended)."
+"Spanish 231 or placement."
+"high school chemistry and physics and concurrent registration in calculus (Mathematics 120 or 122)."
+"previous or concurrent registration in Chemistry 247 for 253, and 248 for 254. P/N only."
+"Chemistry 247 for 253, and 248 for 254. P/N only. Offered Fall Semester."
+"BTS-B."
+"Biology 125, or Chemistry 121 (or 125), or Physics 126, or Psychology 125. Biology 125 is strongly recommended."
+"Completion of BTS-T."
+"at least five previous courses in department."
+"two upper division courses in art history."
+"Computer Science 121 or permission of instructor. Concurrent registration in Computer Science 252 is required."
+"Approval of portfolio by department committee. For more information about this course please refer to: http://www.stolaf.edu/depts/english/courses/index.html"
+"Spanish 231 with a minimum grade of B- or equivalent preparation. Open to first-year students."
+"one of Economics 110-121 or permission of instructor. Offered most years."
+"at least one 250-level course."
+"Music 111/113. Co-requisites: Music 112, 162 (or completion of Piano Proficiency Level 2)."
+"completion of BTS-T or permission of instructor."
+"American Conversations 101."
+"Determined by individual instructor."
+"sophomore standing; one level 1 biology, chemistry, or physics course or Environmental Studies 137 strongly encouraged."
+"Statistics 110, 212 or 263, Psychology 230, four additional courses in the department, and permission of instructor."
+"FYW and sophomore status."
+"prior or concurrent enrollment in FYW."
+"Management Studies 250 or 251, senior status or permission of the instructor."
+"BTS-B, BTS-T or permission of instructor."
+"one level III course in philosophy."
+"one full-credit course in art, music, dance, or theatre, or the equivalent as approved by instructor."
+"an introductory science course."
+"BTS:B."
+"concurrent registration in Chemistry 371."
+"Great Conversation 113, 115, and 116."
+"minimum of one 250-level course (two recommended)."
+"ability to swim."
