@@ -92,6 +92,7 @@ class Term:
 			self.raw_term_data = pydict['searchresults']['course']
 		else:
 			print('No data returned for', self.term)
+			delete_file(self.xml_term_path)
 
 	def process(self):
 		print('Editing', self.term)
@@ -368,6 +369,11 @@ def save_data(data, filepath):
 		outfile.write(data)
 
 	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
+
+
+def delete_file(path):
+    os.remove(path)
+    print('Deleted', path)
 
 
 def save_data_as_csv(data, filepath):
