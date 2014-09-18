@@ -99,8 +99,8 @@ class Term:
 
 		# Process the raw data into a Python dictionary
 		with ProcessPoolExecutor(max_workers=8) as pool:
-			mapped_course_processor = functools.partial(Course, 
-				term=self.term, 
+			mapped_course_processor = functools.partial(Course,
+				term=self.term,
 				output_type=self.output_type)
 
 			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
@@ -188,7 +188,7 @@ class Course:
 			raw_data = self.request_detailed_course_data()
 			save_data(raw_data, html_term_path)
 
-		soup = BeautifulSoup(raw_data, 'lxml')
+		soup = BeautifulSoup(raw_data)
 		strings = soup('p')
 
 		apology = 'Sorry, no description'
@@ -342,11 +342,11 @@ class Course:
 ######
 
 def parse_links_for_text(stringWithLinks):
-	return [link.get_text() for link in BeautifulSoup(stringWithLinks, 'lxml').find_all('a')]
+	return [link.get_text() for link in BeautifulSoup(stringWithLinks).find_all('a')]
 
 
 def parse_paragraph_as_list(stringWithBr):
-	return [item for item in BeautifulSoup(stringWithBr, 'lxml').strings]
+	return [item for item in BeautifulSoup(stringWithBr).strings]
 
 
 def ensure_dir_exists(folder):

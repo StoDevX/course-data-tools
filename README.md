@@ -4,10 +4,9 @@ Before using this script, you'll need a some other libraries:
 - Python 3.4 or greater (3.x might work, but I haven't tested)
 - beautifulsoup4
 - requests
-- lxml
 - xmltodict
 
-so a `pip3 install beautifulsoup4 requests lxml xmltodict` should do it.
+so a `pip3 install beautifulsoup4 requests xmltodict` should do it.
 
 ## Usage
 
