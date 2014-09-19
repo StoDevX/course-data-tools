@@ -4,6 +4,19 @@ Gobbldygook Course Data
 This repository holds the data for Gobbldygook in both raw (XML) and proccessed (JSON) forms. You do not need this repository if your are only interested in using Gobbldygook; it includes this as a submodule.
 
 
+## To Update the Data ##
+
+Use Github! 
+
+1. Fork this repository
+2. Make a branch titled `data-year-month-day`, where year, month, and day become the year, month, and day, respectively
+3. Run `getData.py`
+    - I'd probably recommend `./getData.py --years 2014 -f`
+    - The `--years` argument is for the year you want to proccess
+    - The `-f` flag forces it to go fetch new data from the SIS; otherwise, it just reproccesses the local copy.
+4. Submit a pull request against my `master` branch
+
+
 ## What changes? ##
 
 - Unescape \&amp; in `coursename` (also remap to `name`)
