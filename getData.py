@@ -11,7 +11,6 @@ import functools
 import itertools
 import requests
 import hashlib
-import sqlite3
 import time
 import json
 import csv
@@ -109,17 +108,6 @@ class Term:
 			course = processed_course.details
 			self.courses.append(course)
 
-			if not self.dry_run:
-				with sqlite3.connect('courses.db') as connection:
-					c = connection.cursor()
-					# create a sql query with named placeholders automatically from the course dict
-					no_list_course = {key: '/'.join(item) if type(item) is list else item for key, item in course.items()}
-					columns = ', '.join(no_list_course.keys())
-					placeholders = ':'+', :'.join(no_list_course.keys())
-					query = 'INSERT OR REPLACE INTO courses (%s) VALUES (%s)' % (columns, placeholders)
-					connection.execute(query, no_list_course)
-					connection.commit()
-
 		ordered_term_data = sorted(self.courses, key=lambda course: course['clbid'])
 
 		if not self.dry_run:
@@ -189,8 +177,22 @@ class Course:
 			save_data(raw_data, html_term_path)
 
 		soup = BeautifulSoup(raw_data)
-		strings = soup('p')
 
+		# Clean up the HTML
+		if soup.head:
+			soup.head.decompose()
+			soup.body.find(id='bigbodymainstyle').unwrap()
+			soup.find(class_='sis-smallformfont').decompose()
+			for tag in soup.find_all('script'): tag.decompose()
+			for tag in soup.find_all(href='JavaScript:window.close();'):
+				# It's a pointless link, wrapped in two <p>s.
+				tag.parent.unwrap()
+				tag.parent.unwrap()
+				tag.decompose()
+			for tag in soup.find_all(href='JavaScript:sis_openwindow(\'http://www.stolafbookstore.com/home.aspx\');'):
+				tag.unwrap()
+
+		strings = soup('p')
 		apology = 'Sorry, no description'
 
 		# TODO: Update this to be more infallible if the description runs to
@@ -214,6 +216,12 @@ class Course:
 			self.details['desc'] = None
 		if self.details.get('title') == '':
 			self.details['title'] = None
+
+		str_soup = str(soup)
+		str_soup = re.sub(r' +', ' ', str_soup)
+		str_soup = re.sub(r'\n+', '\n', str_soup)
+
+		save_data(str_soup, html_term_path)
 
 	def break_apart_departments(self):
 		# Split apart the departments, because 'AR/AS' is actually
@@ -391,41 +399,6 @@ def save_data_as_csv(data, filepath):
 		csv_file.writerows(data)
 
 	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
-
-
-def create_database():
-	with sqlite3.connect('courses.db') as connection:
-		c = connection.cursor()
-		c.execute('''CREATE TABLE IF NOT exists courses (
-			id         INTEGER PRIMARY KEY,
-			clbid      INTEGER UNIQUE,
-			crsid      INTEGER,
-			depts      TEXT,
-			sect       TEXT,
-			num        INTEGER,
-			name       TEXT,
-			title      TEXT,
-			desc       TEXT,
-			notes      TEXT,
-			halfcredit INTEGER,
-			varcredits BOOLEAN,
-			status     TEXT,
-			type       TEXT,
-			credits    FLOAT,
-			groupid    INTEGER,
-			grouptype  TEXT,
-			pf         BOOLEAN,
-			term       TEXT,
-			year       INTEGER,
-			sem        INTEGER,
-			level      INTEGER,
-			places     TEXT,
-			times      TEXT,
-			profs      TEXT,
-			gereqs     TEXT,
-			prereqs    TEXT,
-			coreqs     TEXT)
-		''')
 
 
 ########
