@@ -178,7 +178,7 @@ class Course:
 		return request.text
 
 	def get_details(self):
-		html_term_path = data_path + 'details/' + str(self.padded_clbid) + '.html'
+		html_term_path = data_path + 'details/' + find_details_subdir(self.padded_clbid) + '.html'
 
 		try:
 			# print('Loading', self.padded_clbid, 'from disk')
@@ -360,6 +360,12 @@ def load_data_from_file(filename):
 	with open(filename, 'r') as infile:
 		content = infile.read()
 		return content
+
+
+def find_details_subdir(clbid):
+	n_thousand = int(int(clbid) / 1000)
+	thousands_subdir = (n_thousand * 1000)
+	return str(thousands_subdir).zfill(5) + '/' + str(clbid)
 
 
 def save_data(data, filepath):
