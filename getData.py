@@ -234,15 +234,15 @@ class Course:
 		# to 'William H. Bridges IV'. Oh, and do that for each professor.
 		if self.details['profs']:
 			self.details['profs'] = parse_links_for_text(self.details['profs'])
-			flippedProfs = []
+			flipped_profs = []
 			for prof in self.details['profs']:
-				stringToSplit = prof.split(',')
-				actualName = ''
-				for namePart in reversed(stringToSplit):
-					namePart = namePart.strip()
-					actualName += namePart + ' '
-				flippedProfs.append(actualName.strip())
-			self.details['profs'] = flippedProfs
+				string_to_split = prof.split(',')
+				actual_name = ''
+				for name_part in reversed(string_to_split):
+					name_part = name_part.strip()
+					actual_name += name_part + ' '
+				flipped_profs.append(actual_name.strip())
+			self.details['profs'] = flipped_profs
 
 	def clean(self):
 		# Unescape &amp; in course names
@@ -347,12 +347,12 @@ class Course:
 # Utilities
 ######
 
-def parse_links_for_text(stringWithLinks):
-	return [link.get_text() for link in BeautifulSoup(stringWithLinks).find_all('a')]
+def parse_links_for_text(string_with_links):
+	return [link.get_text() for link in BeautifulSoup(string_with_links).find_all('a')]
 
 
-def parse_paragraph_as_list(stringWithBr):
-	return [item for item in BeautifulSoup(stringWithBr).strings]
+def parse_paragraph_as_list(string_with_br):
+	return [item for item in BeautifulSoup(string_with_br).strings]
 
 
 def ensure_dir_exists(folder):
@@ -551,13 +551,13 @@ def main():
 
 	# Create an amalgamation of single terms and entire years as terms
 	terms = calculate_terms(terms=args.terms, years=args.years)
-	termsGroupedByYears = {}
+	terms_grouped_by_years = {}
 	for key, group in itertools.groupby(terms, lambda term: int(str(term)[0:4])):
-		termsGroupedByYears[key] = list(group)
+		terms_grouped_by_years[key] = list(group)
 
 	# Fire up the Terms
-	mapped_year_processor = functools.partial(Year, args=args, terms=termsGroupedByYears)
-	years = list(map(mapped_year_processor, termsGroupedByYears))
+	mapped_year_processor = functools.partial(Year, args=args, terms=terms_grouped_by_years)
+	years = list(map(mapped_year_processor, terms_grouped_by_years))
 	print('Terms:', pretty([year.get_terms() for year in years]))
 
 	[year.process() for year in years]
