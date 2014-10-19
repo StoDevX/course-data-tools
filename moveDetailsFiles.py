@@ -8,7 +8,7 @@ def load_data_from_file(filename):
 		return content
 
 def ensure_dir_exists(folder):
-	'''Make sure that a folder exists.'''
+	# Make sure that a folder exists.
 	d = os.path.dirname(folder)
 	if not os.path.exists(d):
 		os.makedirs(d)
