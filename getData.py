@@ -426,9 +426,9 @@ def find_terms(start_year=None, end_year=None):
 	if start_year is not current_year or start_year is end_year:
 		if current_month <= 3:
 			current_year += 0
-		elif current_month >= 4 and current_month <= 7:
+		elif 4 <= current_month <= 7:
 			term_list += [year_plus_term(current_year, term) for term in limited_terms]
-		elif current_month >= 8:
+		else:
 			term_list += [year_plus_term(current_year, term) for term in all_terms]
 	else:
 		term_list += [year_plus_term(current_year, term) for term in all_terms]
