@@ -108,13 +108,13 @@ class Term:
 		ordered_term_data = sorted(self.courses, key=lambda c: c['clbid'])
 
 		if not self.dry_run:
-			if self.output_type == 'csv':
-				csv_term_data = sorted(courses.values(), key=lambda course: course['clbid'])
-				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
-
 			if self.output_type == 'json' or not self.output_type:
 				json_term_data = json.dumps({'courses': ordered_term_data}, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
+
+			elif self.output_type == 'csv':
+				csv_term_data = sorted(ordered_term_data, key=lambda c: c['clbid'])
+				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
 
 			else:
 				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
@@ -380,7 +380,7 @@ def save_data(data, filepath):
 	with open(filepath, mode='w+', newline='\n') as outfile:
 		outfile.write(data)
 
-	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
+	# print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
 
 
 def delete_file(path):
