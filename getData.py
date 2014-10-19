@@ -1,7 +1,6 @@
 #!/usr/local/bin/python3
 
 from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 from argparse import ArgumentParser
 from datetime import datetime
@@ -11,7 +10,6 @@ import functools
 import itertools
 import requests
 import hashlib
-import sqlite3
 import time
 import json
 import csv
@@ -24,8 +22,8 @@ data_path   = './'
 class Term:
 	def __init__(self, term, args=None):
 		self.term = term
-		self.year = int(str(self.term)[:4])      # Get the first four digits
-		self.semester  = int(str(self.term)[4])  # Get the last digit
+		self.year = int(str(self.term)[:4])    # Get the first four digits
+		self.semester = int(str(self.term)[4]) # Get the last digit
 
 		self.dry_run = args.dry
 		self.force_download = args.force
@@ -44,9 +42,9 @@ class Term:
 
 	def request_term_from_server(self):
 		url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?searchyearterm=' \
-			+  str(self.term) \
+			+ str(self.term) \
 			+ '&searchkeywords=&searchdepts=&searchgereqs=&searchopenonly=off&' \
-			+ 'searchlabonly=off&searchfsnum=&searchtimeblock=' \
+			+ 'searchlabonly=off&searchfsnum=&searchtimeblock='
 
 		request = requests.get(url)
 
@@ -64,7 +62,7 @@ class Term:
 	def fix_invalid_xml(self, raw):
 		# Replace any invalid XML entities with &amp;
 		regex = re.compile(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)')
-		subst = "&amp;"
+		subst = '&amp;'
 		cleaned = re.sub(regex, subst, raw)
 		return cleaned
 
@@ -99,9 +97,7 @@ class Term:
 
 		# Process the raw data into a Python dictionary
 		with ProcessPoolExecutor(max_workers=8) as pool:
-			mapped_course_processor = functools.partial(Course,
-				term=self.term,
-				output_type=self.output_type)
+			mapped_course_processor = functools.partial(Course, term=self.term, output_type=self.output_type)
 
 			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
 
@@ -109,27 +105,16 @@ class Term:
 			course = processed_course.details
 			self.courses.append(course)
 
-			if not self.dry_run:
-				with sqlite3.connect('courses.db') as connection:
-					c = connection.cursor()
-					# create a sql query with named placeholders automatically from the course dict
-					no_list_course = {key: '/'.join(item) if type(item) is list else item for key, item in course.items()}
-					columns = ', '.join(no_list_course.keys())
-					placeholders = ':'+', :'.join(no_list_course.keys())
-					query = 'INSERT OR REPLACE INTO courses (%s) VALUES (%s)' % (columns, placeholders)
-					connection.execute(query, no_list_course)
-					connection.commit()
-
-		ordered_term_data = sorted(self.courses, key=lambda course: course['clbid'])
+		ordered_term_data = sorted(self.courses, key=lambda c: c['clbid'])
 
 		if not self.dry_run:
-			if self.output_type == 'csv':
-				csv_term_data = sorted(courses.values(), key=lambda course: course['clbid'])
-				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
-
 			if self.output_type == 'json' or not self.output_type:
 				json_term_data = json.dumps({'courses': ordered_term_data}, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
+
+			elif self.output_type == 'csv':
+				csv_term_data = sorted(ordered_term_data, key=lambda c: c['clbid'])
+				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
 
 			else:
 				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
@@ -161,6 +146,7 @@ course_types = {
 	'E': 'Ensemble'
 }
 
+
 class Course:
 	def __init__(self, details, term, output_type):
 		self.output_type = output_type
@@ -178,7 +164,7 @@ class Course:
 		return request.text
 
 	def get_details(self):
-		html_term_path = data_path + 'details/' + str(self.padded_clbid) + '.html'
+		html_term_path = data_path + 'details/' + find_details_subdir(self.padded_clbid) + '.html'
 
 		try:
 			# print('Loading', self.padded_clbid, 'from disk')
@@ -189,12 +175,25 @@ class Course:
 			save_data(raw_data, html_term_path)
 
 		soup = BeautifulSoup(raw_data)
-		strings = soup('p')
 
+		# Clean up the HTML
+		if soup.head:
+			soup.head.decompose()
+			soup.body.find(id='bigbodymainstyle').unwrap()
+			soup.find(class_='sis-smallformfont').decompose()
+			for tag in soup.find_all('script'): tag.decompose()
+			for tag in soup.find_all(href='JavaScript:window.close();'):
+				# It's a pointless link, wrapped in two <p>s.
+				tag.parent.unwrap()
+				tag.parent.unwrap()
+				tag.decompose()
+			for tag in soup.find_all(href='JavaScript:sis_openwindow(\'http://www.stolafbookstore.com/home.aspx\');'):
+				tag.unwrap()
+
+		strings = soup('p')
 		apology = 'Sorry, no description'
 
-		# TODO: Update this to be more infallible if the description runs to
-		# multiple lines.
+		# TODO: Update this to be more infallible if the description runs to multiple lines.
 
 		if apology in strings[0].text or apology in strings[1].text:
 			self.details['desc'] = strings[0].text
@@ -215,6 +214,12 @@ class Course:
 		if self.details.get('title') == '':
 			self.details['title'] = None
 
+		str_soup = str(soup)
+		str_soup = re.sub(r' +', ' ', str_soup)
+		str_soup = re.sub(r'\n+', '\n', str_soup)
+
+		save_data(str_soup, html_term_path)
+
 	def break_apart_departments(self):
 		# Split apart the departments, because 'AR/AS' is actually
 		# ['ART', 'ASIAN'] departments.
@@ -228,15 +233,15 @@ class Course:
 		# to 'William H. Bridges IV'. Oh, and do that for each professor.
 		if self.details['profs']:
 			self.details['profs'] = parse_links_for_text(self.details['profs'])
-			flippedProfs = []
+			flipped_profs = []
 			for prof in self.details['profs']:
-				stringToSplit = prof.split(',')
-				actualName = ''
-				for namePart in reversed(stringToSplit):
-					namePart = namePart.strip()
-					actualName += namePart + ' '
-				flippedProfs.append(actualName.strip())
-			self.details['profs'] = flippedProfs
+				string_to_split = prof.split(',')
+				actual_name = ''
+				for name_part in reversed(string_to_split):
+					name_part = name_part.strip()
+					actual_name += name_part + ' '
+				flipped_profs.append(actual_name.strip())
+			self.details['profs'] = flipped_profs
 
 	def clean(self):
 		# Unescape &amp; in course names
@@ -276,7 +281,8 @@ class Course:
 		del self.details['coursenumber']
 		self.details['credits'] = float(self.details['credits'])
 		self.details['crsid']   = int(self.details['crsid'])
-		if self.details['groupid']: self.details['groupid'] = int(self.details['groupid'])
+		if self.details['groupid']:
+			self.details['groupid'] = int(self.details['groupid'])
 
 		# Turn booleans into booleans
 		self.details['pf'] = True if self.details['pn'] is 'Y' else False
@@ -341,16 +347,16 @@ class Course:
 # Utilities
 ######
 
-def parse_links_for_text(stringWithLinks):
-	return [link.get_text() for link in BeautifulSoup(stringWithLinks).find_all('a')]
+def parse_links_for_text(string_with_links):
+	return [link.get_text() for link in BeautifulSoup(string_with_links).find_all('a')]
 
 
-def parse_paragraph_as_list(stringWithBr):
-	return [item for item in BeautifulSoup(stringWithBr).strings]
+def parse_paragraph_as_list(string_with_br):
+	return [item for item in BeautifulSoup(string_with_br).strings]
 
 
 def ensure_dir_exists(folder):
-	'''Make sure that a folder exists.'''
+	# Make sure that a folder exists.
 	d = os.path.dirname(folder)
 	if not os.path.exists(d):
 		os.makedirs(d)
@@ -362,18 +368,24 @@ def load_data_from_file(filename):
 		return content
 
 
+def find_details_subdir(clbid):
+	n_thousand = int(int(clbid) / 1000)
+	thousands_subdir = (n_thousand * 1000)
+	return str(thousands_subdir).zfill(5) + '/' + str(clbid)
+
+
 def save_data(data, filepath):
 	ensure_dir_exists(filepath)
 	filename = os.path.split(filepath)[1]
 	with open(filepath, mode='w+', newline='\n') as outfile:
 		outfile.write(data)
 
-	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
+	# print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
 
 
 def delete_file(path):
-    os.remove(path)
-    print('Deleted', path)
+	os.remove(path)
+	print('Deleted', path)
 
 
 def save_data_as_csv(data, filepath):
@@ -385,41 +397,6 @@ def save_data_as_csv(data, filepath):
 		csv_file.writerows(data)
 
 	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
-
-
-def create_database():
-	with sqlite3.connect('courses.db') as connection:
-		c = connection.cursor()
-		c.execute('''CREATE TABLE IF NOT exists courses (
-			id         INTEGER PRIMARY KEY,
-			clbid      INTEGER UNIQUE,
-			crsid      INTEGER,
-			depts      TEXT,
-			sect       TEXT,
-			num        INTEGER,
-			name       TEXT,
-			title      TEXT,
-			desc       TEXT,
-			notes      TEXT,
-			halfcredit INTEGER,
-			varcredits BOOLEAN,
-			status     TEXT,
-			type       TEXT,
-			credits    FLOAT,
-			groupid    INTEGER,
-			grouptype  TEXT,
-			pf         BOOLEAN,
-			term       TEXT,
-			year       INTEGER,
-			sem        INTEGER,
-			level      INTEGER,
-			places     TEXT,
-			times      TEXT,
-			profs      TEXT,
-			gereqs     TEXT,
-			prereqs    TEXT,
-			coreqs     TEXT)
-		''')
 
 
 ########
@@ -434,7 +411,6 @@ def find_terms(start_year=None, end_year=None):
 	start_year    = start_year if start_year else 1994
 	current_year  = end_year if end_year else datetime.now().year
 	current_month = datetime.now().month
-	term_list     = []
 
 	most_years    = [year for year in range(start_year, current_year)]
 	all_terms     = [1, 2, 3, 4, 5]
@@ -449,9 +425,9 @@ def find_terms(start_year=None, end_year=None):
 	if start_year is not current_year or start_year is end_year:
 		if current_month <= 3:
 			current_year += 0
-		elif current_month >= 4 and current_month <= 7:
+		elif 4 <= current_month <= 7:
 			term_list += [year_plus_term(current_year, term) for term in limited_terms]
-		elif current_month >= 8:
+		else:
 			term_list += [year_plus_term(current_year, term) for term in all_terms]
 	else:
 		term_list += [year_plus_term(current_year, term) for term in all_terms]
@@ -480,6 +456,15 @@ class Year:
 		return str(self.year) + str([int(str(term)[4]) for term in self.terms])
 
 
+def _flatten(l, fn, val=None):
+	if not val: val = []
+	if type(l) != list:
+		return fn(l)
+	if len(l) == 0:
+		return fn(val)
+	return [lambda x: _flatten(l[0], lambda y: _flatten(l[1:],fn,y), x), val]
+
+
 def flattened(l):
 	# from http://caolanmcmahon.com/posts/flatten_for_python/
 	result = _flatten(l, lambda x: x)
@@ -488,14 +473,6 @@ def flattened(l):
 			yield result[1]
 		result = result[0]([])
 	yield result
-
-
-def _flatten(l, fn, val=[]):
-	if type(l) != list:
-		return fn(l)
-	if len(l) == 0:
-		return fn(val)
-	return [lambda x: _flatten(l[0], lambda y: _flatten(l[1:],fn,y), x), val]
 
 
 def calculate_terms(terms, years):
@@ -514,6 +491,7 @@ def pretty(lst):
 def parse_year_from_filename(filename):
 	# ex: 19943.json -> 1994
 	return filename[0:4]
+
 
 def json_folder_map(folders, kind):
 	output = {}
@@ -570,17 +548,15 @@ def main():
 
 	args = argparser.parse_args()
 
-	create_database()
-
 	# Create an amalgamation of single terms and entire years as terms
 	terms = calculate_terms(terms=args.terms, years=args.years)
-	termsGroupedByYears = {}
+	terms_grouped_by_years = {}
 	for key, group in itertools.groupby(terms, lambda term: int(str(term)[0:4])):
-		termsGroupedByYears[key] = list(group)
+		terms_grouped_by_years[key] = list(group)
 
 	# Fire up the Terms
-	mapped_year_processor = functools.partial(Year, args=args, terms=termsGroupedByYears)
-	years = list(map(mapped_year_processor, termsGroupedByYears))
+	mapped_year_processor = functools.partial(Year, args=args, terms=terms_grouped_by_years)
+	years = list(map(mapped_year_processor, terms_grouped_by_years))
 	print('Terms:', pretty([year.get_terms() for year in years]))
 
 	[year.process() for year in years]

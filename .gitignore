@@ -2,3 +2,4 @@
 courses.db
 __pycache__
 *.db-journal
+.idea
