@@ -547,8 +547,6 @@ def main():
 
 	args = argparser.parse_args()
 
-	create_database()
-
 	# Create an amalgamation of single terms and entire years as terms
 	terms = calculate_terms(terms=args.terms, years=args.years)
 	terms_grouped_by_years = {}
