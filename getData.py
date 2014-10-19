@@ -41,9 +41,10 @@ class Term:
 		self.process()
 
 	def request_term_from_server(self):
-		url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?searchyearterm=%s' \
+		url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?searchyearterm=' \
+			+ str(self.term) \
 			+ '&searchkeywords=&searchdepts=&searchgereqs=&searchopenonly=off&' \
-			+ 'searchlabonly=off&searchfsnum=&searchtimeblock=' % (str(self.term))
+			+ 'searchlabonly=off&searchfsnum=&searchtimeblock='
 
 		request = requests.get(url)
 
