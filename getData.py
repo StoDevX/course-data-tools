@@ -411,7 +411,6 @@ def find_terms(start_year=None, end_year=None):
 	start_year    = start_year if start_year else 1994
 	current_year  = end_year if end_year else datetime.now().year
 	current_month = datetime.now().month
-	term_list     = []
 
 	most_years    = [year for year in range(start_year, current_year)]
 	all_terms     = [1, 2, 3, 4, 5]
