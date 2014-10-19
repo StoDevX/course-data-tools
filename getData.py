@@ -455,6 +455,15 @@ class Year:
 		return str(self.year) + str([int(str(term)[4]) for term in self.terms])
 
 
+def _flatten(l, fn, val=None):
+	if not val: val = []
+	if type(l) != list:
+		return fn(l)
+	if len(l) == 0:
+		return fn(val)
+	return [lambda x: _flatten(l[0], lambda y: _flatten(l[1:],fn,y), x), val]
+
+
 def flattened(l):
 	# from http://caolanmcmahon.com/posts/flatten_for_python/
 	result = _flatten(l, lambda x: x)
@@ -463,14 +472,6 @@ def flattened(l):
 			yield result[1]
 		result = result[0]([])
 	yield result
-
-
-def _flatten(l, fn, val=[]):
-	if type(l) != list:
-		return fn(l)
-	if len(l) == 0:
-		return fn(val)
-	return [lambda x: _flatten(l[0], lambda y: _flatten(l[1:],fn,y), x), val]
 
 
 def calculate_terms(terms, years):
