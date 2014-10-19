@@ -1,7 +1,6 @@
 #!/usr/local/bin/python3
 
 from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 from argparse import ArgumentParser
 from datetime import datetime
