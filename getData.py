@@ -22,8 +22,8 @@ data_path   = './'
 class Term:
 	def __init__(self, term, args=None):
 		self.term = term
-		self.year = int(str(self.term)[:4])      # Get the first four digits
-		self.semester  = int(str(self.term)[4])  # Get the last digit
+		self.year = int(str(self.term)[:4])    # Get the first four digits
+		self.semester = int(str(self.term)[4]) # Get the last digit
 
 		self.dry_run = args.dry
 		self.force_download = args.force
@@ -61,7 +61,7 @@ class Term:
 	def fix_invalid_xml(self, raw):
 		# Replace any invalid XML entities with &amp;
 		regex = re.compile(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)')
-		subst = "&amp;"
+		subst = '&amp;'
 		cleaned = re.sub(regex, subst, raw)
 		return cleaned
 
@@ -96,9 +96,7 @@ class Term:
 
 		# Process the raw data into a Python dictionary
 		with ProcessPoolExecutor(max_workers=8) as pool:
-			mapped_course_processor = functools.partial(Course,
-				term=self.term,
-				output_type=self.output_type)
+			mapped_course_processor = functools.partial(Course, term=self.term, output_type=self.output_type)
 
 			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
 
@@ -106,7 +104,7 @@ class Term:
 			course = processed_course.details
 			self.courses.append(course)
 
-		ordered_term_data = sorted(self.courses, key=lambda course: course['clbid'])
+		ordered_term_data = sorted(self.courses, key=lambda c: c['clbid'])
 
 		if not self.dry_run:
 			if self.output_type == 'csv':
@@ -146,6 +144,7 @@ course_types = {
 	'R': 'Research',
 	'E': 'Ensemble'
 }
+
 
 class Course:
 	def __init__(self, details, term, output_type):
@@ -193,8 +192,7 @@ class Course:
 		strings = soup('p')
 		apology = 'Sorry, no description'
 
-		# TODO: Update this to be more infallible if the description runs to
-		# multiple lines.
+		# TODO: Update this to be more infallible if the description runs to multiple lines.
 
 		if apology in strings[0].text or apology in strings[1].text:
 			self.details['desc'] = strings[0].text
@@ -282,7 +280,8 @@ class Course:
 		del self.details['coursenumber']
 		self.details['credits'] = float(self.details['credits'])
 		self.details['crsid']   = int(self.details['crsid'])
-		if self.details['groupid']: self.details['groupid'] = int(self.details['groupid'])
+		if self.details['groupid']:
+			self.details['groupid'] = int(self.details['groupid'])
 
 		# Turn booleans into booleans
 		self.details['pf'] = True if self.details['pn'] is 'Y' else False
@@ -356,7 +355,7 @@ def parse_paragraph_as_list(string_with_br):
 
 
 def ensure_dir_exists(folder):
-	'''Make sure that a folder exists.'''
+	# Make sure that a folder exists.
 	d = os.path.dirname(folder)
 	if not os.path.exists(d):
 		os.makedirs(d)
@@ -384,8 +383,8 @@ def save_data(data, filepath):
 
 
 def delete_file(path):
-    os.remove(path)
-    print('Deleted', path)
+	os.remove(path)
+	print('Deleted', path)
 
 
 def save_data_as_csv(data, filepath):
@@ -490,6 +489,7 @@ def pretty(lst):
 def parse_year_from_filename(filename):
 	# ex: 19943.json -> 1994
 	return filename[0:4]
+
 
 def json_folder_map(folders, kind):
 	output = {}
