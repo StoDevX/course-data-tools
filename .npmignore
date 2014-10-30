@@ -1,6 +1,6 @@
-details
-raw_xml
-compressed_terms
+details/*
+raw_xml/*
+compressed_terms/*
 *.py
 *.txt
 .gitattributes
