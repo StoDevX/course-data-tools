@@ -3,4 +3,7 @@ raw_xml/*
 compressed_terms/*
 *.py
 *.txt
-.gitattributes
+.DS_Store
+.git*
+.idea
+.npmignore
