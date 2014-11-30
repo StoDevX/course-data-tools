@@ -567,7 +567,8 @@ def main():
 
 	[year.process() for year in years]
 
-	json_folder_map(folders=['terms'], kind='courses')
+	if not args.dry:
+		json_folder_map(folders=['terms'], kind='courses')
 
 	# sorted_terms = {}
 	# filtered_data = set()
