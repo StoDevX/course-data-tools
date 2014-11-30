@@ -17,6 +17,7 @@ import os
 import re
 
 data_path   = './'
+quiet = False
 
 departments = {
 	'AR': 'ART',
@@ -96,19 +97,19 @@ class Term:
 		raw_data = self.request_term_from_server()
 		valid_data = self.fix_invalid_xml(raw_data)
 		save_data(valid_data, self.xml_term_path)
-		print(self.xml_term_path)
+		if not quiet: print(self.xml_term_path)
 		return valid_data
 
 	def load(self):
 		if not self.force_download:
 			try:
-				print('Loading', self.term, 'from disk')
+				if not quiet: print('Loading', self.term, 'from disk')
 				raw_data = load_data_from_file(self.xml_term_path)
 			except FileNotFoundError:
-				print('Requesting', self.term, 'from server')
+				if not quiet: print('Requesting', self.term, 'from server')
 				raw_data = self.load_data_from_server()
 		else:
-			print('Forced to request', self.term, 'from server')
+			if not quiet: print('Forced to request', self.term, 'from server')
 			raw_data = self.load_data_from_server()
 
 		pydict = xmltodict.parse(raw_data)
@@ -120,11 +121,11 @@ class Term:
 			if type(self.raw_term_data) is not list:
 				self.raw_term_data = [self.raw_term_data]
 		else:
-			print('No data returned for', self.term)
+			if not quiet: print('No data returned for', self.term)
 			delete_file(self.xml_term_path)
 
 	def process(self):
-		print('Editing', self.term)
+		if not quiet: print('Editing', self.term)
 
 		# Process the raw data into a Python dictionary
 		with ProcessPoolExecutor(max_workers=8) as pool:
@@ -150,7 +151,7 @@ class Term:
 			else:
 				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
 
-		print('Done with', self.term)
+		if not quiet: print('Done with', self.term)
 
 
 class Course:
@@ -173,10 +174,10 @@ class Course:
 		html_term_path = data_path + 'details/' + find_details_subdir(self.padded_clbid) + '.html'
 
 		try:
-			# print('Loading', self.padded_clbid, 'from disk')
+			# if not quiet: print('Loading', self.padded_clbid, 'from disk')
 			raw_data = load_data_from_file(html_term_path)
 		except FileNotFoundError:
-			# print('Nope. Requesting', self.padded_clbid, 'from server')
+			# if not quiet: print('Nope. Requesting', self.padded_clbid, 'from server')
 			raw_data = self.request_detailed_course_data()
 			save_data(raw_data, html_term_path)
 
@@ -386,12 +387,12 @@ def save_data(data, filepath):
 	with open(filepath, mode='w+', newline='\n') as outfile:
 		outfile.write(data)
 
-	# print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
+	# if not quiet: print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
 
 
 def delete_file(path):
 	os.remove(path)
-	print('Deleted', path)
+	if not quiet: print('Deleted', path)
 
 
 def save_data_as_csv(data, filepath):
@@ -402,7 +403,7 @@ def save_data_as_csv(data, filepath):
 		csv_file.writeheader()
 		csv_file.writerows(data)
 
-	print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
+	if not quiet: print('Wrote', filename, 'term data; %d bytes.' % (len(data)))
 
 
 ########
@@ -524,11 +525,12 @@ def json_folder_map(folders, kind):
 		outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
 		outfile.write('\n')
 
-	print('Hashed files; wrote info.json')
+	if not quiet: print('Hashed files; wrote info.json')
 
 
 def main():
 	global output_type
+	global quiet
 
 	argparser = ArgumentParser(description='Fetch term data from the SIS.')
 
@@ -548,11 +550,16 @@ def main():
 		action='store_true',
 		help='Only print output; don\'t write files.')
 
+	argparser.add_argument('--quiet', '-q',
+		action='store_true',
+		help='Silence logging; mostly used when looking for data.')
+
 	argparser.add_argument('--output-type',
 		type=str, nargs='?', choices=['json', 'csv'],
 		help='Sets the output filetype.')
 
 	args = argparser.parse_args()
+	quiet = args.quiet
 
 	# Create an amalgamation of single terms and entire years as terms
 	terms = calculate_terms(terms=args.terms, years=args.years)
@@ -563,7 +570,7 @@ def main():
 	# Fire up the Terms
 	mapped_year_processor = functools.partial(Year, args=args, terms=terms_grouped_by_years)
 	years = list(map(mapped_year_processor, terms_grouped_by_years))
-	print('Terms:', pretty([year.get_terms() for year in years]))
+	if not quiet: print('Terms:', pretty([year.get_terms() for year in years]))
 
 	[year.process() for year in years]
 
