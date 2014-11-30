@@ -3,10 +3,12 @@ Gobbldygook Course Data
 
 This repository holds the data for Gobbldygook in both raw (XML) and proccessed (JSON) forms. You do not need this repository if your are only interested in using Gobbldygook; it includes this as a submodule.
 
+(Note for the future: I tried including this via `npm`, but `npm` only parses `.npmignore`/`files` when pushing to the registry.)
+
 
 ## To Update the Data ##
 
-Use Github! 
+Use Github!
 
 1. Fork this repository
 2. Make a branch titled `data-year-month-day`, where year, month, and day become the year, month, and day, respectively
@@ -58,7 +60,7 @@ Before using this script, you'll need a some other libraries:
 
 so a `pip3 install beautifulsoup4 requests xmltodict` should do it.
 
-As an additional note, I *highly* reccommend using [Homebrew](http://brew.sh) to install/update Python. 
+As an additional note, I *highly* reccommend using [Homebrew](http://brew.sh) to install/update Python.
 
 
 ### Usage ###
