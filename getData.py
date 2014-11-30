@@ -112,7 +112,12 @@ class Term:
 
 		pydict = xmltodict.parse(raw_data)
 		if pydict['searchresults']:
+			# If there is only one course for a semester, then raw_term_data
+			# is just an object; otherwise, it's a list. We need to ensure that
+			# it is always a list.
 			self.raw_term_data = pydict['searchresults']['course']
+			if type(self.raw_term_data) is not list:
+				self.raw_term_data = [self.raw_term_data]
 		else:
 			print('No data returned for', self.term)
 			delete_file(self.xml_term_path)
