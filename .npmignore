@@ -1,9 +1,0 @@
-details/*
-raw_xml/*
-compressed_terms/*
-*.py
-*.txt
-.DS_Store
-.git*
-.idea
-.npmignore
