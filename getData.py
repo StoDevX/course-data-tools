@@ -18,6 +18,31 @@ import re
 
 data_path   = './'
 
+departments = {
+	'AR': 'ART',
+	'AS': 'ASIAN',
+	'BI': 'BIO',
+	'CH': 'CHEM',
+	'EC': 'ECON',
+	'ES': 'ENVST',
+	'HI': 'HIST',
+	'MU': 'MUSIC',
+	'PH': 'PHIL',
+	'PS': 'PSCI',
+	'RE': 'REL',
+	'SA': 'SOAN'
+}
+
+course_types = {
+	'L': 'Lab',
+	'D': 'Discussion',
+	'S': 'Seminar',
+	'T': 'Topic',
+	'F': 'FLAC',
+	'R': 'Research',
+	'E': 'Ensemble'
+}
+
 
 class Term:
 	def __init__(self, term, args=None):
@@ -120,31 +145,6 @@ class Term:
 				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
 
 		print('Done with', self.term)
-
-departments = {
-	'AR': 'ART',
-	'AS': 'ASIAN',
-	'BI': 'BIO',
-	'CH': 'CHEM',
-	'EC': 'ECON',
-	'ES': 'ENVST',
-	'HI': 'HIST',
-	'MU': 'MUSIC',
-	'PH': 'PHIL',
-	'PS': 'PSCI',
-	'RE': 'REL',
-	'SA': 'SOAN'
-}
-
-course_types = {
-	'L': 'Lab',
-	'D': 'Discussion',
-	'S': 'Seminar',
-	'T': 'Topic',
-	'F': 'FLAC',
-	'R': 'Research',
-	'E': 'Ensemble'
-}
 
 
 class Course:
