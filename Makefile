@@ -8,7 +8,7 @@ publish:
 	git pull --rebase
 
 	@echo
-	@echo "Prior version: `npm version | grep gobbldygook-course-data`"
+	@echo "Prior version: `npm version | grep sto-courses`"
 	@echo "<major>.<minor>.<date-updated>.<patch>"
 	@echo "Increment numbers as needed."
 	@echo
@@ -18,9 +18,4 @@ publish:
 
 	git push --follow-tags
 
-	node scripts/create-github-release.js
-
-dist:
-	mkdir -p dist/
-	tar -c terms info.json package.json | gzip > dist/data.tar.gz
-
+	npm publish
