@@ -18,12 +18,9 @@ publish:
 
 	git push --follow-tags
 
-prepare-install:
-	rm -rf details/
-	rm -rf raw_xml/
-	# rm -rf playground/
-	# rm -rf scripts/
-	# rm getData.py
-	# rm .gitattributes .gitignore
-	# rm README.md
-	# rm Makefile
+	node scripts/create-github-release.js
+
+dist:
+	mkdir -p dist/
+	tar -c terms info.json package.json | gzip > dist/data.tar.gz
+
