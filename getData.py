@@ -329,10 +329,59 @@ class Course:
 			index = desc.index('Prerequisite')
 			print(desc[index:])
 
+	def extract_notes(self):
+		if self.details['notes'] and 'Will also meet' in self.details['notes']:
+			info = '[%d%d] %s (%s %d | %d %d):\n\t%s\n\t%s %s' % (
+				self.details['year'], self.details['sem'], self.details['type'][0], '/'.join(self.details['depts']), self.details['num'], self.details['clbid'], self.details['crsid'],
+				self.details['notes'],
+				self.details['times'], self.details['places']
+			)
+
+			# get the timestring and location string out of the notes field
+			notes_into_time_and_location_regex = r'.*meet ([MTWF][/-]?.*) in (.*)\.'
+			results = re.search(notes_into_time_and_location_regex, self.details['notes'])
+			extra_times, extra_locations = results.groups()
+			# print(info + '\n\t' + 'regex matches:', [extra_times, extra_locations])
+			print(extra_times)
+
+			# split_time_regex =
+
+			split_location_regex = r'(\w+ ?\d+)(?: or ?(\w+ ?\d+))?'
+
+			# expandedDays = {
+			# 	'M':  'Mo',
+			# 	'T':  'Tu',
+			# 	'W':  'We',
+			# 	'Th': 'Th',
+			# 	'F':  'Fr'
+			# }
+
+			# listOfDays = []
+
+			# if '-' in daystring:
+			# 	# M-F, M-Th, T-F
+			# 	sequence = ['M', 'T', 'W', 'Th', 'F']
+			# 	startDay = daystring.split('-')[0]
+			# 	endDay = daystring.split('-')[1]
+			# 	listOfDays = sequence.slice(
+			# 		sequence.indexOf(startDay),
+			# 		sequence.indexOf(endDay) + 1
+			# 	)
+			# else:
+			# 	# MTThFW
+			# 	spacedOutDays = daystring.replace(/([a-z]*)([A-Z])/g, '$1 $2')
+			# 	# The regex sticks an extra space at the front. trim() it.
+			# 	spacedOutDays = spacedOutDays.trim()
+			# 	listOfDays = spacedOutDays.split(' ')
+
+			# # 'M' => 'Mo'
+			# return list(map(lambda day: expandedDays[day], listOfDays))
+
 	def process(self):
 		# save the full clbid
 		self.padded_clbid = self.details['clbid']
 		self.clean()
+		# self.extract_notes()
 
 		# update merges two dicts
 		self.get_details()
