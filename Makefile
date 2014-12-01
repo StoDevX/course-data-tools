@@ -7,10 +7,16 @@ update:
 publish:
 	git pull --rebase
 
+	@echo
+	@echo "Prior version: `npm version | grep gobbldygook-course-data`"
+	@echo "<major>.<minor>.<date-updated>.<patch>"
+	@echo "Increment numbers as needed."
+	@echo
+
 	read -p "Version: "  version; \
   npm version $$version --message "v%s"
 
-	# git push --follow-tags
+	git push --follow-tags
 
 prepare-install:
 	rm -rf details/
