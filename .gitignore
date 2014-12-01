@@ -1,5 +1,4 @@
 .DS_Store
-courses.db
 __pycache__
-*.db-journal
-.idea
+dist/
+node_modules/
