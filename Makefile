@@ -1,4 +1,4 @@
-.PHONY: clean update
+.PHONY: update publish dist
 
 update:
 	# date +"%Y" is the current year
