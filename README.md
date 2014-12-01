@@ -5,6 +5,17 @@ This repository holds the data for Gobbldygook in both raw (XML) and proccessed 
 
 (Note for the future: I tried including this via `npm`, but `npm` only parses `.npmignore`/`files` when pushing to the registry.)
 
+Package versioning: I'm trying to use [semver]. Therefore
+
+- the first number is incremented for non-backwards-compatible changes to the package format,
+- the second number is incremented for other stuff,
+- the third number is the date on which the data was updated,
+- and the fourth number is incremented when:
+    - you need to push multiple versions on the same day
+    - you are playing around with something in getData
+    - etc.
+
+Examples: `2.1.2014-11-30.0`
 
 ## To Update the Data ##
 
