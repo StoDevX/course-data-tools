@@ -79,11 +79,25 @@ class Term:
 	def load_data_from_server(self):
 		raw_data = self.request_term_from_server()
 		valid_data = self.fix_invalid_xml(raw_data)
-		save_data(valid_data, self.xml_term_path)
+		xmldict = xmltodict.parse(valid_data)
+
+		# TODO: Merge this bit with the similar bit below, in load.
+		# I don't know where, but they serve the same purpose, just at different spots.
+
+		reparsed_data = ''
+		if xmldict['searchresults']:
+			if type(xmldict['searchresults']['course']) is not list:
+				xmldict['searchresults']['course'] = [xmldict['searchresults']['course']]
+			xmldict['searchresults']['course'] = sorted(xmldict['searchresults']['course'], key=lambda c: c['clbid'])
+			reparsed_data = xmltodict.unparse(xmldict, pretty=True)
+
+		save_data(reparsed_data, self.xml_term_path)
+
 		if not quiet: print(self.xml_term_path)
 		return valid_data
 
 	def load(self):
+		raw_data = ''
 		if not self.force_download:
 			try:
 				if not quiet: print('Loading', self.term, 'from disk')
