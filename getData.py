@@ -538,9 +538,9 @@ def json_folder_map(folder, kind):
 		'type': kind
 	}
 
-	files = os.listdir(folder_name)
+	files = os.listdir(folder)
 	for filename in files:
-		path = folder_name + '/' + filename
+		path = folder + '/' + filename
 		with open(path, 'rb') as infile:
 			info = {
 				'path': path,
@@ -607,18 +607,7 @@ def main():
 	[year.process() for year in years]
 
 	if not args.dry:
-		json_folder_map(folders=['terms'], kind='courses')
-
-	# sorted_terms = {}
-	# filtered_data = set()
-	# for course in all_terms:
-	# 	terms = ['Concurrent', 'Prerequisite', 'conjunction', 'Offered', 'Required', 'Open to']
-	# 	deptstr = '/'.join(course['depts'])
-	# 	prereqs = course.get('desc', '')
-	# 	times = ' | '.join(course.get('times', ''))
-	# 	sorted_terms[course['crsid']] = \
-	# 		str(deptstr) + ' ' + str(course['num'])
-	# 	filtered_data.add(times)
+		json_folder_map(folder='terms', kind='courses')
 
 
 if __name__ == '__main__':
