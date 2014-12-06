@@ -397,8 +397,7 @@ def parse_paragraph_as_list(string_with_br):
 def ensure_dir_exists(folder):
 	# Make sure that a folder exists.
 	d = os.path.dirname(folder)
-	if not os.path.exists(d):
-		os.makedirs(d)
+	os.makedirs(d, exist_ok=True)
 
 
 def load_data_from_file(filename):
