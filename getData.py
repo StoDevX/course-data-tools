@@ -19,30 +19,13 @@ import re
 data_path   = './'
 quiet = False
 
-departments = {
-	'AR': 'ART',
-	'AS': 'ASIAN',
-	'BI': 'BIO',
-	'CH': 'CHEM',
-	'EC': 'ECON',
-	'ES': 'ENVST',
-	'HI': 'HIST',
-	'MU': 'MUSIC',
-	'PH': 'PHIL',
-	'PS': 'PSCI',
-	'RE': 'REL',
-	'SA': 'SOAN'
-}
+departments = None
+with open('mappings/to_department_abbreviations.json') as depts:
+	departments = json.loads(depts.read())
 
-course_types = {
-	'L': 'Lab',
-	'D': 'Discussion',
-	'S': 'Seminar',
-	'T': 'Topic',
-	'F': 'FLAC',
-	'R': 'Research',
-	'E': 'Ensemble'
-}
+course_types = None
+with open('mappings/course_types.json') as types:
+	course_types = json.loads(types.read())
 
 
 class Term:
