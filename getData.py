@@ -226,6 +226,7 @@ class Course:
 		str_soup = str(soup)
 		str_soup = re.sub(r' +', ' ', str_soup)
 		str_soup = re.sub(r'\n+', '\n', str_soup)
+		str_soup = str_soup.strip() + '\n'
 
 		save_data(str_soup, html_term_path)
 
