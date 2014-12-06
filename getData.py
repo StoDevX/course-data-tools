@@ -138,6 +138,13 @@ class Term:
 
 
 class Course:
+	bad_endings = [
+		'Click on course title in the Class & Lab for more information about the course for that term.',
+		'For more information on this course please see the following website: http://www.stolaf.edu/depts/english/courses/',
+	]
+
+	bad_beginnings = []
+
 	def __init__(self, details, term, output_type):
 		self.output_type = output_type
 		self.details = details
@@ -199,16 +206,19 @@ class Course:
 		strings = soup('p')
 		apology = 'Sorry, no description is available for this course.'
 
-		# TODO: Update this to be more infallible if the description runs to multiple lines.
+		# Possibilities:
+		# One paragraph, apology.
+		# Two paragraphs, the second is the title, repeated.
+		# Two or more paragraphs; everything after the first is the description.
 
-		if len(strings) <= 2:
-			self.details['title'] = strings[0].text
-			self.details['desc'] = ''
-		elif apology == strings[0].text or apology == strings[1].text:
-			self.details['desc'] = strings[0].text
+		if strings[0] == apology:
+			self.details['title'] = None
+			self.details['desc'] = None
 		else:
-			self.details['title'] = strings[1].text
-			self.details['desc'] = ' '.join(strings[2].text.split()) if strings[2].text else ''
+			self.details['title'] = strings[0].text
+			if len(strings) >= 2:
+				desc_strings = [' '.join(string.text.split()) for string in strings[1:]]
+				self.details['desc'] = '\n'.join(desc_strings)
 
 		if self.details.get('title'):
 			# Remove extra spaces from the string
@@ -216,10 +226,26 @@ class Course:
 			# Remove the course time info from the end
 			self.details['title'] = self.details['title'].split('(')[0]
 			# Remove anything before the first colon; reinsert the rest of the colons.
-			self.details['title'] = ':'.join(self.details['title'].split(':')[1:]).strip()
+			self.details['title'] = ':'.join(self.details['title'].split(':')[1:])
+			# Clean any extra whitespace off the title
+			self.details['title'] = self.details['title'].strip()
 
-		if (self.details.get('desc') == '') or (apology == self.details['desc']):
+		if self.details.get('desc'):
+			# Remove silly endings and beginnings
+			for ending in Course.bad_endings:
+				self.details['desc'] = ' '.join(self.details['desc'].split(ending))
+			for beginning in Course.bad_beginnings:
+				self.details['desc'] = ' '.join(self.details['desc'].split(beginning))
+			# Clean any extra whitespace off the description
+			self.details['desc'] = self.details['desc'].strip()
+
+		if self.details.get('desc') == '':
 			self.details['desc'] = None
+		elif self.details.get('desc') == apology:
+			self.details['desc'] = None
+		elif self.details.get('desc') == self.details.get('title'):
+			self.details['desc'] = None
+
 		if self.details.get('title') == '':
 			self.details['title'] = None
 
