@@ -643,8 +643,9 @@ def main():
 
 	json_folder_map(folder='terms', kind='courses')
 
-	all_courses = [course for year in years for term in year.termdata for course in term.courses]
-	maintain_lists_of_entries(all_courses)
+	if not args.years and not args.terms:
+		all_courses = [course for year in years for term in year.termdata for course in term.courses]
+		maintain_lists_of_entries(all_courses)
 
 
 if __name__ == '__main__':
