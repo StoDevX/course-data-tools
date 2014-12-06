@@ -18,6 +18,7 @@ import re
 
 data_path   = './'
 quiet = False
+dry_run = False
 
 departments = None
 with open('mappings/to_department_abbreviations.json') as depts:
@@ -34,7 +35,6 @@ class Term:
 		self.year = int(str(self.term)[:4])    # Get the first four digits
 		self.semester = int(str(self.term)[4]) # Get the last digit
 
-		self.dry_run = args.dry
 		self.force_download = args.force
 		self.output_type = args.output_type
 		self.courses = []
@@ -122,7 +122,7 @@ class Term:
 
 		ordered_term_data = sorted(self.courses, key=lambda c: c['clbid'])
 
-		if not self.dry_run:
+		if not dry_run:
 			if self.output_type == 'json' or not self.output_type:
 				json_term_data = json.dumps({'courses': ordered_term_data}, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
@@ -553,7 +553,7 @@ def json_folder_map(folder, kind):
 
 	output = OrderedDict(sorted(output.items()))
 
-	if not args.dry:
+	if not dry_run:
 		with open('info.json', 'w') as outfile:
 			outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
 			outfile.write('\n')
@@ -589,13 +589,14 @@ def maintain_lists_of_entries(all_courses):
 	entry_list_path = data_path + 'mappings/'
 	for set_name, set_data in data_sets.items():
 		json_data = json.dumps({set_name: set_data}, indent='\t', separators=(',', ': '))
-		if not args.dry:
+		if not dry_run:
 			save_data(json_data, entry_list_path + 'valid_' + set_name + '.json')
 
 
 def main():
 	global output_type
 	global quiet
+	global dry_run
 
 	argparser = ArgumentParser(description='Fetch term data from the SIS.')
 
@@ -625,6 +626,7 @@ def main():
 
 	args = argparser.parse_args()
 	quiet = args.quiet
+	dry_run = args.dry
 
 	# Create an amalgamation of single terms and entire years as terms
 	terms = calculate_terms(terms=args.terms, years=args.years)
