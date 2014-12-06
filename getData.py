@@ -167,7 +167,10 @@ class Course:
 		soup = BeautifulSoup(raw_data)
 
 		# Clean up the HTML
+		# .decompose() destroys the tag and all contents.
+		# .unwrap() removes the tag and returns the contents.
 		if soup.head:
+			bookstoremsg = '\nTo find books for this class, please visit the\n'
 			soup.head.decompose()
 			soup.body.find(id='bigbodymainstyle').unwrap()
 			soup.find(class_='sis-smallformfont').decompose()
@@ -179,6 +182,16 @@ class Course:
 				tag.decompose()
 			for tag in soup.find_all(href='JavaScript:sis_openwindow(\'http://www.stolafbookstore.com/home.aspx\');'):
 				tag.unwrap()
+			empty_tags = soup.find_all(lambda tag: tag.name == 'p' and tag.find(True) is None and
+				(tag.string is None or tag.string.strip()==""))
+			for tag in empty_tags:
+				tag.decompose()
+			for string in soup.find_all(text=re.compile(bookstoremsg)):
+				string.parent.decompose()
+			if soup.body.p.p:
+				soup.body.p.unwrap()
+			if soup.find(id='fusiondebugging'):
+				soup.find(id='fusiondebugging').decompose()
 
 		strings = soup('p')
 		apology = 'Sorry, no description is available for this course.'
