@@ -193,6 +193,9 @@ class Course:
 			if soup.find(id='fusiondebugging'):
 				soup.find(id='fusiondebugging').decompose()
 
+		for tag in soup.select('p'):
+			del tag['style']
+
 		strings = soup('p')
 		apology = 'Sorry, no description is available for this course.'
 
