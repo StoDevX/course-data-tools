@@ -215,7 +215,7 @@ class Course:
 		# ['ART', 'ASIAN'] departments.
 		split = self.details['deptname'].split('/')
 		self.details['depts'] = [
-			departments[dept] if dept in departments.keys() else dept for dept in split
+			departments[dept.lower()] if dept.lower() in departments.keys() else dept for dept in split
 		]
 
 	def split_and_flip_instructors(self):
