@@ -185,7 +185,10 @@ class Course:
 
 		# TODO: Update this to be more infallible if the description runs to multiple lines.
 
-		if apology in strings[0].text or apology in strings[1].text:
+		if len(strings) <= 2:
+			self.details['title'] = strings[0].text
+			self.details['desc'] = ''
+		elif apology == strings[0].text or apology == strings[1].text:
 			self.details['desc'] = strings[0].text
 		else:
 			self.details['title'] = strings[1].text
