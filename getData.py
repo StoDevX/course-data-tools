@@ -529,29 +529,29 @@ def pretty(lst):
 
 def parse_year_from_filename(filename):
 	# ex: 19943.json -> 1994
-	return filename[0:4]
+	return int(filename[0:4])
 
 
-def json_folder_map(folders, kind):
-	output = {}
+def json_folder_map(folder, kind):
+	output = {
+		'files': [],
+		'type': kind
+	}
 
-	for folder_name in folders:
-		files = os.listdir(folder_name)
-		output[folder_name] = []
-		for filename in files:
-			path = folder_name + '/' + filename
-			with open(path, 'rb') as infile:
-				info = {
-					'path': path,
-					'hash': hashlib.sha1(infile.read()).hexdigest(),
-					'year': parse_year_from_filename(filename)
-				}
-				output[folder_name].append(OrderedDict(sorted(info.items())))
-		output[folder_name] = sorted(output[folder_name], key=lambda item: item['path'])
+	files = os.listdir(folder_name)
+	for filename in files:
+		path = folder_name + '/' + filename
+		with open(path, 'rb') as infile:
+			info = {
+				'path': path,
+				'hash': hashlib.sha1(infile.read()).hexdigest(),
+				'year': parse_year_from_filename(filename)
+			}
+			output['files'].append(OrderedDict(sorted(info.items())))
 
-	output = OrderedDict(sorted(
-		{'info': OrderedDict(sorted(output.items())), 'type': kind}.items()
-	))
+	output['files'] = sorted(output['files'], key=lambda item: item['path'])
+
+	output = OrderedDict(sorted(output.items()))
 
 	with open('info.json', 'w') as outfile:
 		outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
