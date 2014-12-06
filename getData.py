@@ -594,7 +594,7 @@ def maintain_lists_of_entries(all_courses):
 	for set_name, set_data in data_sets.items():
 		filename = entry_list_path + 'valid_' + set_name + '.json'
 		data = load_data_from_file(filename)
-		set_data = json.loads(data)
+		data_sets[set_name] = json.loads(data)[set_name]
 
 	for course in all_courses:
 		data_sets['departments'].extend(course.get('depts') or [])
