@@ -395,7 +395,7 @@ class Course:
 		else:
 			if self.details.get('title') == self.details.get('name'):
 				del self.details['name']
-			if not self.details.get('title') and self.details.get('name'):
+			if (not self.details.get('title')) and (self.details.get('name')):
 				self.details['title'] = self.details['name']
 			cleanedcourse = {key: value for key, value in self.details.items() if value is not None}
 			self.details = OrderedDict(sorted(cleanedcourse.items()))
