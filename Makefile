@@ -1,6 +1,13 @@
 .PHONY: update publish dist
 
 update:
+	./getData.py --force
+
+full-update:
+	rm -rf details/
+	make update
+
+fast-update:
 	# date +"%Y" is the current year
 	./getData.py --force --years `date +"%Y"`
 
