@@ -580,35 +580,43 @@ def json_folder_map(folder, kind):
 
 
 def maintain_lists_of_entries(all_courses):
-	found_departments = []
-	found_professors = []
-	found_times = []
-	found_locations = []
-	found_gereqs = []
-	found_types = []
-
-	for course in all_courses:
-		found_departments.extend(course.get('depts') or [])
-		found_professors.extend(course.get('profs') or [])
-		found_times.extend(course.get('times') or [])
-		found_locations.extend(course.get('places') or [])
-		found_gereqs.extend(course.get('gereqs') or [])
-		found_types.append(course.get('type') or [])
+	entry_list_path = data_path + 'mappings/'
 
 	data_sets = {
-		'departments': sorted(set(found_departments)),
-		'professors': sorted(set(found_professors)),
-		'times': sorted(set(found_times)),
-		'locations': sorted(set(found_locations)),
-		'gereqs': sorted(set(found_gereqs)),
-		'types': sorted(set(found_types)),
+		'departments': [],
+		'professors': [],
+		'times': [],
+		'locations': [],
+		'gereqs': [],
+		'types': [],
 	}
 
-	entry_list_path = data_path + 'mappings/'
 	for set_name, set_data in data_sets.items():
+		filename = entry_list_path + 'valid_' + set_name + '.json'
+		data = load_data_from_file(filename)
+		set_data = json.loads(data)
+
+	for course in all_courses:
+		data_sets['departments'].extend(course.get('depts') or [])
+		data_sets['professors'].extend(course.get('profs') or [])
+		data_sets['times'].extend(course.get('times') or [])
+		data_sets['locations'].extend(course.get('places') or [])
+		data_sets['gereqs'].extend(course.get('gereqs') or [])
+		data_sets['types'].append(course.get('type') or [])
+
+	data_sets['departments'] = sorted(set(data_sets['departments']))
+	data_sets['professors'] = sorted(set(data_sets['professors']))
+	data_sets['times'] = sorted(set(data_sets['times']))
+	data_sets['locations'] = sorted(set(data_sets['locations']))
+	data_sets['gereqs'] = sorted(set(data_sets['gereqs']))
+	data_sets['types'] = sorted(set(data_sets['types']))
+
+
+	for set_name, set_data in data_sets.items():
+		filename = entry_list_path + 'valid_' + set_name + '.json'
 		json_data = json.dumps({set_name: set_data}, indent='\t', separators=(',', ': '))
 		if not dry_run:
-			save_data(json_data, entry_list_path + 'valid_' + set_name + '.json')
+			save_data(json_data, filename)
 
 
 def main():
@@ -661,9 +669,8 @@ def main():
 
 	json_folder_map(folder='terms', kind='courses')
 
-	if not args.years and not args.terms:
-		all_courses = [course for year in years for term in year.termdata for course in term.courses]
-		maintain_lists_of_entries(all_courses)
+	all_courses = [course for year in years for term in year.termdata for course in term.courses]
+	maintain_lists_of_entries(all_courses)
 
 
 if __name__ == '__main__':
