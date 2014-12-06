@@ -553,11 +553,44 @@ def json_folder_map(folder, kind):
 
 	output = OrderedDict(sorted(output.items()))
 
-	with open('info.json', 'w') as outfile:
-		outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
-		outfile.write('\n')
+	if not args.dry:
+		with open('info.json', 'w') as outfile:
+			outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
+			outfile.write('\n')
 
 	if not quiet: print('Hashed files; wrote info.json')
+
+
+def maintain_lists_of_entries(all_courses):
+	found_departments = []
+	found_professors = []
+	found_times = []
+	found_locations = []
+	found_gereqs = []
+	found_types = []
+
+	for course in all_courses:
+		found_departments.extend(course.get('depts') or [])
+		found_professors.extend(course.get('profs') or [])
+		found_times.extend(course.get('times') or [])
+		found_locations.extend(course.get('places') or [])
+		found_gereqs.extend(course.get('gereqs') or [])
+		found_types.append(course.get('type') or [])
+
+	data_sets = {
+		'departments': sorted(set(found_departments)),
+		'professors': sorted(set(found_professors)),
+		'times': sorted(set(found_times)),
+		'locations': sorted(set(found_locations)),
+		'gereqs': sorted(set(found_gereqs)),
+		'types': sorted(set(found_types)),
+	}
+
+	entry_list_path = data_path + 'mappings/'
+	for set_name, set_data in data_sets.items():
+		json_data = json.dumps({set_name: set_data}, indent='\t', separators=(',', ': '))
+		if not args.dry:
+			save_data(json_data, entry_list_path + 'valid_' + set_name + '.json')
 
 
 def main():
@@ -606,8 +639,10 @@ def main():
 
 	[year.process() for year in years]
 
-	if not args.dry:
-		json_folder_map(folder='terms', kind='courses')
+	json_folder_map(folder='terms', kind='courses')
+
+	all_courses = [course for year in years for term in year.termdata for course in term.courses]
+	maintain_lists_of_entries(all_courses)
 
 
 if __name__ == '__main__':
