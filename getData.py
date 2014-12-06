@@ -181,7 +181,7 @@ class Course:
 				tag.unwrap()
 
 		strings = soup('p')
-		apology = 'Sorry, no description'
+		apology = 'Sorry, no description is available for this course.'
 
 		# TODO: Update this to be more infallible if the description runs to multiple lines.
 
@@ -189,17 +189,17 @@ class Course:
 			self.details['desc'] = strings[0].text
 		else:
 			self.details['title'] = strings[1].text
-			if self.details.get('title'):
-				# Remove extra spaces from the string
-				self.details['title'] = ' '.join(self.details['title'].split())
-				# Remove the course time info from the end
-				self.details['title'] = self.details['title'].split('(')[0]
-				# Remove anything before the first colon; reinsert the rest of the colons.
-				self.details['title'] = ':'.join(self.details['title'].split(':')[1:]).strip()
-
 			self.details['desc'] = ' '.join(strings[2].text.split()) if strings[2].text else ''
 
-		if (self.details.get('desc') == '') or (apology in self.details['desc']):
+		if self.details.get('title'):
+			# Remove extra spaces from the string
+			self.details['title'] = ' '.join(self.details['title'].split())
+			# Remove the course time info from the end
+			self.details['title'] = self.details['title'].split('(')[0]
+			# Remove anything before the first colon; reinsert the rest of the colons.
+			self.details['title'] = ':'.join(self.details['title'].split(':')[1:]).strip()
+
+		if (self.details.get('desc') == '') or (apology == self.details['desc']):
 			self.details['desc'] = None
 		if self.details.get('title') == '':
 			self.details['title'] = None
