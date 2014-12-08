@@ -92,8 +92,8 @@ class Term:
 			reparsed_data = xmltodict.unparse(xmldict, pretty=True)
 
 		save_data(reparsed_data, self.xml_term_path)
+		if not quiet: print('Fetched', self.xml_term_path)
 
-		if not quiet: print(self.xml_term_path)
 		return valid_data
 
 	def load(self):
