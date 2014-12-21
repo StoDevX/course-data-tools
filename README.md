@@ -14,7 +14,7 @@ Use Github!
 
 1. Fork this repository
 2. Make a branch titled `data-year-month-day`, where year, month, and day become the year, month, and day, respectively
-3. Run `make update`
+3. Run `npm start`
 4. Submit a pull request against my `master` branch
 
 
@@ -58,13 +58,12 @@ Package versioning: I'm trying to use semver. Therefore:
 
 - the first number is incremented for non-backwards-compatible changes to the package format,
 - the second number is incremented for other stuff,
-- the third number is the date on which the data was updated,
-- and the fourth number is incremented when:
+- the third number is incremented whenever the data changes; f.ex.:
+    - the college published new data
     - you need to push multiple versions on the same day
     - you are playing around with something in getData
-    - etc.
 
-Examples: `2.1.2014-11-30.0`
+Examples: `2.1.4`
 
 
 getData.py
