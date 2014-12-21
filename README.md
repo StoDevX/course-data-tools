@@ -1,6 +1,8 @@
 Gobbldygook Course Data
 =======================
 
+**Date Last Updated:** Dec. 8, 2014
+
 This repository holds the data for Gobbldygook in both raw (XML) and proccessed (JSON) forms. You do not need this repository if your are only interested in using Gobbldygook; it includes this as a submodule.
 
 
