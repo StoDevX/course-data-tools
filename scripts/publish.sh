@@ -2,8 +2,6 @@
 
 git pull --rebase
 
-npm test
-
 echo ""
 node ./scripts/version.js
 echo ""
