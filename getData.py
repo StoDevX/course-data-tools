@@ -505,10 +505,13 @@ def year_plus_term(year, term):
 	return int(str(year) + str(term))
 
 
-def find_terms(start_year=None, end_year=None):
+def find_terms(start_year=None, end_year=None, this_year=False):
 	start_year    = start_year if start_year else 1994
 	current_year  = end_year if end_year else datetime.now().year
 	current_month = datetime.now().month
+
+	if this_year:
+		start_year = current_year - 1 if current_month <= 7 else current_year
 
 	most_years    = [year for year in range(start_year, current_year)]
 	all_terms     = [1, 2, 3, 4, 5]
@@ -576,9 +579,13 @@ def flattened(l):
 def calculate_terms(terms, years):
 	terms = terms or []
 	years = years or []
-	calculated_terms = terms + [find_terms(start_year=year, end_year=year) for year in years]
+	calculated_terms = []
 	if not terms and not years:
 		calculated_terms = find_terms()
+	elif 0 in years:
+		calculated_terms = find_terms(this_year=True)
+	else:
+		calculated_terms = terms + [find_terms(start_year=year, end_year=year) for year in years]
 	return flattened(calculated_terms)
 
 
