@@ -8,7 +8,7 @@ for path in courses related-data; do
 	pwd
 
 	echo ""
-	node ./scripts/version.js
+	node ../scripts/version.js
 	echo ""
 
 	read -p "New Version [major|minor|patch]: " version
