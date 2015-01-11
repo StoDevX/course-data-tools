@@ -18,10 +18,10 @@ import re
 
 details_source = './source/details/'
 xml_source     = './source/raw_xml/'
-term_dest      = './terms/'
-info_path      = term_dest + 'info.json'
-mappings_path  = './generated/'
-handmade_path  = './handmade/'
+term_dest      = './courses/terms/'
+info_path      = './courses/info.json'
+mappings_path  = './related-data/generated/'
+handmade_path  = './related-data/handmade/'
 
 quiet = False
 dry_run = False
