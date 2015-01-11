@@ -16,16 +16,22 @@ import csv
 import os
 import re
 
-data_path   = './'
+details_source = './source/details/'
+xml_source     = './source/raw_xml/'
+term_dest      = './terms/'
+info_path      = term_dest + 'info.json'
+mappings_path  = './generated/'
+handmade_path  = './handmade/'
+
 quiet = False
 dry_run = False
 
 departments = None
-with open('mappings/to_department_abbreviations.json') as depts:
+with open(handmade_path + 'to_department_abbreviations.json') as depts:
 	departments = json.loads(depts.read())
 
 course_types = None
-with open('mappings/course_types.json') as types:
+with open(handmade_path + 'course_types.json') as types:
 	course_types = json.loads(types.read())
 
 
@@ -39,7 +45,7 @@ class Term:
 		self.output_type = args.output_type
 		self.courses = []
 
-		self.xml_term_path = data_path + 'raw_xml/' + str(self.term) + '.xml'
+		self.xml_term_path = xml_source + str(self.term) + '.xml'
 		self.raw_term_data = None
 
 		# Get the XML data, and immediately write it out.
@@ -139,11 +145,11 @@ class Term:
 		if not dry_run:
 			if self.output_type == 'json' or not self.output_type:
 				json_term_data = json.dumps({'courses': ordered_term_data}, indent='\t', separators=(',', ': '))
-				save_data(json_term_data, data_path + 'terms/' + str(self.term) + '.json')
+				save_data(json_term_data, term_dest + str(self.term) + '.json')
 
 			elif self.output_type == 'csv':
 				csv_term_data = sorted(ordered_term_data, key=lambda c: c['clbid'])
-				save_data_as_csv(csv_term_data, data_path + 'terms/' + str(self.term) + '.csv')
+				save_data_as_csv(csv_term_data, term_dest + str(self.term) + '.csv')
 
 			else:
 				print('What kind of file is a "' + str(self.output_type) + '" file? (for ' + str(self.term) + ')')
@@ -175,7 +181,7 @@ class Course:
 		return request.text
 
 	def get_details(self):
-		html_term_path = data_path + 'details/' + find_details_subdir(self.padded_clbid) + '.html'
+		html_term_path = details_source + find_details_subdir(self.padded_clbid) + '.html'
 
 		try:
 			# if not quiet: print('Loading', self.padded_clbid, 'from disk')
@@ -620,7 +626,7 @@ def json_folder_map(folder, kind):
 	output = OrderedDict(sorted(output.items()))
 
 	if not dry_run:
-		with open('info.json', 'w') as outfile:
+		with open(info_path, 'w') as outfile:
 			outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
 			outfile.write('\n')
 
@@ -628,7 +634,7 @@ def json_folder_map(folder, kind):
 
 
 def maintain_lists_of_entries(all_courses):
-	entry_list_path = data_path + 'mappings/'
+	entry_list_path = mappings_path
 
 	data_sets = {
 		'departments': [],
