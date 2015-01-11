@@ -2,13 +2,21 @@
 
 git pull --rebase
 
-echo ""
-node ./scripts/version.js
-echo ""
+for path in courses related-data; do
+	cd "$path"
 
-read -p "New Version [major|minor|patch]: " version
-npm version $version
+	pwd
 
-npm publish
+	echo ""
+	node ./scripts/version.js
+	echo ""
+
+	read -p "New Version [major|minor|patch]: " version
+	npm version $version
+
+	npm publish
+
+	cd ../
+done
 
 git push --follow-tags
