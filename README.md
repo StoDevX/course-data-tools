@@ -69,7 +69,7 @@ Examples: `2.1.4`
 getData.py
 ----------
 
-Before using this script, you'll need a some other libraries:
+Before using this script, you'll need some other libraries:
 
 - Python 3.4 or greater (3.3 and below might work, but I don't test on them.)
 - `beautifulsoup4`
