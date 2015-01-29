@@ -615,7 +615,7 @@ def json_folder_map(folder, kind):
 		path = folder + '/' + filename
 		with open(path, 'rb') as infile:
 			info = {
-				'path': path,
+				'path': 'terms/' + filename,
 				'hash': hashlib.sha1(infile.read()).hexdigest(),
 				'year': parse_year_from_filename(filename)
 			}
@@ -721,7 +721,7 @@ def main():
 
 	[year.process() for year in years]
 
-	json_folder_map(folder='terms', kind='courses')
+	json_folder_map(folder=term_dest, kind='courses')
 
 	all_courses = [course for year in years for term in year.termdata for course in term.courses]
 	maintain_lists_of_entries(all_courses)
