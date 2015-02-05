@@ -316,13 +316,15 @@ class Course:
 		self.details['section'] = self.details['coursesection']
 		del self.details['coursesection']
 
+		self.details['status'] = self.details['coursestatus']
+		del self.details['coursestatus']
+
 		# Remove <br> tags from the 'notes' field.
 		if self.details['notes']:
 			self.details['notes'] = self.details['notes'].replace('<br>', ' ')
 			self.details['notes'] = ' '.join(self.details['notes'].split())
 
-		# Remove coursestatus and varcredits
-		del self.details['coursestatus']
+		# Remove the unused varcredits property
 		del self.details['varcredits']
 
 		# Flesh out coursesubtype
