@@ -313,7 +313,7 @@ class Course:
 		self.details['name'] = self.details['coursename'].replace('&amp;', '&')
 		del self.details['coursename']
 
-		self.details['sect'] = self.details['coursesection']
+		self.details['section'] = self.details['coursesection']
 		del self.details['coursesection']
 
 		# Remove <br> tags from the 'notes' field.
