@@ -19,6 +19,7 @@ import re
 details_source = './source/details/'
 xml_source     = './source/raw_xml/'
 term_dest      = './courses/terms/'
+course_dest    = './source/courses/'
 info_path      = './courses/info.json'
 mappings_path  = './related-data/generated/'
 handmade_path  = './related-data/handmade/'
@@ -177,6 +178,7 @@ class Course:
 		self.padded_clbid = ''
 
 		self.process()
+		self.save()
 
 	def request_detailed_course_data(self):
 		url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + self.padded_clbid
@@ -449,6 +451,12 @@ class Course:
 				self.details['title'] = self.details['name']
 			cleanedcourse = {key: value for key, value in self.details.items() if value is not None}
 			self.details = OrderedDict(sorted(cleanedcourse.items()))
+
+	def save(self):
+		if not dry_run:
+			course_path = course_dest + find_details_subdir(self.padded_clbid) + '.json'
+			json_course_data = json.dumps(self.details, indent='\t', separators=(',', ': ')) + '\n'
+			save_data(json_course_data, course_path)
 
 
 ########
