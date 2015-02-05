@@ -54,6 +54,7 @@ class Term:
 			return
 
 		self.process()
+		self.save()
 
 	def request_term_from_server(self):
 		# Yes, the request needs all of these extra parameters in order to run.
@@ -142,13 +143,16 @@ class Term:
 
 		ordered_term_data = sorted(self.courses, key=lambda c: c['clbid'])
 
+		self.ordered_term_data = ordered_term_data
+
+	def save(self):
 		if not dry_run:
 			if self.output_type == 'json' or not self.output_type:
-				json_term_data = json.dumps({'courses': ordered_term_data}, indent='\t', separators=(',', ': '))
+				json_term_data = json.dumps({'courses': self.ordered_term_data}, indent='\t', separators=(',', ': '))
 				save_data(json_term_data, term_dest + str(self.term) + '.json')
 
 			elif self.output_type == 'csv':
-				csv_term_data = sorted(ordered_term_data, key=lambda c: c['clbid'])
+				csv_term_data = sorted(self.ordered_term_data, key=lambda c: c['clbid'])
 				save_data_as_csv(csv_term_data, term_dest + str(self.term) + '.csv')
 
 			else:
