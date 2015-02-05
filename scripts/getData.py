@@ -149,11 +149,11 @@ class Term:
 	def save(self):
 		if not dry_run:
 			if self.output_type == 'json' or not self.output_type:
-				json_term_data = json.dumps({'courses': self.ordered_term_data}, indent='\t', separators=(',', ': '))
+				json_term_data = json.dumps({'courses': self.ordered_term_data}, indent='\t', separators=(',', ': ')) + '\n'
 				save_data(json_term_data, term_dest + str(self.term) + '.json')
 
 			elif self.output_type == 'csv':
-				csv_term_data = sorted(self.ordered_term_data, key=lambda c: c['clbid'])
+				csv_term_data = sorted(self.ordered_term_data, key=lambda c: c['clbid']) + '\n'
 				save_data_as_csv(csv_term_data, term_dest + str(self.term) + '.csv')
 
 			else:
