@@ -174,9 +174,13 @@ class Course:
 		self.output_type = output_type
 		self.details = details
 		self.term = term
+		self.padded_clbid = self.details['clbid'] # save the full clbid
+		self.course_path = course_dest + find_details_subdir(self.padded_clbid) + '.json'
 
-		self.padded_clbid = ''
-
+		self.clean()
+		self.get_details()
+		# self.extract_notes()
+		# self.parse_prerequisites()
 		self.process()
 		self.save()
 
@@ -432,16 +436,6 @@ class Course:
 			# return list(map(lambda day: expandedDays[day], listOfDays))
 
 	def process(self):
-		# save the full clbid
-		self.padded_clbid = self.details['clbid']
-		self.clean()
-		# self.extract_notes()
-
-		# update merges two dicts
-		self.get_details()
-
-		# self.parse_prerequisites()
-
 		if self.output_type == 'csv':
 			self.details = OrderedDict(sorted(self.details.items()))
 		else:
@@ -454,9 +448,8 @@ class Course:
 
 	def save(self):
 		if not dry_run:
-			course_path = course_dest + find_details_subdir(self.padded_clbid) + '.json'
 			json_course_data = json.dumps(self.details, indent='\t', separators=(',', ': ')) + '\n'
-			save_data(json_course_data, course_path)
+			save_data(json_course_data, self.course_path)
 
 
 ########
