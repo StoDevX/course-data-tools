@@ -357,9 +357,9 @@ class Course:
 
 		# Add the term, year, and semester
 		# term looks like 20083, where the first four are the year and the last one is the semester
-		self.details['term'] = self.term
-		self.details['year'] = int(str(self.term)[:4])  # Get the first four digits
-		self.details['sem']  = int(str(self.term)[4])   # Get the last digit
+		self.details['term']     = self.term
+		self.details['year']     = int(str(self.term)[:4])  # Get the first four digits
+		self.details['semester'] = int(str(self.term)[4])   # Get the last digit
 
 		# Add the course level
 		if type(self.details['num']) is int:
