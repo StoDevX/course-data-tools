@@ -356,7 +356,8 @@ class Course:
 		del self.details['pn']
 
 		# Add the term, year, and semester
-		# term looks like 20083, where the first four are the year and the last one is the semester
+		# `term` looks like 20083, where the first four digits represent the
+		# year, and the last digit represents the semester
 		self.details['term']     = self.term
 		self.details['year']     = int(str(self.term)[:4])  # Get the first four digits
 		self.details['semester'] = int(str(self.term)[4])   # Get the last digit
