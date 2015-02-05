@@ -368,7 +368,7 @@ class Course:
 			raise UserWarning('Course number is weird in', self.details)
 
 		# Shorten meetinglocations, meetingtimes, and instructors
-		self.details['places'] = self.details['meetinglocations']
+		self.details['locations'] = self.details['meetinglocations']
 		del self.details['meetinglocations']
 		self.details['times']  = self.details['meetingtimes']
 		del self.details['meetingtimes']
@@ -376,7 +376,7 @@ class Course:
 		# Pull the text contents out of various HTML elements as lists
 		self.split_and_flip_instructors()
 		if self.details['gereqs']: self.details['gereqs'] = parse_links_for_text(self.details['gereqs'])
-		if self.details['places']: self.details['places'] = parse_links_for_text(self.details['places'])
+		if self.details['locations']: self.details['locations'] = parse_links_for_text(self.details['locations'])
 		if self.details['times']:  self.details['times']  = parse_paragraph_as_list(self.details['times'])
 
 	def parse_prerequisites(self):
