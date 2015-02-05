@@ -296,17 +296,17 @@ class Course:
 	def split_and_flip_instructors(self):
 		# Take a string like 'Bridges IV, William H.' and split/flip it
 		# to 'William H. Bridges IV'. Oh, and do that for each professor.
-		if self.details['profs']:
-			self.details['profs'] = parse_links_for_text(self.details['profs'])
+		if self.details['instructors']:
+			self.details['instructors'] = parse_links_for_text(self.details['instructors'])
 			flipped_profs = []
-			for prof in self.details['profs']:
+			for prof in self.details['instructors']:
 				string_to_split = prof.split(',')
 				actual_name = ''
 				for name_part in reversed(string_to_split):
 					name_part = name_part.strip()
 					actual_name += name_part + ' '
 				flipped_profs.append(actual_name.strip())
-			self.details['profs'] = flipped_profs
+			self.details['instructors'] = flipped_profs
 
 	def clean(self):
 		# Unescape &amp; in course names
@@ -372,8 +372,6 @@ class Course:
 		del self.details['meetinglocations']
 		self.details['times']  = self.details['meetingtimes']
 		del self.details['meetingtimes']
-		self.details['profs']  = self.details['instructors']
-		del self.details['instructors']
 
 		# Pull the text contents out of various HTML elements as lists
 		self.split_and_flip_instructors()
