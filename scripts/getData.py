@@ -176,7 +176,6 @@ class Course:
 
 	def request_detailed_course_data(self):
 		url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + self.padded_clbid
-		time.sleep(.5)
 		request = requests.get(url)
 		return request.text
 
