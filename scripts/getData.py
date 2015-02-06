@@ -750,7 +750,6 @@ def maintain_lists_of_entries(all_courses):
 
 
 def main():
-	global output_type
 	global quiet
 	global dry_run
 
