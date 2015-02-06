@@ -233,8 +233,14 @@ class Course:
 		self.save()
 
 	def load_previous(self):
-		prior_data = load_data_from_file(self.course_path)
-		self.prior = json.loads(prior_data)
+		try:
+			prior_data = load_data_from_file(self.course_path)
+			self.prior = json.loads(prior_data)
+		except ValueError:
+			self.prior = {}
+		except FileNotFoundError:
+			self.prior = {}
+
 		if 'revisions' in self.prior:
 			self.revisions = self.prior.get('revisions')
 			del self.prior['revisions']
