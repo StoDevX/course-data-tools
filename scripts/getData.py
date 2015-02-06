@@ -183,10 +183,10 @@ def dict_diff(first, second):
 	sd2 = set(second)
 	# Keys missing in the second dict
 	for key in sd1.difference(sd2):
-		diff[key] = [KEYNOTFOUNDIN2]
+		diff[key] = (first[key], KEYNOTFOUNDIN2)
 	# Keys missing in the first dict
 	for key in sd2.difference(sd1):
-		diff[key] = [KEYNOTFOUNDIN1]
+		diff[key] = (KEYNOTFOUNDIN1, second[key])
 	# Check for differences
 	for key in sd1.intersection(sd2):
 		if first[key] != second[key]:
@@ -197,16 +197,7 @@ def get_old_dict_values(old, new):
 	# Returns the "old" value for two dicts.
 	diff = dict_diff(old, new)
 
-	for key in list(diff.keys()):
-		value = diff[key]
-		value = value[0] # we only want the old value
-
-		if value == KEYNOTFOUNDIN1 or value == KEYNOTFOUNDIN2:
-			del diff[key]
-		else:
-			diff[key] = value
-
-	return diff
+	return {key: diff[key][0] for key in diff}
 
 
 class Course:
