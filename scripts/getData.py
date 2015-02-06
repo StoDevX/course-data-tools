@@ -680,6 +680,8 @@ def json_folder_map(folder, kind):
 
 	files = os.listdir(folder)
 	for filename in files:
+		if filename == '.DS_Store':
+			continue
 		path = folder + '/' + filename
 		with open(path, 'rb') as infile:
 			info = {
