@@ -230,14 +230,16 @@ class Course:
 			prior_data = load_data_from_file(self.course_path)
 			self.prior = json.loads(prior_data)
 		except FileNotFoundError:
-			self.prior = {}
+			self.prior = None
 
-		if 'revisions' in self.prior:
+		if self.prior and 'revisions' in self.prior:
 			self.revisions = self.prior.get('revisions')
 			del self.prior['revisions']
 
 	def check_for_revisions(self):
 		self.load_previous()
+		if not self.prior:
+			return
 
 		diff = get_old_dict_values(self.prior, self.details)
 		if diff:
