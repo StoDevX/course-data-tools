@@ -245,7 +245,7 @@ class Course:
 		if diff:
 			self.revisions.append(diff)
 			if not quiet:
-				print('revision in', self.padded_clbid, json.dumps(diff))
+				print('revision in %d:' % (self.details['clbid']), diff)
 
 		if self.revisions and ('revisions' not in self.details or self.revisions != self.details.get('revisions')):
 			self.details['revisions'] = self.revisions
