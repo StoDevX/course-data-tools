@@ -162,6 +162,48 @@ class Term:
 		if not quiet: print('Done with', self.term)
 
 
+KEYNOTFOUNDIN1 = '<KEY NOT FOUND IN 1>'       # KeyNotFound for dictDiff
+KEYNOTFOUNDIN2 = '<KEY NOT FOUND IN 2>'       # KeyNotFound for dictDiff
+
+def dict_diff(first, second):
+	# from http://code.activestate.com/recipes/576644-diff-two-dictionaries/#c6
+	"""
+	Return a dict of keys that differ with another config object.  If a value is
+	not found in one fo the configs, it will be represented by KEYNOTFOUND.
+	@param first:   Fist dictionary to diff.
+	@param second:  Second dicationary to diff.
+	@return diff:   Dict of Key => (first.val, second.val)
+	"""
+
+	diff = {}
+	sd1 = set(first)
+	sd2 = set(second)
+	# Keys missing in the second dict
+	for key in sd1.difference(sd2):
+		diff[key] = KEYNOTFOUNDIN2
+	# Keys missing in the first dict
+	for key in sd2.difference(sd1):
+		diff[key] = KEYNOTFOUNDIN1
+	# Check for differences
+	for key in sd1.intersection(sd2):
+		if first[key] != second[key]:
+			diff[key] = (first[key], second[key])
+	return diff
+
+def get_old_dict_values(old, new):
+	# Returns the "old" value for two dicts.
+	diff = dict_diff(old, new)
+
+	for key in diff.keys():
+		value = diff[key]
+		value = value[0]
+		if value is KEYNOTFOUNDIN1 or value is KEYNOTFOUNDIN2:
+			value = None
+		diff[key] = value
+
+	return diff
+
+
 class Course:
 	bad_endings = [
 		'Click on course title in the Class & Lab for more information about the course for that term.',
@@ -173,6 +215,7 @@ class Course:
 	def __init__(self, details, term, output_type):
 		self.output_type = output_type
 		self.details = details
+		self.revisions = []
 		self.term = term
 		self.padded_clbid = self.details['clbid'] # save the full clbid
 		self.course_path = course_dest + find_details_subdir(self.padded_clbid) + '.json'
@@ -182,7 +225,27 @@ class Course:
 		# self.extract_notes()
 		# self.parse_prerequisites()
 		self.process()
+
+		self.check_for_revisions()
 		self.save()
+
+	def load_previous(self):
+		prior_data = load_data_from_file(self.course_path)
+		self.prior = json.loads(prior_data)
+		if 'revisions' in self.prior:
+			self.revisions = self.prior.get('revisions')
+			del self.prior['revisions']
+
+	def check_for_revisions(self):
+		self.load_previous()
+
+		diff = get_old_dict_values(self.prior, self.details)
+		if diff:
+			self.revisions.append(diff)
+			print('Revision:', self.revisions)
+
+		if self.revisions and ('revisions' not in self.details or self.revisions != self.details.get('revisions')):
+			self.details['revisions'] = self.revisions
 
 	def request_detailed_course_data(self):
 		url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + self.padded_clbid
