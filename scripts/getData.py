@@ -3,6 +3,7 @@
 from concurrent.futures import ProcessPoolExecutor
 from collections import OrderedDict
 from argparse import ArgumentParser
+from tzlocal import get_localzone
 from datetime import datetime
 from bs4 import BeautifulSoup
 import xmltodict
@@ -243,6 +244,7 @@ class Course:
 
 		diff = get_old_dict_values(self.prior, self.details)
 		if diff:
+			diff['_updated'] = get_localzone().localize(datetime.now()).isoformat()
 			self.revisions.append(diff)
 			if not quiet:
 				print('revision in', self.padded_clbid, json.dumps(diff))

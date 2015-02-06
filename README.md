@@ -75,8 +75,9 @@ Before using this script, you'll need some other libraries:
 - `beautifulsoup4`
 - `requests`
 - `xmltodict`
+- `tzlocal`
 
-so a `pip3 install beautifulsoup4 requests xmltodict` should do it.
+so a `pip3 install beautifulsoup4 requests xmltodict tzlocal` should do it.
 
 As an additional note, I *highly* reccommend using [Homebrew](http://brew.sh) to install/update Python.
 
