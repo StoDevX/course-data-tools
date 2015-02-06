@@ -244,7 +244,8 @@ class Course:
 		diff = get_old_dict_values(self.prior, self.details)
 		if diff:
 			self.revisions.append(diff)
-			print('Revision:', self.revisions)
+			if not quiet:
+				print('revision in', self.padded_clbid, json.dumps(diff))
 
 		if self.revisions and ('revisions' not in self.details or self.revisions != self.details.get('revisions')):
 			self.details['revisions'] = self.revisions
