@@ -229,8 +229,6 @@ class Course:
 		try:
 			prior_data = load_data_from_file(self.course_path)
 			self.prior = json.loads(prior_data)
-		except ValueError:
-			self.prior = {}
 		except FileNotFoundError:
 			self.prior = {}
 
