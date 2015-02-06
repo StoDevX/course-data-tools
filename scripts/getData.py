@@ -44,6 +44,7 @@ class Term:
 
 		self.force_download = args.force
 		self.output_type = args.output_type
+		self.single_thread = args.single_thread
 		self.courses = []
 
 		self.xml_term_path = xml_source + str(self.term) + '.xml'
@@ -133,10 +134,12 @@ class Term:
 		if not quiet: print('Editing', self.term)
 
 		# Process the raw data into a Python dictionary
-		with ProcessPoolExecutor(max_workers=8) as pool:
-			mapped_course_processor = functools.partial(Course, term=self.term, output_type=self.output_type)
-
-			mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
+		mapped_course_processor = functools.partial(Course, term=self.term, output_type=self.output_type)
+		if not self.single_thread:
+			with ProcessPoolExecutor(max_workers=8) as pool:
+				mapped_courses = pool.map(mapped_course_processor, self.raw_term_data)
+		else:
+			mapped_courses = map(mapped_course_processor, self.raw_term_data)
 
 		for processed_course in mapped_courses:
 			course = processed_course.details
@@ -623,9 +626,12 @@ class Year:
 		self.completed = False
 
 	def process(self):
-		with ProcessPoolExecutor(max_workers=5) as pool:
-			mapped_term_processor = functools.partial(Term, args=self.args)
-			self.termdata = list(pool.map(mapped_term_processor, self.terms))
+		mapped_term_processor = functools.partial(Term, args=self.args)
+		if not self.args.single_thread:
+			with ProcessPoolExecutor(max_workers=5) as pool:
+				self.termdata = list(pool.map(mapped_term_processor, self.terms))
+		else:
+			self.termdata = list(map(mapped_term_processor, self.terms))
 
 	def get_terms(self):
 		return str(self.year) + str([int(str(term)[4]) for term in self.terms])
@@ -765,6 +771,10 @@ def main():
 	argparser.add_argument('--dry', '-d',
 		action='store_true',
 		help='Only print output; don\'t write files.')
+
+	argparser.add_argument('--single-thread', '-s',
+		action='store_true',
+		help='Only run with one thread; also returns useful debugging info')
 
 	argparser.add_argument('--quiet', '-q',
 		action='store_true',
