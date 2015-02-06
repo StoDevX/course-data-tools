@@ -197,12 +197,14 @@ def get_old_dict_values(old, new):
 	# Returns the "old" value for two dicts.
 	diff = dict_diff(old, new)
 
-	for key in diff.keys():
+	for key in list(diff.keys()):
 		value = diff[key]
-		value = value[0]
-		if value is KEYNOTFOUNDIN1 or value is KEYNOTFOUNDIN2:
-			value = None
-		diff[key] = value
+		value = value[0] # we only want the old value
+
+		if value == KEYNOTFOUNDIN1 or value == KEYNOTFOUNDIN2:
+			del diff[key]
+		else:
+			diff[key] = value
 
 	return diff
 
