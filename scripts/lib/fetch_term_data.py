@@ -1,10 +1,8 @@
-from concurrent.futures import ProcessPoolExecutor
 from argparse import ArgumentParser
 import functools
 import xmltodict
 import requests
 import json
-import re
 
 from .load_data_from_file import load_data_from_file
 from .save_data_as_csv import save_data_as_csv

@@ -1,4 +1,3 @@
-from concurrent.futures import ProcessPoolExecutor
 from argparse import ArgumentParser
 from bs4 import BeautifulSoup
 import functools
