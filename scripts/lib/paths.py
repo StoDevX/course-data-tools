@@ -12,3 +12,7 @@ def make_course_path(clbid):
 	clbid = str(clbid).zfill(10)
 	course_path = course_dest + find_details_subdir(clbid) + '.json'
 	return course_path
+
+def make_html_path(clbid):
+	clbid = str(clbid).zfill(10)
+	return details_source + find_details_subdir(clbid) + '.html'

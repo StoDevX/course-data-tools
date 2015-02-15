@@ -5,7 +5,7 @@ import functools
 import requests
 import re
 
-from .paths import details_source
+from .paths import details_source, make_html_path
 from .save_data import save_data
 from .log import log, log_err
 from .load_data_from_file import load_data_from_file
@@ -24,10 +24,6 @@ def request_detailed_course_data(clbid):
 	url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + clbid
 	request = requests.get(url)
 	return request.text
-
-
-def make_html_path(clbid):
-	return details_source + find_details_subdir(clbid) + '.html'
 
 
 def get_details(clbid, force_download):
