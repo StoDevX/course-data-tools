@@ -8,9 +8,9 @@ from .load_data_from_file import load_data_from_file
 from .save_data_as_csv import save_data_as_csv
 from .fix_invalid_xml import fix_invalid_xml
 from .paths import make_xml_term_path
+from .delete_file import delete_file
 from .save_data import save_data
 from .log import log, log_err
-from .delete_file import delete_file
 
 
 def request_term_from_server(term):
