@@ -25,7 +25,7 @@ def request_detailed_course_data(clbid):
 	return request.text
 
 
-def get_details(clbid, force_download):
+def get_details(clbid, force_download, dry_run):
 	html_term_path = make_html_path(clbid)
 	details = {}
 
@@ -33,14 +33,17 @@ def get_details(clbid, force_download):
 		try:
 			# log('Loading', clbid, 'from disk')
 			raw_data = load_data_from_file(html_term_path)
+			soup = BeautifulSoup(raw_data)
 		except FileNotFoundError:
 			# log('Nope. Requesting', clbid, 'from server')
 			raw_data = request_detailed_course_data(clbid)
+			soup = clean_markup(raw_data, clbid, dry_run)
 	else:
 		# log('Forced to request', clbid, 'from server')
 		raw_data = request_detailed_course_data(clbid)
+		soup = clean_markup(raw_data, clbid, dry_run)
 
-	return raw_data
+	return soup
 
 
 def clean_markup(raw_data, clbid, dry_run):
@@ -143,8 +146,7 @@ def clean_details(soup):
 def process_course_info(clbid, dry_run, force_download):
 	clbid = str(clbid).zfill(10)
 
-	raw_data = get_details(clbid, force_download)
-	soup = clean_markup(raw_data, clbid, dry_run)
+	soup = get_details(clbid, force_download, dry_run)
 	details = clean_details(soup)
 
 	return (clbid, details)
