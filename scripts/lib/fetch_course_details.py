@@ -5,11 +5,10 @@ import functools
 import requests
 import re
 
+from .load_data_from_file import load_data_from_file
 from .paths import details_source, make_html_path
 from .save_data import save_data
 from .log import log, log_err
-from .load_data_from_file import load_data_from_file
-from .find_details_subdir import find_details_subdir
 
 
 bad_endings = [
