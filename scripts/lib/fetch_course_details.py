@@ -152,8 +152,7 @@ def process_course_info(clbid, dry_run, force_download):
 
 
 def fetch_course_details(clbids, dry_run=False, force_download=False):
-	process_course_info_partial = functools.partial(
-		process_course_info,
+	process_course_info_partial = functools.partial(process_course_info,
 		force_download=force_download,
 		dry_run=dry_run)
 
