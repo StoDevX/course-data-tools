@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 
 from .load_data_from_file import load_data_from_file
@@ -30,10 +31,13 @@ def check_for_revisions(course):
 		return None
 
 	diff = get_old_dict_values(prior, course)
+	ordered_diff = OrderedDict()
+	for key in sorted(diff.keys()):
+		ordered_diff[key] = diff[key]
 
-	if diff:
-		revisions.append(diff)
-		log('revision in %d:' % (course['clbid']), diff)
+	if ordered_diff:
+		revisions.append(ordered_diff)
+		log('revision in %d:' % (course['clbid']), ordered_diff)
 
 	if revisions and (('revisions' not in course) or (revisions != course.get('revisions'))):
 		return revisions
