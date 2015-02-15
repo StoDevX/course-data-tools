@@ -1,10 +1,12 @@
-from .parse_year_from_filename import parse_year_from_filename
 from collections import OrderedDict
 import hashlib
 import json
 import os
 
-def json_folder_map(folder, kind, quiet=True):
+from .parse_year_from_filename import parse_year_from_filename
+from .log import log
+
+def json_folder_map(folder, kind, dry_run=False):
 	output = {
 		'files': [],
 		'type': kind
@@ -14,6 +16,7 @@ def json_folder_map(folder, kind, quiet=True):
 	for filename in files:
 		if filename == '.DS_Store':
 			continue
+
 		path = folder + '/' + filename
 		with open(path, 'rb') as infile:
 			info = {
@@ -27,9 +30,9 @@ def json_folder_map(folder, kind, quiet=True):
 
 	output = OrderedDict(sorted(output.items()))
 
+	log('Hashed files')
 	if not dry_run:
 		with open(info_path, 'w') as outfile:
 			outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
 			outfile.write('\n')
-
-	if not quiet: print('Hashed files; wrote info.json')
+			log('Wrote info.json')
