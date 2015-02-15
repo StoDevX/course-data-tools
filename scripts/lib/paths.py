@@ -24,3 +24,6 @@ def make_course_path(clbid):
 def make_html_path(clbid):
 	clbid = str(clbid).zfill(10)
 	return details_source + find_details_subdir(clbid) + '.html'
+
+def make_xml_term_path(term):
+	return xml_source + str(term) + '.xml'

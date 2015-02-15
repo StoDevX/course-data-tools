@@ -8,8 +8,8 @@ import re
 
 from .load_data_from_file import load_data_from_file
 from .save_data_as_csv import save_data_as_csv
-from .paths import xml_source, term_dest
 from .fix_invalid_xml import fix_invalid_xml
+from .paths import make_xml_term_path
 from .save_data import save_data
 from .log import log, log_err
 from .delete_file import delete_file
@@ -34,10 +34,6 @@ def request_term_from_server(term):
 	return request.text
 
 
-def calculate_xml_term_path(term):
-	return xml_source + str(term) + '.xml'
-
-
 def ensure_list_in_term(xml_term_data):
 	# If there is only one course for a semester, then raw_term_data
 	# is just an object; otherwise, it's a list. We need to ensure that
@@ -56,7 +52,7 @@ def embed_term_in_courses(xml_term_data, term):
 
 
 def load_data_from_server(term, dry_run=False):
-	xml_term_path = calculate_xml_term_path(term)
+	xml_term_path = make_xml_term_path(term)
 
 	raw_data = request_term_from_server(term)
 	valid_data = fix_invalid_xml(raw_data)
@@ -79,7 +75,7 @@ def load_data_from_server(term, dry_run=False):
 
 
 def load_term(term, force_download=False, dry_run=False):
-	xml_term_path = calculate_xml_term_path(term)
+	xml_term_path = make_xml_term_path(term)
 	data = ''
 
 	if not force_download:
