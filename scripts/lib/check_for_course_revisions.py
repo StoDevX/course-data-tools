@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from tzlocal import get_localzone
 import json
 
 from .load_data_from_file import load_data_from_file
@@ -36,6 +37,7 @@ def check_for_revisions(course):
 		ordered_diff[key] = diff[key]
 
 	if ordered_diff:
+		ordered_diff['_updated'] = get_localzone().localize(datetime.now()).isoformat()
 		revisions.append(ordered_diff)
 		log('revision in %d:' % (course['clbid']), ordered_diff)
 
