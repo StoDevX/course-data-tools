@@ -1,10 +1,5 @@
 .DS_Store
 __pycache__
-dist/
 node_modules/
 build
 !build/package.json
-
-# profiling stuff
-prof
-stats.txt
