@@ -1,8 +1,8 @@
 details_source = './source/details/'
 xml_source     = './source/raw_xml/'
 course_dest    = './source/courses/'
-info_path      = './courses/info.json'
-term_dest      = './courses/terms/'
+info_path      = './build/info.json'
+term_dest      = './build/terms/'
 mappings_path  = './related-data/generated/'
 handmade_path  = './related-data/handmade/'
 
