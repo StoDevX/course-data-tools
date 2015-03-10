@@ -2,6 +2,7 @@ from concurrent.futures import ProcessPoolExecutor
 from collections import OrderedDict
 import functools
 import json
+import re
 
 from .log import log
 from .save_data import save_data
@@ -108,11 +109,15 @@ def clean_course(course):
 
 	# Turn numbers into numbers
 	course['clbid']   = int(course['clbid'])
-	if 'X' not in course['coursenumber']:
+
+	if re.search(r'\d{3}$', course['coursenumber']):
 		course['num'] = int(course['coursenumber'])
-	else:
+	elif re.match(r'\dXX', course['coursenumber']):
 		course['num'] = course['coursenumber']
+	elif re.match(r'\d{3}I', course['coursenumber']):
+		course['num'] = int(course['coursenumber'][:-1])
 	del course['coursenumber']
+
 	course['credits'] = float(course['credits'])
 	course['crsid']   = int(course['crsid'])
 	if course['groupid']:
