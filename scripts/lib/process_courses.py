@@ -6,13 +6,14 @@ import re
 
 from .log import log
 from .save_data import save_data
-from .paths import course_dest, make_course_path
+from .paths import make_course_path
 from .check_for_course_revisions import check_for_revisions
 from .data import departments, course_types
 from .break_apart_departments import break_apart_departments
 from .split_and_flip_instructors import split_and_flip_instructors
 from .parse_links_for_text import parse_links_for_text
 from .parse_paragraph_as_list import parse_paragraph_as_list
+
 
 def save_course(course):
 	course_path = make_course_path(course['clbid'])

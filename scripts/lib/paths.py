@@ -1,8 +1,8 @@
 details_source = './source/details/'
 xml_source     = './source/raw_xml/'
-term_dest      = './courses/terms/'
 course_dest    = './source/courses/'
 info_path      = './courses/info.json'
+term_dest      = './courses/terms/'
 mappings_path  = './related-data/generated/'
 handmade_path  = './related-data/handmade/'
 
@@ -26,3 +26,6 @@ def make_html_path(clbid):
 
 def make_xml_term_path(term):
 	return xml_source + str(term) + '.xml'
+
+def make_json_term_path(term):
+	return term_dest + str(term) + '.json'

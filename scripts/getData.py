@@ -3,13 +3,18 @@
 from concurrent.futures import ProcessPoolExecutor
 from argparse import ArgumentParser
 import functools
+import json
 
+from lib.json_folder_map import json_folder_map
+from lib.maintain_lists_of_entries import maintain_lists_of_entries
 from lib.fetch_course_details import fetch_course_details
+from lib.save_term import save_term
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_courses
 from lib.fetch_term_data import load_term
 from lib.flattened import flatten
 from lib.log import log
+from lib.paths import term_dest
 
 
 def get_years_and_terms(terms_or_years):
@@ -73,17 +78,14 @@ def main():
 
 	if args.workers > 1:
 		with ProcessPoolExecutor(max_workers=args.workers) as pool:
-			courses = list(pool.map(edit_one_term, terms))
+			processed_terms = list(pool.map(edit_one_term, terms))
 	else:
-		courses = list(map(edit_one_term, terms))
+		processed_terms = list(map(edit_one_term, terms))
 
-	return terms
+	[save_term(term) for term in processed_terms]
+	json_folder_map(folder=term_dest, kind='courses', dry_run=args.dry_run)
+	maintain_lists_of_entries([course for term in processed_terms for course in term], dry_run=args.dry_run)
 
 
 if __name__ == '__main__':
 	main()
-
-	# json_folder_map(folder=term_dest, kind='courses')
-
-	# all_courses = [course for year in years for term in year.termdata for course in term.courses]
-	# maintain_lists_of_entries(all_courses)

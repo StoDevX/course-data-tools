@@ -1,4 +1,9 @@
-def maintain_lists_of_entries(all_courses):
+from .load_data_from_file import load_data_from_file
+from .save_data import save_data
+from .paths import mappings_path
+import json
+
+def maintain_lists_of_entries(all_courses, dry_run=False):
 	entry_list_path = mappings_path
 
 	data_sets = {

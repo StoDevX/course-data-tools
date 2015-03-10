@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 
+from .paths import info_path
 from .parse_year_from_filename import parse_year_from_filename
 from .log import log
 
