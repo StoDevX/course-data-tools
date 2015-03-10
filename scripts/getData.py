@@ -27,7 +27,7 @@ def get_years_and_terms(terms_or_years):
 def get_args():
 	argparser = ArgumentParser(description='Fetch term data from the SIS.')
 
-	argparser.add_argument('terms_or_years', type=int, nargs='*', help='Terms (or entire years) for which to request data from the SIS.')
+	argparser.add_argument('term_or_year', type=int, nargs='*', help='Terms (or entire years) for which to request data from the SIS.')
 	argparser.add_argument('--workers', '-w', type=int, default=8, help='Specify the number of terms to run simultaneously.')
 	argparser.add_argument('--force-download-terms', action='store_true', help='Force reloading of the specified terms.')
 	argparser.add_argument('--force-download-details', action='store_true', help='Force reloading of any course details from the specified terms.')
@@ -65,7 +65,7 @@ def one_term(term, workers, **kwargs):
 
 def main():
 	args = get_args()
-	years, terms = get_years_and_terms(args.terms_or_years)
+	years, terms = get_years_and_terms(args.term_or_year)
 
 	terms = calculate_terms(years=years, terms=terms)
 
