@@ -13,7 +13,7 @@ def find_terms_for_year(year):
 	# St. Olaf publishes initial Fall, Interim, and Spring data in April of each year.
 	# Full data is published by August.
 	if year == current_year:
-		if current_month <= 3:
+		if current_month < 3:
 			return []
 		elif current_month <= 7:
 			return [year_plus_term(year, term) for term in limited_terms]
@@ -46,6 +46,7 @@ def find_terms(start_year=None, end_year=None, this_year=False):
 	term_list.sort()
 
 	return term_list
+
 
 if __name__ == '__main__':
 	argparser = ArgumentParser()
