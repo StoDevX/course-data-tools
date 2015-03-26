@@ -2,17 +2,13 @@
 
 git pull --rebase
 
-for path in courses related-data; do
+for path in build related-data; do
 	cd "$path"
 
 	pwd
 
-	echo ""
-	node ../scripts/version.js "$path"
-	echo ""
-
-	read -p "New Version [major|minor|patch]: " version
-	npm version $version
+	echo "New Version [major|minor|patch]:"
+	npm version
 
 	npm publish
 
