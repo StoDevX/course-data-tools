@@ -2,7 +2,7 @@
 
 git pull --rebase
 
-for path in courses related-data; do
+for path in build related-data; do
 	cd "$path"
 
 	pwd
