@@ -14,7 +14,8 @@ Use Github!
 
 1. Fork this repository
 2. Make a branch titled `data-year-month-day`, where year, month, and day become the year, month, and day, respectively
-3. Run `npm start`
+3. Run `python3 ./scripts/getData.py --force-download-terms 20151`
+    - where `20151` is the term, in year-semester form, that you want to update
 4. Submit a pull request against my `master` branch
 
 
@@ -23,9 +24,8 @@ What changes?
 -------------
 
 - Unescape `&amp;` in `coursename` (also remap to `name`)
-- Map `coursesection` to `sect`
+- Map `coursesection` to `section`
 - Remove `<br>` tags from `notes`
-- Remove `coursestatus`
 - Remove `varcredits`
     – no idea what it does; it's been "N" for every single course in the database
 - Expand `courseubtype` and map to `type`
@@ -41,12 +41,11 @@ What changes?
   - namely `pn` maps to `pf` and becomes `True` or `False`, instead of `'Y'` or `'N'`.
 - Embed the term, year, and semester
 - Embed the course level (first digit of the number)
-- Map `meetinglocations` to `places`
+- Map `meetinglocations` to `locations`
 - Map `meetingtimes` to `times`
-- Map `instructors` to `profs`
-  - `profs` change to "First Last", instead of "Last, First" (and become a list)
+- Change `instructors` to "First Last", instead of "Last, First" (and become a list)
 - Get the GE Reqs as a list (and without the links)
-- Same with `places`
+- Same with `locations`
 - Change `times` to a list
 
 
