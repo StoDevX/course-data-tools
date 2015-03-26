@@ -29,20 +29,6 @@ def get_years_and_terms(terms_or_years):
 	return years, terms
 
 
-def get_args():
-	argparser = ArgumentParser(description='Fetch term data from the SIS.')
-
-	argparser.add_argument('term_or_year', type=int, nargs='*', help='Terms (or entire years) for which to request data from the SIS.')
-	argparser.add_argument('--workers', '-w', type=int, default=8, help='Specify the number of terms to run simultaneously.')
-	argparser.add_argument('--force-download-terms', action='store_true', help='Force reloading of the specified terms.')
-	argparser.add_argument('--force-download-details', action='store_true', help='Force reloading of any course details from the specified terms.')
-	argparser.add_argument('--dry-run', '-d', action='store_true', help='Only print output; don\'t write files.')
-	argparser.add_argument('--no-revisions', '-n', action='store_false', help='Prevent searching for revisions of courses.')
-	argparser.add_argument('--quiet', '-q', action='store_true', help='Silence logging; mostly used when looking for data.')
-
-	return argparser.parse_args()
-
-
 def one_term(term, workers, **kwargs):
 	str_term = str(term)
 	pretty_term = str_term[0:4] + ':' + str_term[4]
@@ -68,8 +54,7 @@ def one_term(term, workers, **kwargs):
 	return final_courses
 
 
-def main():
-	args = get_args()
+def main(args):
 	years, terms = get_years_and_terms(args.term_or_year)
 
 	terms = calculate_terms(years=years, terms=terms)
@@ -88,4 +73,16 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	argparser = ArgumentParser(description='Fetch term data from the SIS.')
+
+	argparser.add_argument('term_or_year', type=int, nargs='*', help='Terms (or entire years) for which to request data from the SIS.')
+	argparser.add_argument('--workers', '-w', type=int, default=8, help='Specify the number of terms to run simultaneously.')
+	argparser.add_argument('--force-download-terms', action='store_true', help='Force reloading of the specified terms.')
+	argparser.add_argument('--force-download-details', action='store_true', help='Force reloading of any course details from the specified terms.')
+	argparser.add_argument('--dry-run', '-d', action='store_true', help='Only print output; don\'t write files.')
+	argparser.add_argument('--no-revisions', '-n', action='store_false', help='Prevent searching for revisions of courses.')
+	argparser.add_argument('--quiet', '-q', action='store_true', help='Silence logging; mostly used when looking for data.')
+
+	args = argparser.parse_args()
+
+	main(args)
