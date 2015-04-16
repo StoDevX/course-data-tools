@@ -1,5 +1,3 @@
-import collections
-
 def flatten(l):
 	# from http://stackoverflow.com/a/2158532/2347774
 	for el in l:
