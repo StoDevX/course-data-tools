@@ -1,0 +1,4 @@
+beautifulsoup4==4.3.2
+futures==2.2.0
+PyYAML==3.11
+requests==2.6.0
