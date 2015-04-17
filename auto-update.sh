@@ -2,8 +2,8 @@
 
 ./scripts/getData.py 20151 20152 20153 --force-download-terms
 
-git status
 git add .
+git status
 
 TODAY=`date`
 
