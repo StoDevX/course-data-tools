@@ -1,27 +1,38 @@
 Gobbldygook Course Data
 =======================
 
-**Date Last Updated:** Dec. 8, 2014
-
-This repository holds the data for Gobbldygook in both raw (XML) and proccessed (JSON) forms. You do not need this repository if your are only interested in using Gobbldygook; it includes this as a submodule.
+This repository holds the data for Gobbldygook in both raw (XML) and proccessed (JSON) forms. You do not need this repository if your are only interested in using Gobbldygook.
 
 
+## Usage
+`./scripts/getData.py --years 1994 1995 --terms 20141`
 
-To Update the Data
-------------------
+Simply calling `getData.py` will run it on every term from 19941 to the current year.
 
-Use Github!
-
-1. Fork this repository
-2. Make a branch titled `data-year-month-day`, where year, month, and day become the year, month, and day, respectively
-3. Run `python3 ./scripts/getData.py --force-download-terms 20151`
-    - where `20151` is the term, in year-semester form, that you want to update
-4. Submit a pull request against my `master` branch
-
+- `--years`: Update all applicable terms for the given years.
+- `--terms`: Only update the given terms.
+- `--force-update-terms`, `-f`: Force it to update terms from the server – not ideal, generally, and only to be used when the data needs to be updated.
+- `--dry-run`, `-d`: Don't modify any files on disk.
+- `--quiet`, `-q`: Run quietly.
+- `--output-type`: Defaults to `json`. Acceptable values: `json`, `csv`.
+- `--output-dir`: The folder to spit terms into. Defaults to `build/`.
 
 
-What changes?
--------------
+## getData.py
+
+Before using this script, you'll need some other things:
+
+- Python 3.3 or greater
+- `beautifulsoup4`
+- `requests`
+- `xmltodict`
+
+The libraries are also specified in `requirements.txt`, so a `pip3 install --user -r requirements.txt` should do it.
+
+As an additional note, I *highly* reccommend using [Homebrew](http://brew.sh) to install/update Python.
+
+
+## What changes?
 
 - Unescape `&amp;` in `coursename` (also remap to `name`)
 - Map `coursesection` to `section`
@@ -47,48 +58,3 @@ What changes?
 - Get the GE Reqs as a list (and without the links)
 - Same with `locations`
 - Change `times` to a list
-
-
-
-Notes
------
-
-Package versioning: I'm trying to use semver. Therefore:
-
-- the first number is incremented for non-backwards-compatible changes to the package format,
-- the second number is incremented for other stuff,
-- the third number is incremented whenever the data changes; f.ex.:
-    - the college published new data
-    - you need to push multiple versions on the same day
-    - you are playing around with something in getData
-
-Examples: `2.1.4`
-
-
-getData.py
-----------
-
-Before using this script, you'll need some other libraries:
-
-- Python 3.4 or greater (3.3 and below might work, but I don't test on them.)
-- `beautifulsoup4`
-- `requests`
-- `xmltodict`
-
-so a `pip3 install beautifulsoup4 requests xmltodict` should do it.
-
-As an additional note, I *highly* reccommend using [Homebrew](http://brew.sh) to install/update Python.
-
-
-### Usage
-
-`python3 getData.py --years 1994 1995 --terms 20141`
-
-Simply calling `python3 getData.py` will run it on every term from 19941 to the current year.
-
-- `--years`: Update all applicable terms for the given years.
-- `--terms`: Only update the given terms.
-- `--force`, `-f`: Force it to update from the server – not ideal, generally, and only to be used when the data needs to be updated.
-- `--dry-run`, `-d`: Don't modify any files on disk.
-- `--quiet`, `-q`: Run quietly.
-- `--output-type`: Defaults to `json`. Acceptable values: `json`, `csv`.
