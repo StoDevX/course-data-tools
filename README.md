@@ -11,7 +11,7 @@ Simply calling `getData.py` will run it on every term from 19941 to the current 
 
 - `--years`: Update all applicable terms for the given years.
 - `--terms`: Only update the given terms.
-- `--force-update-terms`, `-f`: Force it to update terms from the server – not ideal, generally, and only to be used when the data needs to be updated.
+- `--force-update-terms`: Force it to update terms from the server – not ideal, generally, and only to be used when the data needs to be updated.
 - `--dry-run`, `-d`: Don't modify any files on disk.
 - `--quiet`, `-q`: Run quietly.
 - `--output-type`: Defaults to `json`. Acceptable values: `json`, `csv`.
