@@ -67,8 +67,8 @@ def main(args):
 	else:
 		processed_terms = list(map(edit_one_term, terms))
 
-	[save_term(term) for term in processed_terms]
-	json_folder_map(folder=term_dest, kind='courses', dry_run=args.dry_run)
+	[save_term(term, path=args.output_dir, kind=args.output_type) for term in processed_terms]
+	json_folder_map(folder=term_dest, kind='courses', dry_run=args.dry_run, path=args.output_dir)
 	maintain_lists_of_entries([course for term in processed_terms for course in term], dry_run=args.dry_run)
 
 
@@ -82,7 +82,11 @@ if __name__ == '__main__':
 	argparser.add_argument('--dry-run', '-d', action='store_true', help='Only print output; don\'t write files.')
 	argparser.add_argument('--no-revisions', '-n', action='store_false', help='Prevent searching for revisions of courses.')
 	argparser.add_argument('--quiet', '-q', action='store_true', help='Silence logging; mostly used when looking for data.')
+	argparser.add_argument('--output-type', action='store', default='json', choices=['json', 'csv'], help='Change the built filetype')
+	argparser.add_argument('--output-dir', action='store', default='build/', help='Choose an output directory')
 
 	args = argparser.parse_args()
+	if args.output_dir[-1] != '/':
+		args.output_dir += '/'
 
 	main(args)

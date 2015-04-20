@@ -27,5 +27,5 @@ def make_html_path(clbid):
 def make_xml_term_path(term):
 	return xml_source + str(term) + '.xml'
 
-def make_json_term_path(term):
-	return term_dest + str(term) + '.json'
+def make_built_term_path(term, kind, dir=term_dest):
+	return dir + str(term) + '.' + kind
