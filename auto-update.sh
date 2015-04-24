@@ -21,7 +21,7 @@ echo
 echo "git status"
 git status
 
-TODAY=`date`
+TODAY=$(date)
 
 echo
 echo "git commit -m \"[data-update] $TODAY\""
