@@ -11,7 +11,7 @@ def save_term(term_data, path, kind):
 
 	term = term_data[0]['term']
 
-	term_path = make_built_term_path(term, kind, path)
+	term_path = make_built_term_path(term, kind, path + 'terms/')
 	log('saving term', term, 'to', term_path)
 	if kind == 'json':
 		json_term_data = json.dumps(term_data, indent='\t', separators=(',', ': '), sort_keys=True) + '\n'

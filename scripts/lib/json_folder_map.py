@@ -3,11 +3,10 @@ import hashlib
 import json
 import os
 
-from .paths import info_path
 from .parse_year_from_filename import parse_year_from_filename
 from .log import log
 
-def json_folder_map(folder, kind, path=info_path, dry_run=False):
+def json_folder_map(folder, kind, path, dry_run=False):
 	output = {
 		'files': [],
 		'type': kind
@@ -18,8 +17,8 @@ def json_folder_map(folder, kind, path=info_path, dry_run=False):
 		if filename == '.DS_Store':
 			continue
 
-		path = folder + '/' + filename
-		with open(path, 'rb') as infile:
+		filepath = folder + '/' + filename
+		with open(filepath, 'rb') as infile:
 			info = {
 				'path': 'terms/' + filename,
 				'hash': hashlib.sha1(infile.read()).hexdigest(),
@@ -33,7 +32,8 @@ def json_folder_map(folder, kind, path=info_path, dry_run=False):
 
 	log('Hashed files')
 	if not dry_run:
-		with open(path, 'w') as outfile:
+		info_path = path + 'info.json'
+		with open(info_path, 'w') as outfile:
 			outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
 			outfile.write('\n')
-			log('Wrote info.json')
+			log('Wrote info.json to', info_path)
