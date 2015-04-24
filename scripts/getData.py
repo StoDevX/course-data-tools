@@ -83,7 +83,7 @@ if __name__ == '__main__':
 	argparser.add_argument('--no-revisions', '-n', action='store_false', help='Prevent searching for revisions of courses.')
 	argparser.add_argument('--quiet', '-q', action='store_true', help='Silence logging; mostly used when looking for data.')
 	argparser.add_argument('--output-type', action='store', default='json', choices=['json', 'csv'], help='Change the built filetype')
-	argparser.add_argument('--output-dir', action='store', default='build/', help='Choose an output directory')
+	argparser.add_argument('--output-dir', action='store', default='build/terms/', help='Choose an output directory')
 
 	args = argparser.parse_args()
 	if args.output_dir[-1] != '/':
