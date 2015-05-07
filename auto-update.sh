@@ -5,9 +5,6 @@ SLACKBOT_NAME='databot'
 SLACKBOT_ICON=':moyai:'
 SLACK_URL='https://hooks.slack.com/services/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'
 
-echo "curl POST https://hooks.slack.com"
-curl --silent -X POST --data-urlencode "payload={\"channel\": \"$CHANNEL\", \"username\": \"$SLACKBOT_NAME\", \"text\": \"Commencing data collection.\", \"icon_emoji\": \"$SLACKBOT_ICON\"}" $SLACK_URL
-
 echo
 echo "./scripts/getData.py 2015 --force-download-terms"
 
