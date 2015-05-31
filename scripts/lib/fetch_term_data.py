@@ -25,7 +25,8 @@ def request_term_from_server(term):
     if 'Sorry, there\'s been an error.' in request.text:
         log_err('Error in', url, '\nWhoops! Made another error in the server.')
         if 'The request has exceeded the allowable time limit' in request.text:
-            log_err('And that error is exceeding the time limit. Again.\nWe should probably do something about that.')
+            log_err('''And that error is exceeding the time limit. Again.
+                We should probably do something about that.''')
 
         return
 

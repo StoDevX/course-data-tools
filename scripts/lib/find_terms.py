@@ -11,8 +11,8 @@ def find_terms_for_year(year):
     all_terms = [1, 2, 3, 4, 5]
     limited_terms = [1, 2, 3]
 
-    # St. Olaf publishes initial Fall, Interim, and Spring data in April of each year.
-    # Full data is published by August.
+    # St. Olaf publishes initial Fall, Interim, and Spring data in April
+    # of each year. Full data is published by August.
     if year == current_year:
         if current_month < 3:
             return []

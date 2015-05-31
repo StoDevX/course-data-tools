@@ -17,21 +17,27 @@ from .parse_paragraph_as_list import parse_paragraph_as_list
 
 def save_course(course):
     course_path = make_course_path(course['clbid'])
-    json_course_data = json.dumps(course, indent='\t', separators=(',', ': '), sort_keys=True) + '\n'
+    json_course_data = json.dumps(course,
+                                  indent='\t',
+                                  separators=(',', ': '),
+                                  sort_keys=True) + '\n'
     save_data(json_course_data, course_path)
 
 
 def extract_notes(course):
     if course['notes'] and 'Will also meet' in course['notes']:
         info = '[%d%d] %s (%s %d | %d %d):\n\t%s\n\t%s %s' % (
-            course['year'], course['sem'], course['type'][0], '/'.join(course['depts']), course['num'], course['clbid'], course['crsid'],
+            course['year'], course['sem'], course['type'][0],
+            '/'.join(course['depts']), course['num'],
+            course['clbid'], course['crsid'],
             course['notes'],
             course['times'], course['places']
         )
 
         # get the timestring and location string out of the notes field
         notes_into_time_and_location_regex = r'.*meet ([MTWF][/-]?.*) in (.*)\.'
-        results = re.search(notes_into_time_and_location_regex, course['notes'])
+        results = re.search(notes_into_time_and_location_regex,
+                            course['notes'])
         extra_times, extra_locations = results.groups()
         # print(info + '\n\t' + 'regex matches:', [extra_times, extra_locations])
         print(extra_times)

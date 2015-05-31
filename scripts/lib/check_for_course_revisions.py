@@ -38,11 +38,12 @@ def check_for_revisions(course):
         ordered_diff[key] = diff[key]
 
     if ordered_diff:
-        ordered_diff['_updated'] = get_localzone().localize(datetime.now()).isoformat()
+        now = get_localzone().localize(datetime.now())
+        ordered_diff['_updated'] = now.isoformat()
         revisions.append(ordered_diff)
         log('revision in %d:' % (course['clbid']), ordered_diff)
 
-    if revisions and (('revisions' not in course) or (revisions != course.get('revisions'))):
+    if revisions and ('revisions' not in course or revisions != course.get('revisions')):
         return revisions
 
     return None
