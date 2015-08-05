@@ -9,8 +9,9 @@ SLACKBOT_ICON=':moyai:'
 SLACK_URL='https://hooks.slack.com/services/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'
 
 TODAY=$(date)
+YEAR=$(date +%Y)
 
-./scripts/getData.py 2015 --force-download-terms
+./scripts/get-data.py "$YEAR" --force-download-terms
 
 git add .
 
