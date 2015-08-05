@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHANNEL='#gobbldygook-builds'
+CHANNEL='#integration-cslab'
 SLACKBOT_NAME='databot'
 SLACKBOT_ICON=':moyai:'
 SLACK_URL='https://hooks.slack.com/services/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'
