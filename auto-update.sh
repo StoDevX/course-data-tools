@@ -14,11 +14,11 @@ YEAR=$(date +%Y)
 ./scripts/get-data.py "$YEAR" --force-download-terms
 
 git add .
-
 git status
 
 git commit -m "[data-update] $TODAY"
 
+git pull origin master --rebase
 git push origin master
 
 curl --silent -X POST --data-urlencode "payload={\"channel\": \"$CHANNEL\", \"username\": \"$SLACKBOT_NAME\", \"text\": \"Data collection completed.\", \"icon_emoji\": \"$SLACKBOT_ICON\"}" $SLACK_URL
