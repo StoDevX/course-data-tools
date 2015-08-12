@@ -1,0 +1,20 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+# 4 space indentation for python files
+[*.py]
+indent_style = space
+indent_size = 4
+
+# except 2 space for package.json
+[package.json]
+indent_style = space
+indent_size = 2

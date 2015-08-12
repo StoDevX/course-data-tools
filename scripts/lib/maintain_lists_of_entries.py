@@ -38,6 +38,7 @@ def maintain_lists_of_entries(all_courses, dry_run=False):
 
     for set_name, set_data in data_sets.items():
         filename = entry_list_path + 'valid_' + set_name + '.json'
-        json_data = json.dumps({set_name: set_data}, indent='\t', separators=(',', ': '))
+        json_data = json.dumps({set_name: set_data},
+                               indent='\t', separators=(',', ': '))
         if not dry_run:
             save_data(json_data, filename)

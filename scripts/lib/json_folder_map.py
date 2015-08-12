@@ -35,6 +35,8 @@ def json_folder_map(folder, kind, path, dry_run=False):
     if not dry_run:
         info_path = path + 'info.json'
         with open(info_path, 'w') as outfile:
-            outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
+            outfile.write(json.dumps(output,
+                                     indent='\t',
+                                     separators=(',', ': ')))
             outfile.write('\n')
             log('Wrote info.json to', info_path)

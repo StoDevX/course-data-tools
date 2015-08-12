@@ -95,13 +95,13 @@ if __name__ == '__main__':
     argparser.add_argument('--workers', '-w',
                            type=int,
                            default=8,
-                           help='Specify the number of terms to run simultaneously.')
+                           help='Control the number of operations to perform in parallel')
     argparser.add_argument('--force-download-terms',
                            action='store_true',
-                           help='Force reloading of the specified terms.')
+                           help='Force reloading of all specified terms.')
     argparser.add_argument('--force-download-details',
                            action='store_true',
-                           help='Force reloading of any course details from the specified terms.')
+                           help='Force reloading of any course details from all specified terms.')
     argparser.add_argument('--dry-run', '-d',
                            action='store_true',
                            help='Only print output; don\'t write files.')
@@ -115,11 +115,11 @@ if __name__ == '__main__':
                            action='store',
                            default='json',
                            choices=['json', 'csv'],
-                           help='Change the built filetype')
+                           help='Change the output filetype.')
     argparser.add_argument('--output-dir',
                            action='store',
                            default='build/',
-                           help='Choose an output directory')
+                           help='Choose an output directory.')
 
     args = argparser.parse_args()
     if args.output_dir[-1] != '/':

@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from bs4 import BeautifulSoup
-import functools
+from functools import partial
 import requests
 import re
 
@@ -45,6 +45,11 @@ def get_details(clbid, force_download, dry_run):
     return soup
 
 
+def is_empty_paragraph(tag):
+    return (tag.name == 'p' and tag.find(True) is None and
+            (tag.string is None or tag.string.strip() == ""))
+
+
 def clean_markup(raw_data, clbid, dry_run):
     soup = BeautifulSoup(raw_data)
 
@@ -66,8 +71,7 @@ def clean_markup(raw_data, clbid, dry_run):
         for tag in soup.find_all(href="JavaScript:sis_openwindow('http://www.stolafbookstore.com/home.aspx');"):
             tag.unwrap()
 
-        empty_tags = soup.find_all(lambda tag: tag.name == 'p' and tag.find(True) is None and
-                                   (tag.string is None or tag.string.strip() == ""))
+        empty_tags = soup.find_all(is_empty_paragraph)
 
         [tag.decompose() for tag in empty_tags]
         [string.parent.decompose()
@@ -157,9 +161,9 @@ def process_course_info(clbid, dry_run, force_download):
 
 
 def fetch_course_details(clbids, dry_run=False, force_download=False):
-    process_course_info_partial = functools.partial(process_course_info,
-                                                    force_download=force_download,
-                                                    dry_run=dry_run)
+    process_course_info_partial = partial(process_course_info,
+                                          force_download=force_download,
+                                          dry_run=dry_run)
 
     mapped_details = map(process_course_info_partial, clbids)
 
