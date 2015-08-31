@@ -2,7 +2,7 @@
 # -v = set -o verbose
 
 # stop script when command errors
-set -e 
+set -e
 
 CHANNEL='#integration-cslab'
 SLACKBOT_NAME='databot'
@@ -19,8 +19,7 @@ git status
 
 git commit -m "[data-update] $TODAY"
 
-git pull --rebase origin master 
+git pull --rebase origin master
 git push origin master
 
 curl --silent -X POST --data-urlencode "payload={\"channel\": \"$CHANNEL\", \"username\": \"$SLACKBOT_NAME\", \"text\": \"Data collection completed.\", \"icon_emoji\": \"$SLACKBOT_ICON\"}" $SLACK_URL
-
