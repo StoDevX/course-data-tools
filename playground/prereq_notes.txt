@@ -1,8 +1,8 @@
 Starts with one of `Prerequisite:`, `Prerequisites:`, or `Prerequisite/corequisite:`. Note that usage of the singular form of Prerequisite does not imply a single prerequisite.
 
-Can ignore sentences starting with "Counts towards", "Offered", "GE:", 
+Can ignore sentences starting with "Counts towards", "Offered", "GE:",
 
-Need to pull out things like "Materials fee", "P/N only", "offered", 'Taught in <langauge>', etc. for usage in other places.
+Need to pull out things like "Materials fee", "P/N only", "offered", 'Taught in <language>', etc. for usage in other places.
 
 Watch out for:
 	- "Credit may be earned for either X or Y, but not both."
