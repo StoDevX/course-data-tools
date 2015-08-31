@@ -77,10 +77,9 @@ def extract_notes(course):
 
 
 def parse_prerequisites(course):
-    if course['desc'] and 'Prerequisite' in course['desc']:
-        desc = course['desc']
-        index = desc.index('Prerequisite')
-        print(desc[index:])
+    if 'Prerequisite' in course.get('desc', ''):
+        index = course['desc'].index('Prerequisite')
+        print(course['desc'][index:])
 
 
 def clean_course(course):
@@ -180,6 +179,7 @@ def process_course(course, details, find_revisions, dry_run):
 
     # course[''] = extract_notes(cleaned)
     # course['prerequisites'] = parse_prerequisites(cleaned)
+    # parse_prerequisites(cleaned)
 
     if find_revisions:
         revisions = check_for_revisions(cleaned)
