@@ -1,16 +1,16 @@
 ## Singletons
-**Prerequisite:** determined by individual instructor.
-**Prerequisite:** Be able to swim 300 yards.
-**Prerequisite:** Majors who have satisfactorily completed all foundation and required courses with numbers below 380.
-**Prerequisite:** Previous participation in summer communication series.
-**Prerequisites for certain offerings.**
-**Prerequisite:** three semesters of voice lessons, one of which may be voice class; or permission of instructor.
-**Prerequisites:** Two semesters of voice study and THEAT 131: Acting for the Lyric Stage.
-**Prerequisite:** 4 or 5 on AP Calculus AB exam or permission of the Mathematics Placement Director.
-**Prerequisite:** proficiency in algebra and geometry.
-**Prerequisite:** sophomore status or higher. Open to first-year students with permission of the instructor.
-**Prerequisite:** mathematics placement recommendation.
-**Prerequisites:** major in computer science with senior standing, and completion of or concurrent enrollment in computer science core courses, ordinarily including CSCI 263, or permission of instructor.
+**Prerequisite:** determined by individual instructor.  
+**Prerequisite:** Be able to swim 300 yards.  
+**Prerequisite:** Majors who have satisfactorily completed all foundation and required courses with numbers below 380.  
+**Prerequisite:** Previous participation in summer communication series.  
+**Prerequisites for certain offerings.**  
+**Prerequisite:** three semesters of voice lessons, one of which may be voice class; or permission of instructor.  
+**Prerequisites:** Two semesters of voice study and THEAT 131: Acting for the Lyric Stage.  
+**Prerequisite:** 4 or 5 on AP Calculus AB exam or permission of the Mathematics Placement Director.  
+**Prerequisite:** proficiency in algebra and geometry.  
+**Prerequisite:** sophomore status or higher. Open to first-year students with permission of the instructor.  
+**Prerequisite:** mathematics placement recommendation.  
+**Prerequisites:** major in computer science with senior standing, and completion of or concurrent enrollment in computer science core courses, ordinarily including CSCI 263, or permission of instructor.  
 **Prerequisites:** open to junior nursing majors only in the fall of 2015 and to sophomore nursing majors in the spring of 2016 and each spring thereafter. Concurrent registration with NURS 311, NURS 312, and NURS 313 in the fall of 2015. Concurrent registration with ID 210 in the spring of 2016 and each spring thereafter.
 
 
