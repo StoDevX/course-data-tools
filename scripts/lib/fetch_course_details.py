@@ -32,7 +32,7 @@ def get_details(clbid, force_download, dry_run):
         try:
             # log('Loading', clbid, 'from disk')
             raw_data = load_data_from_file(html_term_path)
-            soup = BeautifulSoup(raw_data)
+            soup = BeautifulSoup(raw_data, 'lxml')
         except FileNotFoundError:
             # log('Nope. Requesting', clbid, 'from server')
             raw_data = request_detailed_course_data(clbid)
@@ -51,7 +51,7 @@ def is_empty_paragraph(tag):
 
 
 def clean_markup(raw_data, clbid, dry_run):
-    soup = BeautifulSoup(raw_data)
+    soup = BeautifulSoup(raw_data, 'lxml')
 
     # Clean up the HTML
     # .decompose() destroys the tag and all contents.
