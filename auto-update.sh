@@ -16,7 +16,7 @@ YEAR=$(date +%Y)
 git pull --rebase origin master
 pip3 install --upgrade -r requirements.txt
 
-./scripts/get-data.py "$YEAR" --force-download-terms
+python3 ./scripts/get-data.py "$YEAR" --force-download-terms
 
 git add .
 git status
