@@ -1,4 +1,4 @@
-beautifulsoup4==4.4.0
+beautifulsoup4==4.3.2
 datadiff==1.1.6
 futures==2.2.0
 lxml==3.3.4
