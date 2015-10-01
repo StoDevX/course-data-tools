@@ -191,7 +191,7 @@ def process_course(course, details, find_revisions, dry_run):
         sorted_course[key] = cleaned[key]
 
     # There's no reason to save the course if nothing has changed
-    if not dry_run and course.items() != sorted_course.items():
+    if not dry_run and (course.items() != sorted_course.items()):
         # log('Saving course')
         save_course(sorted_course)
 
