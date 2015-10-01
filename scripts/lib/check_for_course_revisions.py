@@ -27,7 +27,7 @@ def load_previous(course_path):
     return (prior, revisions or [])
 
 
-def check_for_revisions(course):
+def check_for_revisions(course, ignore_revisions):
     prior, revisions = load_previous(make_course_path(course['clbid']))
 
     if not prior:
@@ -36,7 +36,8 @@ def check_for_revisions(course):
     diff = get_old_dict_values(prior, course)
     ordered_diff = OrderedDict()
     for key in sorted(diff.keys()):
-        ordered_diff[key] = diff[key]
+        if key not in ignore_revisions:
+            ordered_diff[key] = diff[key]
 
     if ordered_diff:
         now = get_localzone().localize(datetime.now())

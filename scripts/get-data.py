@@ -51,7 +51,8 @@ def one_term(term, workers, **kwargs):
     log(pretty_term, 'Processing courses')
     final_courses = process_courses(courses, details,
                                     dry_run=kwargs['dry_run'],
-                                    find_revisions=kwargs['find_revisions'])
+                                    find_revisions=kwargs['find_revisions'],
+                                    ignore_revisions=kwargs['ignore_revisions'])
 
     return final_courses
 
@@ -108,6 +109,11 @@ if __name__ == '__main__':
     argparser.add_argument('--no-revisions', '-n',
                            action='store_false',
                            help='Prevent searching for revisions of courses.')
+    argparser.add_argument('--ignore-revisions',
+                           metavar='PROP',
+                           nargs='+',
+                           default=[],
+                           help='Prevent storing revisions within property $PROP.')
     argparser.add_argument('--quiet', '-q',
                            action='store_true',
                            help='Silence logging; mostly used when looking for data.')
