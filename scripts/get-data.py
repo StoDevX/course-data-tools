@@ -127,6 +127,8 @@ if __name__ == '__main__':
                            default='build/',
                            help='Choose an output directory.')
 
+    argparser.allow_abbrev = False
+
     args = argparser.parse_args()
     if args.output_dir[-1] != '/':
         args.output_dir += '/'
