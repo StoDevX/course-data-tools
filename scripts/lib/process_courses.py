@@ -199,12 +199,8 @@ def process_course(course, details, find_revisions, dry_run):
 
 
 def process_courses(courses, details, find_revisions=True, workers=8, dry_run=False):
-    edit = functools.partial(
-        process_course,
-        details=details,
-        find_revisions=find_revisions,
-        dry_run=dry_run)
-
-    edited_courses = [edit(course) for course in courses]
-
-    return edited_courses
+    return [process_course(course,
+                           details=details,
+                           find_revisions=find_revisions,
+                           dry_run=dry_run)
+            for course in courses]
