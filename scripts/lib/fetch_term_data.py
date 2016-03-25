@@ -33,14 +33,9 @@ def request_term_from_server(term):
     return request.text
 
 
-def ensure_list_in_term(xml_term_data):
-    # If there is only one course for a semester, then raw_term_data
-    # is just an object; otherwise, it's a list. We need to ensure that
-    # it is always a list.
-    if xml_term_data['searchresults']:
-        if type(xml_term_data['searchresults']['course']) is not list:
-            xml_term_data['searchresults']['course'] = [xml_term_data['searchresults']['course']]
-        xml_term_data['searchresults']['course'] = sorted(xml_term_data['searchresults']['course'], key=lambda c: c['clbid'])
+def sort_courses(xml_term_data):
+    xml_term_data['searchresults']['course'] = sorted(xml_term_data['searchresults']['course'],
+                                                      key=lambda c: c['clbid'])
     return xml_term_data
 
 
@@ -55,15 +50,17 @@ def load_data_from_server(term, dry_run=False):
 
     raw_data = request_term_from_server(term)
     valid_data = fix_invalid_xml(raw_data)
-    xmldict = xmltodict.parse(valid_data)
+    parsed_data = xmltodict.parse(valid_data, force_list=('course',))
 
-    parsed_data = ensure_list_in_term(xmldict)
+    # We sort the courses here, before we save it to disk, so that we don't
+    # need to re-sort every time we load from disk.
+    sorted_data = sort_courses(parsed_data)
 
-    if not parsed_data['searchresults']:
+    if not sorted_data['searchresults']:
         log('No data returned for', term)
         return None
 
-    embedded_terms = embed_term_in_courses(parsed_data, term)
+    embedded_terms = embed_term_in_courses(sorted_data, term)
 
     if not dry_run:
         reparsed_data = xmltodict.unparse(embedded_terms, pretty=True)
@@ -81,7 +78,7 @@ def load_term(term, force_download=False, dry_run=False):
         try:
             # log('Loading', term, 'from disk')
             raw_data = load_data_from_file(xml_term_path)
-            data = xmltodict.parse(raw_data)
+            data = xmltodict.parse(raw_data, force_list=('course',))
         except FileNotFoundError:
             log('Requesting', term, 'from server')
             data = load_data_from_server(term, dry_run=dry_run)
