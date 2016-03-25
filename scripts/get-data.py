@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 import json
@@ -95,7 +96,7 @@ if __name__ == '__main__':
                            help='Terms (or entire years) for which to request data from the SIS.')
     argparser.add_argument('--workers', '-w',
                            type=int,
-                           default=8,
+                           default=cpu_count(),
                            help='Control the number of operations to perform in parallel')
     argparser.add_argument('--force-download-terms',
                            action='store_true',
