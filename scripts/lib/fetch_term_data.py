@@ -70,6 +70,15 @@ def load_data_from_server(term, dry_run=False):
     return embedded_terms
 
 
+def unorder_dicts_in_term(term):
+    term = dict(term.items())
+    term['searchresults'] = dict(term['searchresults'].items())
+    term['searchresults']['course'] = [dict(course.items())
+                                       for course in term['searchresults']['course']]
+
+    return term
+
+
 def load_term(term, force_download=False, dry_run=False):
     xml_term_path = make_xml_term_path(term)
     data = ''
@@ -86,6 +95,7 @@ def load_term(term, force_download=False, dry_run=False):
         log('Forced to request', term, 'from server')
         data = load_data_from_server(term, dry_run=dry_run)
 
+    data = unorder_dicts_in_term(daat)
     return data
 
 
