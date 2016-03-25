@@ -1,8 +1,8 @@
-beautifulsoup4==4.3.2
-datadiff==1.1.6
-futures==2.2.0
-pep8==1.6.2
+beautifulsoup4==4.4.1
+datadiff==2.0.0
+futures==3.0.5
+pep8==1.7.0
 PyYAML==3.11
-requests==2.7.0
-tzlocal==1.2.0
-xmltodict==0.9.2
+requests==2.9.1
+tzlocal==1.2.2
+xmltodict==0.10.1
