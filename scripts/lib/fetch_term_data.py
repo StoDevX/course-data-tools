@@ -95,7 +95,7 @@ def load_term(term, force_download=False, dry_run=False):
         log('Forced to request', term, 'from server')
         data = load_data_from_server(term, dry_run=dry_run)
 
-    data = unorder_dicts_in_term(daat)
+    data = unorder_dicts_in_term(data)
     return data
 
 
