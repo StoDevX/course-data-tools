@@ -127,6 +127,8 @@ def clean_course(course):
         course['num'] = course['coursenumber']
     elif re.match(r'\d{3}I', course['coursenumber']):
         course['num'] = int(course['coursenumber'][:-1])
+    else:
+        course['num'] = course['coursenumber']
     del course['coursenumber']
 
     course['credits'] = float(course['credits'])
@@ -148,6 +150,8 @@ def clean_course(course):
     # Add the course level
     if type(course['num']) is int:
         course['level'] = int(course['num'] / 100) * 100
+    elif course['num'] == 'XX':
+        course['level'] = 0
     elif 'X' in course['num']:
         course['level'] = int(course['num'][0]) * 100
     else:

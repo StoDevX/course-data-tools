@@ -13,8 +13,14 @@ from .paths import make_course_path
 def load_previous(course_path):
     try:
         prior_data = load_data_from_file(course_path)
-        prior = json.loads(prior_data)
     except FileNotFoundError:
+        prior_data = None
+
+    try:
+        prior = json.loads(prior_data)
+    except Exception:
+        print("Error loading JSON")
+        print(prior_data)
         prior = None
 
     revisions = []
