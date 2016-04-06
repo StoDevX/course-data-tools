@@ -10,13 +10,13 @@ SLACKBOT_ICON=':moyai:'
 SLACK_URL='https://hooks.slack.com/services/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'
 
 TODAY=$(date)
-YEAR=$(echo 2015 2016)
+YEAR="2015 2016"
 
 # update in case code has changed
 git pull --rebase origin master
 pip3 install --upgrade -r requirements.txt
 
-python3 ./scripts/get-data.py "$YEAR" --force-download-terms
+python3 ./scripts/get-data.py $YEAR --force-download-terms
 
 git add .
 git status
