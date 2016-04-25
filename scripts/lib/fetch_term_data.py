@@ -28,7 +28,7 @@ def request_term_from_server(term):
             log_err('''And that error is exceeding the time limit. Again.
                 We should probably do something about that.''')
 
-        return
+        return None
 
     return request.text
 
@@ -49,6 +49,10 @@ def load_data_from_server(term, dry_run=False):
     xml_term_path = make_xml_term_path(term)
 
     raw_data = request_term_from_server(term)
+    if not raw_data:
+        log('No data returned for', term)
+        return None
+
     valid_data = fix_invalid_xml(raw_data)
     parsed_data = xmltodict.parse(valid_data, force_list=('course',))
 
