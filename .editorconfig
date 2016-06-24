@@ -13,8 +13,3 @@ insert_final_newline = true
 [*.py]
 indent_style = space
 indent_size = 4
-
-# except 2 space for package.json
-[package.json]
-indent_style = space
-indent_size = 2
