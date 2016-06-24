@@ -1,18 +1,15 @@
-from concurrent.futures import ProcessPoolExecutor
-from collections import OrderedDict
-import functools
 import json
 import re
+from collections import OrderedDict
 
-from .log import log
-from .save_data import save_data
-from .paths import make_course_path
-from .check_for_course_revisions import check_for_revisions
-from .data import departments, course_types
 from .break_apart_departments import break_apart_departments
-from .split_and_flip_instructors import split_and_flip_instructors
+from .check_for_course_revisions import check_for_revisions
+from .data import course_types
 from .parse_links_for_text import parse_links_for_text
 from .parse_paragraph_as_list import parse_paragraph_as_list
+from .paths import make_course_path
+from .save_data import save_data
+from .split_and_flip_instructors import split_and_flip_instructors
 
 
 def save_course(course):
@@ -206,7 +203,9 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
     return sorted_course
 
 
-def process_courses(courses, details, find_revisions=True, ignore_revisions=[], dry_run=False):
+def process_courses(courses, details, find_revisions=True, ignore_revisions=None, dry_run=False):
+    ignore_revisions = [] if ignore_revisions is None else ignore_revisions
+
     return [process_course(course,
                            details=details,
                            find_revisions=find_revisions,

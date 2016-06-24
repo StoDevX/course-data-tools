@@ -3,8 +3,12 @@ import hashlib
 import json
 import os
 
-from .parse_year_from_filename import parse_year_from_filename
 from .log import log
+
+
+def parse_year_from_filename(filename):
+    # ex: 19943.json -> 1994
+    return int(filename[0:4])
 
 
 def json_folder_map(folder, kind, path, dry_run=False):

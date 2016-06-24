@@ -1,13 +1,10 @@
-from argparse import ArgumentParser
 from bs4 import BeautifulSoup
-from functools import partial
 import requests
 import re
 
 from .load_data_from_file import load_data_from_file
-from .paths import details_source, make_html_path
+from .paths import make_html_path
 from .save_data import save_data
-from .log import log, log_err
 
 
 bad_endings = [
@@ -26,7 +23,6 @@ def request_detailed_course_data(clbid):
 
 def get_details(clbid, force_download, dry_run):
     html_term_path = make_html_path(clbid)
-    details = {}
 
     if not force_download:
         try:
@@ -161,24 +157,6 @@ def process_course_info(clbid, dry_run, force_download):
 
 
 def fetch_course_details(clbids, dry_run=False, force_download=False):
-    process_course_info_partial = partial(process_course_info,
-                                          force_download=force_download,
-                                          dry_run=dry_run)
-
-    mapped_details = map(process_course_info_partial, clbids)
+    mapped_details = [process_course_info(clbid, dry_run, force_download) for clbid in clbids]
 
     return dict(mapped_details)
-
-
-def main():
-    argparser = ArgumentParser()
-    argparser.add_argument('clbids', type=int, nargs='*')
-    argparser.add_argument('--workers', '-w', type=int, default=4)
-    argparser.add_argument('--force-download', '-f', action='store_true')
-    args = argparser.parse_args()
-
-    details = fetch_course_details(**vars(args))
-
-
-if __name__ == '__main__':
-    main()

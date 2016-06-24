@@ -1,16 +1,18 @@
-from argparse import ArgumentParser
-import functools
 import xmltodict
 import requests
-import json
+import re
 
 from .load_data_from_file import load_data_from_file
-from .save_data_as_csv import save_data_as_csv
-from .fix_invalid_xml import fix_invalid_xml
 from .paths import make_xml_term_path
-from .delete_file import delete_file
 from .save_data import save_data
 from .log import log, log_err
+
+
+def fix_invalid_xml(raw):
+    # Replace any invalid XML entities with &amp;
+    subst = '&amp;'
+    cleaned = re.sub(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)', subst, raw)
+    return cleaned
 
 
 def request_term_from_server(term):
@@ -33,12 +35,6 @@ def request_term_from_server(term):
     return request.text
 
 
-def sort_courses(xml_term_data):
-    xml_term_data['searchresults']['course'] = sorted(xml_term_data['searchresults']['course'],
-                                                      key=lambda c: c['clbid'])
-    return xml_term_data
-
-
 def embed_term_in_courses(xml_term_data, term):
     for course in xml_term_data['searchresults']['course']:
         course['term'] = term
@@ -56,15 +52,15 @@ def load_data_from_server(term, dry_run=False):
     valid_data = fix_invalid_xml(raw_data)
     parsed_data = xmltodict.parse(valid_data, force_list=('course',))
 
-    # We sort the courses here, before we save it to disk, so that we don't
-    # need to re-sort every time we load from disk.
-    sorted_data = sort_courses(parsed_data)
-
-    if not sorted_data['searchresults']:
+    if not parsed_data['searchresults']:
         log('No data returned for', term)
         return None
 
-    embedded_terms = embed_term_in_courses(sorted_data, term)
+    # We sort the courses here, before we save it to disk, so that we don't
+    # need to re-sort every time we load from disk.
+    parsed_data['searchresults']['course'].sort(key=lambda c: c['clbid'])
+
+    embedded_terms = embed_term_in_courses(parsed_data, term)
 
     if not dry_run:
         reparsed_data = xmltodict.unparse(embedded_terms, pretty=True)
@@ -85,7 +81,6 @@ def unorder_dicts_in_term(term):
 
 def load_term(term, force_download=False, dry_run=False):
     xml_term_path = make_xml_term_path(term)
-    data = ''
 
     if not force_download:
         try:
@@ -101,16 +96,3 @@ def load_term(term, force_download=False, dry_run=False):
 
     data = unorder_dicts_in_term(data)
     return data
-
-
-if __name__ == '__main__':
-    argparser = ArgumentParser()
-    argparser.add_argument('term', type=int)
-    argparser.add_argument('--force-download', '-f', action='store_true')
-    argparser.add_argument('--dry-run', '-d', action='store_true')
-    args = argparser.parse_args()
-
-    data = load_term(**vars(args))
-
-    courses = data['searchresults']['course']
-    [print(course['clbid']) for course in courses]

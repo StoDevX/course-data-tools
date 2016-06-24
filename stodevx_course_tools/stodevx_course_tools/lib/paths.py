@@ -30,5 +30,5 @@ def make_xml_term_path(term):
     return xml_source + str(term) + '.xml'
 
 
-def make_built_term_path(term, kind, dir=term_dest):
-    return dir + str(term) + '.' + kind
+def make_built_term_path(term, kind, folder=term_dest):
+    return folder + str(term) + '.' + kind

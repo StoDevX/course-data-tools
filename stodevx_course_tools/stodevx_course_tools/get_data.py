@@ -4,18 +4,15 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
-import json
 
-from lib.json_folder_map import json_folder_map
-from lib.maintain_lists_of_entries import maintain_lists_of_entries
-from lib.fetch_course_details import fetch_course_details
-from lib.save_term import save_term
-from lib.calculate_terms import calculate_terms
-from lib.process_courses import process_courses
-from lib.fetch_term_data import load_term
-from lib.flattened import flatten
-from lib.log import log
-from lib.paths import term_dest
+from .lib.json_folder_map import json_folder_map
+from .lib.maintain_lists_of_entries import maintain_lists_of_entries
+from .lib.fetch_course_details import fetch_course_details
+from .lib.save_term import save_term
+from .lib.calculate_terms import calculate_terms
+from .lib.process_courses import process_courses
+from .lib.fetch_term_data import load_term
+from .lib.log import log
 
 
 def get_years_and_terms(terms_or_years):
@@ -30,7 +27,7 @@ def get_years_and_terms(terms_or_years):
     return years, terms
 
 
-def one_term(term, workers, **kwargs):
+def one_term(term, **kwargs):
     str_term = str(term)
     pretty_term = str_term[0:4] + ':' + str_term[4]
 
@@ -58,7 +55,7 @@ def one_term(term, workers, **kwargs):
     return final_courses
 
 
-def main(args):
+def run(args):
     years, terms = get_years_and_terms(args.term_or_year)
 
     terms = calculate_terms(years=years, terms=terms)
@@ -87,7 +84,7 @@ def main(args):
         dry_run=args.dry_run)
 
 
-if __name__ == '__main__':
+def main():
     argparser = ArgumentParser(description='Fetch term data from the SIS.')
 
     argparser.add_argument('term_or_year',
@@ -134,4 +131,8 @@ if __name__ == '__main__':
     if args.output_dir[-1] != '/':
         args.output_dir += '/'
 
-    main(args)
+    run(args)
+
+
+if __name__ == '__main__':
+    main()
