@@ -1,10 +1,10 @@
-details_source = './source/details/'
-xml_source = './source/raw_xml/'
-course_dest = './source/courses/'
+details_source = './course-data/details/'
+xml_source = './course-data/raw_xml/'
+course_dest = './course-data/courses/'
 info_path = './build/info.json'
 term_dest = './build/terms/'
-mappings_path = './related-data/generated/'
-handmade_path = './related-data/handmade/'
+mappings_path = './course-data/data/generated/'
+handmade_path = './course-data/data/handmade/'
 
 
 def find_details_subdir(clbid):
