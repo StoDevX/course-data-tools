@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-import os, sys
-PROJ_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, PROJ_ROOT)
-
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 from argparse import ArgumentParser
