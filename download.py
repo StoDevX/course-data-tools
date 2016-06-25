@@ -17,8 +17,7 @@ def one_term(args, term):
     pretty_term = str_term[0:4] + ':' + str_term[4]
 
     log(pretty_term, 'Loading term')
-    raw_term_data = load_term(term,
-                              force_download=args.force_download_terms)
+    raw_term_data = load_term(term, force_download=args.force_terms)
 
     if not raw_term_data:
         return []
@@ -30,7 +29,7 @@ def one_term(args, term):
     clbids = [c['clbid'] for c in courses]
     details = fetch_course_details(clbids,
                                    dry_run=args.dry_run,
-                                   force_download=args.force_download_details)
+                                   force_download=args.force_details)
 
     log(pretty_term, 'Processing courses')
     process_courses(courses, details,
@@ -82,11 +81,6 @@ def main():
     argparser.add_argument('--quiet', '-q',
                            action='store_true',
                            help='Silence logging; mostly used when looking for data.')
-    argparser.add_argument('--output-type',
-                           action='store',
-                           default='json',
-                           choices=['json', 'csv'],
-                           help='Change the output filetype.')
 
     args = argparser.parse_args()
     args.find_revisions = args.no_revisions
