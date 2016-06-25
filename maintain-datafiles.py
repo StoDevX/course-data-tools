@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lib.maintain_lists_of_entries import maintain_lists_of_entries
-from lib.load_all_courses import load_all_courses
+from lib.load_courses import load_all_courses
 
 
 def main():
