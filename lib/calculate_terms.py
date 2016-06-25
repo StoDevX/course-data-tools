@@ -52,9 +52,25 @@ def find_terms(start_year=None, end_year=None, this_year=False):
     return term_list
 
 
-def calculate_terms(terms, years):
-    terms = terms or []
-    years = years or []
+def get_years_and_terms(terms_and_years):
+    terms_and_years = flatten([item.split(' ')
+                               if type(item) is str
+                               else item
+                               for item in terms_and_years])
+
+    years, terms = [], []
+    for item in terms_and_years:
+        str_item = str(item)
+        if len(str_item) is 4:
+            years.append(item)
+        elif len(str_item) is 5:
+            terms.append(item)
+
+    return years, terms
+
+
+def calculate_terms(terms_and_years):
+    years, terms = get_years_and_terms(terms_and_years)
 
     if (not terms) and (not years):
         calculated_terms = find_terms()

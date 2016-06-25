@@ -1,45 +1,38 @@
 from .load_data_from_file import load_data_from_file
 from .save_data import save_data
 from .paths import mappings_path
-from os.path import join
 import json
+import os
 
 
-def maintain_lists_of_entries(all_courses, dry_run=False):
-    entry_list_path = mappings_path
-
+def maintain_lists_of_entries(all_courses):
     data_sets = {
-        'departments': [],
-        'professors': [],
-        'times': [],
-        'locations': [],
-        'gereqs': [],
-        'types': [],
+        'departments': set(),
+        'instructors': set(),
+        'times': set(),
+        'locations': set(),
+        'gereqs': set(),
+        'types': set(),
     }
 
-    for set_name, set_data in data_sets.items():
-        filename = join(entry_list_path, 'valid_' + set_name + '.json')
+    for key in data_sets:
+        filename = os.path.join(mappings_path, 'valid_%s.json' % key)
         data = load_data_from_file(filename)
-        data_sets[set_name] = json.loads(data)[set_name]
+        data_sets[key] = set(json.loads(data)[key])
 
     for course in all_courses:
-        data_sets['departments'].extend(course.get('depts') or [])
-        data_sets['professors'].extend(course.get('profs') or [])
-        data_sets['times'].extend(course.get('times') or [])
-        data_sets['locations'].extend(course.get('places') or [])
-        data_sets['gereqs'].extend(course.get('gereqs') or [])
-        data_sets['types'].append(course.get('type') or [])
+        data_sets['departments'].update(course.get('depts', []))
+        data_sets['instructors'].update(course.get('instructors', []))
+        data_sets['times'].update(course.get('times', []))
+        data_sets['locations'].update(course.get('places', []))
+        data_sets['gereqs'].update(course.get('gereqs', []))
+        data_sets['types'].add(course.get('type', ''))
 
-    data_sets['departments'] = sorted(set(data_sets['departments']))
-    data_sets['professors'] = sorted(set(data_sets['professors']))
-    data_sets['times'] = sorted(set(data_sets['times']))
-    data_sets['locations'] = sorted(set(data_sets['locations']))
-    data_sets['gereqs'] = sorted(set(data_sets['gereqs']))
-    data_sets['types'] = sorted(set(data_sets['types']))
+    for key in data_sets:
+        data_sets[key] = sorted(data_sets[key])
 
-    for set_name, set_data in data_sets.items():
-        filename = join(entry_list_path, 'valid_' + set_name + '.json')
-        json_data = json.dumps({set_name: set_data},
+    for key, data in data_sets.items():
+        filename = os.path.join(mappings_path, 'valid_%s.json' % key)
+        json_data = json.dumps({key: data},
                                indent='\t', separators=(',', ': '))
-        if not dry_run:
-            save_data(json_data, filename)
+        save_data(json_data, filename)
