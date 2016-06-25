@@ -9,7 +9,6 @@ from lib.fetch_course_details import fetch_course_details
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_courses
 from lib.fetch_term_data import load_term
-from lib.paths import COURSE_DATA
 from lib.log import log
 
 
@@ -63,12 +62,12 @@ def main():
                            type=int,
                            default=cpu_count(),
                            help='Control the number of operations to perform in parallel')
-    argparser.add_argument('--force-download-terms',
+    argparser.add_argument('--force-terms',
                            action='store_true',
                            help='Force reloading of all specified terms.')
-    argparser.add_argument('--force-download-details',
+    argparser.add_argument('--force-details',
                            action='store_true',
-                           help='Force reloading of any course details from all specified terms.')
+                           help='Force reloading of course details from all specified terms.')
     argparser.add_argument('--dry-run', '-d',
                            action='store_true',
                            help='Only print output; don\'t write files.')
@@ -88,10 +87,6 @@ def main():
                            default='json',
                            choices=['json', 'csv'],
                            help='Change the output filetype.')
-    argparser.add_argument('--output-dir',
-                           action='store',
-                           default=COURSE_DATA,
-                           help='Choose an output directory.')
 
     args = argparser.parse_args()
     args.find_revisions = args.no_revisions
