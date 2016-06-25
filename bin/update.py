@@ -74,10 +74,10 @@ def run(args):
     else:
         processed_terms = list(map(edit_one_term, terms))
 
-    [save_term(term,
-               path=args.output_dir,
-               kind=args.output_type)
-        for term in processed_terms]
+    for term in processed_terms:
+        save_term(term,
+                  path=args.output_dir,
+                  kind=args.output_type)
 
     json_folder_map(folder=args.output_dir + 'terms/',
                     kind='courses',
