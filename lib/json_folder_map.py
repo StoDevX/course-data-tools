@@ -23,7 +23,7 @@ def json_folder_map(folder, kind, path, dry_run=False):
         if filename == '.DS_Store':
             continue
 
-        with open(join(folder, filename), 'rb') as infile:
+        with open(os.path.join(folder, filename), 'rb') as infile:
             info = {
                 'path': 'terms/' + filename,
                 'hash': hashlib.sha1(infile.read()).hexdigest(),
