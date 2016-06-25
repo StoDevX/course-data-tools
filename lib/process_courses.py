@@ -24,8 +24,8 @@ def save_course(course):
 def extract_notes(course):
     if course['notes'] and 'Will also meet' in course['notes']:
         info = '[%d%d] %s (%s %d | %d %d):\n\t%s\n\t%s %s' % (
-            course['year'], course['sem'], course['type'][0],
-            '/'.join(course['depts']), course['num'],
+            course['year'], course['semester'], course['type'][0],
+            '/'.join(course['departments']), course['number'],
             course['clbid'], course['crsid'],
             course['notes'],
             course['times'], course['places']
@@ -75,9 +75,9 @@ def extract_notes(course):
 
 def parse_prerequisites(course):
     search_str = 'Prereq'
-    if search_str in course.get('desc', ''):
-        index = course['desc'].index(search_str)
-        return course['desc'][index:]
+    if search_str in course.get('description', ''):
+        index = course['description'].index(search_str)
+        return course['description'][index:]
     elif search_str in course.get('notes', ''):
         index = course['notes'].index(search_str)
         return course['notes'][index:]
@@ -112,20 +112,20 @@ def clean_course(course):
     del course['coursesubtype']
 
     # Break apart dept names into lists
-    course['depts'] = break_apart_departments(course)
+    course['departments'] = break_apart_departments(course['deptname'])
     del course['deptname']
 
     # Turn numbers into numbers
     course['clbid'] = int(course['clbid'])
 
     if re.search(r'\d{3}$', course['coursenumber']):
-        course['num'] = int(course['coursenumber'])
+        course['number'] = int(course['coursenumber'])
     elif re.match(r'\dXX', course['coursenumber']):
-        course['num'] = course['coursenumber']
+        course['number'] = course['coursenumber']
     elif re.match(r'\d{3}I', course['coursenumber']):
-        course['num'] = int(course['coursenumber'][:-1])
+        course['number'] = int(course['coursenumber'][:-1])
     else:
-        course['num'] = course['coursenumber']
+        course['number'] = course['coursenumber']
     del course['coursenumber']
 
     course['credits'] = float(course['credits'])
@@ -134,8 +134,7 @@ def clean_course(course):
         course['groupid'] = int(course['groupid'])
 
     # Turn booleans into booleans
-    course['pf'] = True if course['pn'] is 'Y' else False
-    del course['pn']
+    course['pn'] = True if course['pn'] is 'Y' else False
 
     # Add the term, year, and semester
     # `term` looks like 20083, where the first four digits represent the
@@ -145,12 +144,12 @@ def clean_course(course):
     course['semester'] = int(str(course['term'])[4])   # Get the last digit
 
     # Add the course level
-    if type(course['num']) is int:
-        course['level'] = int(course['num'] / 100) * 100
-    elif course['num'] == 'XX':
+    if type(course['number']) is int:
+        course['level'] = int(course['number'] / 100) * 100
+    elif course['number'] == 'XX':
         course['level'] = 0
-    elif 'X' in course['num']:
-        course['level'] = int(course['num'][0]) * 100
+    elif 'X' in course['number']:
+        course['level'] = int(course['number'][0]) * 100
     else:
         raise UserWarning('Course number is weird in', course)
 
@@ -176,7 +175,7 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
     detail = details.get(course['clbid'])
 
     course['title'] = detail.get('title', None)
-    course['desc'] = detail.get('desc', None)
+    course['description'] = detail.get('description', None)
 
     cleaned = clean_course(course)
 

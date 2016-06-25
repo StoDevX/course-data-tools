@@ -1,11 +1,10 @@
 from .data import departments
 
 
-def break_apart_departments(course):
+def break_apart_departments(depts):
     # Split apart the departments, because 'AR/AS' is actually
     # ['ART', 'ASIAN'] departments.
-    split = course['deptname'].split('/')
     return [
         departments[dept.lower()] if dept.lower() in departments.keys() else dept
-        for dept in split
+        for dept in depts.split('/')
     ]

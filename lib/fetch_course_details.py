@@ -107,13 +107,13 @@ def clean_details(soup):
 
     if strings[0] == apology:
         details['title'] = None
-        details['desc'] = None
+        details['description'] = None
     else:
         details['title'] = strings[0].text
         if len(strings) >= 2:
             desc_strings = [' '.join(string.text.split())
                             for string in strings[1:]]
-            details['desc'] = '\n'.join(desc_strings)
+            details['description'] = '\n'.join(desc_strings)
 
     if details.get('title'):
         # Remove extra spaces from the string
@@ -126,20 +126,20 @@ def clean_details(soup):
         # Clean any extra whitespace off the title
         details['title'] = details['title'].strip()
 
-    if details.get('desc'):
+    if details.get('description'):
         # Remove silly endings and beginnings
         for ending in bad_endings:
-            details['desc'] = ' '.join(details['desc'].split(ending))
+            details['description'] = ' '.join(details['description'].split(ending))
         for beginning in bad_beginnings:
-            details['desc'] = ' '.join(details['desc'].split(beginning))
+            details['description'] = ' '.join(details['description'].split(beginning))
         # Clean any extra whitespace off the description
-        details['desc'] = details['desc'].strip()
+        details['description'] = details['description'].strip()
 
-    desc = details.get('desc')
+    description = details.get('description')
     title = details.get('title')
 
-    if desc == '' or desc == apology or desc == title:
-        details['desc'] = None
+    if description == '' or description == apology or description == title:
+        details['description'] = None
 
     if title == '':
         details['title'] = None
@@ -157,6 +157,7 @@ def process_course_info(clbid, dry_run, force_download):
 
 
 def fetch_course_details(clbids, dry_run=False, force_download=False):
-    mapped_details = [process_course_info(clbid, dry_run, force_download) for clbid in clbids]
+    mapped_details = [process_course_info(clbid, dry_run, force_download)
+                      for clbid in clbids]
 
     return dict(mapped_details)

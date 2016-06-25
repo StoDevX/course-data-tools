@@ -21,7 +21,7 @@ def maintain_lists_of_entries(all_courses):
         data_sets[key] = set(json.loads(data))
 
     for course in all_courses:
-        data_sets['departments'].update(course.get('depts', []))
+        data_sets['departments'].update(course.get('departments', []))
         data_sets['instructors'].update(course.get('instructors', []))
         data_sets['times'].update(course.get('times', []))
         data_sets['locations'].update(course.get('places', []))
