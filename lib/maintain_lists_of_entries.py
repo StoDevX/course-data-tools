@@ -18,7 +18,7 @@ def maintain_lists_of_entries(all_courses):
     for key in data_sets:
         filename = os.path.join(mappings_path, 'valid_%s.json' % key)
         data = load_data_from_file(filename)
-        data_sets[key] = set(json.loads(data)[key])
+        data_sets[key] = set(json.loads(data))
 
     for course in all_courses:
         data_sets['departments'].update(course.get('depts', []))
@@ -33,6 +33,5 @@ def maintain_lists_of_entries(all_courses):
 
     for key, data in data_sets.items():
         filename = os.path.join(mappings_path, 'valid_%s.json' % key)
-        json_data = json.dumps({key: data},
-                               indent='\t', separators=(',', ': '))
-        save_data(json_data, filename)
+        json_data = json.dumps(data, indent='\t', separators=(',', ': '))
+        save_data(json_data + '\n', filename)
