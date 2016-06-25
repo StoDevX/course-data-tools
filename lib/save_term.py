@@ -7,13 +7,13 @@ from .paths import make_built_term_path
 from .save_data_as_csv import save_data_as_csv
 
 
-def save_term(term_data, path, kind):
+def save_term(term_data, kind):
     if not term_data:
         return
 
     term = term_data[0]['term']
 
-    term_path = make_built_term_path(term, kind, os.path.join(path, 'terms'))
+    term_path = make_built_term_path(term, kind)
     log('saving term', term, 'to', term_path)
     if kind == 'json':
         json_term_data = json.dumps(term_data,

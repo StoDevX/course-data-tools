@@ -12,10 +12,10 @@ def parse_year_from_filename(filename):
     return int(filename[0:4])
 
 
-def json_folder_map(folder, kind, path, dry_run=False):
+def json_folder_map(folder, path, dry_run=False):
     output = {
         'files': [],
-        'type': kind
+        'type': 'courses',
     }
 
     files = os.listdir(folder)
@@ -38,8 +38,6 @@ def json_folder_map(folder, kind, path, dry_run=False):
     log('Hashed files')
     if not dry_run:
         with open(info_path, 'w') as outfile:
-            outfile.write(json.dumps(output,
-                                     indent='\t',
-                                     separators=(',', ': ')))
+            outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
             outfile.write('\n')
             log('Wrote info.json to', info_path)
