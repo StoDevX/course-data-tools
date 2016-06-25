@@ -5,6 +5,7 @@ from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 
+from lib.save_term_clbid_list import save_term_clbid_list
 from lib.fetch_course_details import fetch_course_details
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_courses
@@ -36,6 +37,11 @@ def one_term(args, term):
                     dry_run=args.dry_run,
                     find_revisions=args.find_revisions,
                     ignore_revisions=args.ignore_revisions)
+
+    log(pretty_term, 'Saving course mapping')
+    # do it again: this time, we get the numeric versions
+    clbids = [c['clbid'] for c in courses]
+    save_term_clbid_list(term, clbids)
 
 
 def run(args):
