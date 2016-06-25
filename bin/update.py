@@ -91,6 +91,7 @@ def run(args):
 
 def main():
     argparser = ArgumentParser(description='Fetch term data from the SIS.')
+    argparser.allow_abbrev = False
 
     argparser.add_argument('term_or_year',
                            type=int,
@@ -130,13 +131,7 @@ def main():
                            default=COURSE_DATA,
                            help='Choose an output directory.')
 
-    argparser.allow_abbrev = False
-
-    args = argparser.parse_args()
-    if args.output_dir[-1] != '/':
-        args.output_dir += '/'
-
-    run(args)
+    run(argparser.parse_args())
 
 
 if __name__ == '__main__':
