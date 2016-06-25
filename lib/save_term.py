@@ -1,5 +1,4 @@
 import json
-import os
 
 from .log import log
 from .save_data import save_data
