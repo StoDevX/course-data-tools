@@ -5,36 +5,21 @@ from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 
-from lib.json_folder_map import json_folder_map
-from lib.maintain_lists_of_entries import maintain_lists_of_entries
 from lib.fetch_course_details import fetch_course_details
-from lib.save_term import save_term
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_courses
 from lib.fetch_term_data import load_term
-from lib.paths import COURSE_DATA, term_dest
+from lib.paths import COURSE_DATA
 from lib.log import log
 
 
-def get_years_and_terms(terms_or_years):
-    years, terms = [], []
-    for item in terms_or_years:
-        str_item = str(item)
-        if len(str_item) is 4:
-            years.append(item)
-        elif len(str_item) is 5:
-            terms.append(item)
-
-    return years, terms
-
-
-def one_term(term, **kwargs):
+def one_term(args, term):
     str_term = str(term)
     pretty_term = str_term[0:4] + ':' + str_term[4]
 
     log(pretty_term, 'Loading term')
     raw_term_data = load_term(term,
-                              force_download=kwargs['force_download_terms'])
+                              force_download=args.force_download_terms)
 
     if not raw_term_data:
         return []
@@ -43,46 +28,27 @@ def one_term(term, **kwargs):
     courses = raw_term_data['searchresults']['course']
 
     log(pretty_term, 'Loading details')
-    details = fetch_course_details([c['clbid'] for c in courses],
-                                   dry_run=kwargs['dry_run'],
-                                   force_download=kwargs['force_download_details'])
+    clbids = [c['clbid'] for c in courses]
+    details = fetch_course_details(clbids,
+                                   dry_run=args.dry_run,
+                                   force_download=args.force_download_details)
 
     log(pretty_term, 'Processing courses')
-    final_courses = process_courses(courses, details,
-                                    dry_run=kwargs['dry_run'],
-                                    find_revisions=kwargs['find_revisions'],
-                                    ignore_revisions=kwargs['ignore_revisions'])
-
-    return final_courses
+    process_courses(courses, details,
+                    dry_run=args.dry_run,
+                    find_revisions=args.find_revisions,
+                    ignore_revisions=args.ignore_revisions)
 
 
 def run(args):
-    years, terms = get_years_and_terms(args.term_or_year)
-
-    terms = calculate_terms(years=years, terms=terms)
-
-    edit_one_term = functools.partial(
-        one_term, find_revisions=args.no_revisions, **vars(args))
+    terms = calculate_terms(args.term_or_year)
+    edit_one_term = functools.partial(one_term, args)
 
     if args.workers > 1:
         with ProcessPoolExecutor(max_workers=args.workers) as pool:
-            processed_terms = list(pool.map(edit_one_term, terms))
+            list(pool.map(edit_one_term, terms))
     else:
-        processed_terms = list(map(edit_one_term, terms))
-
-    for term in processed_terms:
-        save_term(term,
-                  path=args.output_dir,
-                  kind=args.output_type)
-
-    json_folder_map(folder=term_dest,
-                    kind='courses',
-                    dry_run=args.dry_run,
-                    path=args.output_dir)
-
-    maintain_lists_of_entries(
-        [course for term in processed_terms for course in term],
-        dry_run=args.dry_run)
+        list(map(edit_one_term, terms))
 
 
 def main():
@@ -127,7 +93,10 @@ def main():
                            default=COURSE_DATA,
                            help='Choose an output directory.')
 
-    run(argparser.parse_args())
+    args = argparser.parse_args()
+    args.find_revisions = args.no_revisions
+
+    run(args)
 
 
 if __name__ == '__main__':
