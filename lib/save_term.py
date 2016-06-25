@@ -1,4 +1,5 @@
 import json
+import os
 
 from .log import log
 from .save_data import save_data
@@ -12,7 +13,7 @@ def save_term(term_data, path, kind):
 
     term = term_data[0]['term']
 
-    term_path = make_built_term_path(term, kind, path + 'terms/')
+    term_path = make_built_term_path(term, kind, os.path.join(path, 'terms'))
     log('saving term', term, 'to', term_path)
     if kind == 'json':
         json_term_data = json.dumps(term_data,

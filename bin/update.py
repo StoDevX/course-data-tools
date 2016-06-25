@@ -16,7 +16,7 @@ from lib.save_term import save_term
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_courses
 from lib.fetch_term_data import load_term
-from lib.paths import COURSE_DATA
+from lib.paths import COURSE_DATA, term_dest
 from lib.log import log
 
 
@@ -79,7 +79,7 @@ def run(args):
                   path=args.output_dir,
                   kind=args.output_type)
 
-    json_folder_map(folder=args.output_dir + 'terms/',
+    json_folder_map(folder=term_dest,
                     kind='courses',
                     dry_run=args.dry_run,
                     path=args.output_dir)
