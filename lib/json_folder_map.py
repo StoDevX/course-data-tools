@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 
+from .paths import info_path
 from .log import log
 
 
@@ -22,8 +23,7 @@ def json_folder_map(folder, kind, path, dry_run=False):
         if filename == '.DS_Store':
             continue
 
-        filepath = folder + '/' + filename
-        with open(filepath, 'rb') as infile:
+        with open(join(folder, filename), 'rb') as infile:
             info = {
                 'path': 'terms/' + filename,
                 'hash': hashlib.sha1(infile.read()).hexdigest(),
@@ -37,7 +37,6 @@ def json_folder_map(folder, kind, path, dry_run=False):
 
     log('Hashed files')
     if not dry_run:
-        info_path = path + 'info.json'
         with open(info_path, 'w') as outfile:
             outfile.write(json.dumps(output,
                                      indent='\t',

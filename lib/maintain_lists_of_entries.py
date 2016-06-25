@@ -1,6 +1,7 @@
 from .load_data_from_file import load_data_from_file
 from .save_data import save_data
 from .paths import mappings_path
+from os.path import join
 import json
 
 
@@ -17,7 +18,7 @@ def maintain_lists_of_entries(all_courses, dry_run=False):
     }
 
     for set_name, set_data in data_sets.items():
-        filename = entry_list_path + 'valid_' + set_name + '.json'
+        filename = join(entry_list_path, 'valid_' + set_name + '.json')
         data = load_data_from_file(filename)
         data_sets[set_name] = json.loads(data)[set_name]
 
@@ -37,7 +38,7 @@ def maintain_lists_of_entries(all_courses, dry_run=False):
     data_sets['types'] = sorted(set(data_sets['types']))
 
     for set_name, set_data in data_sets.items():
-        filename = entry_list_path + 'valid_' + set_name + '.json'
+        filename = join(entry_list_path, 'valid_' + set_name + '.json')
         json_data = json.dumps({set_name: set_data},
                                indent='\t', separators=(',', ': '))
         if not dry_run:
