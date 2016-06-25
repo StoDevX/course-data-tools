@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 
+import os, sys
+PROJ_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, PROJ_ROOT)
+
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 
-from ..lib.json_folder_map import json_folder_map
-from ..lib.maintain_lists_of_entries import maintain_lists_of_entries
-from ..lib.fetch_course_details import fetch_course_details
-from ..lib.save_term import save_term
-from ..lib.calculate_terms import calculate_terms
-from ..lib.process_courses import process_courses
-from ..lib.fetch_term_data import load_term
-from ..lib.log import log
+from lib.json_folder_map import json_folder_map
+from lib.maintain_lists_of_entries import maintain_lists_of_entries
+from lib.fetch_course_details import fetch_course_details
+from lib.save_term import save_term
+from lib.calculate_terms import calculate_terms
+from lib.process_courses import process_courses
+from lib.fetch_term_data import load_term
+from lib.paths import COURSE_DATA
+from lib.log import log
 
 
 def get_years_and_terms(terms_or_years):
@@ -122,7 +127,7 @@ def main():
                            help='Change the output filetype.')
     argparser.add_argument('--output-dir',
                            action='store',
-                           default='build/',
+                           default=COURSE_DATA,
                            help='Choose an output directory.')
 
     argparser.allow_abbrev = False
