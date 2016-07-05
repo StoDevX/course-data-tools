@@ -39,4 +39,4 @@ def make_xml_term_path(term):
 
 
 def make_built_term_path(term, kind, folder=term_dest):
-    return join(folder, str(term) + '.' + kind)
+    return join(folder, '%d.%s' % (term, kind))

@@ -21,7 +21,8 @@ def one_term(args, term):
     courses = load_some_courses(term)
 
     log(pretty_term, 'Saving term')
-    save_term(term, courses, kind=args.format)
+    for f in args.format:
+        save_term(term, courses, kind=f)
 
 
 def run(args):
@@ -51,6 +52,7 @@ def main():
                            help='Control the number of operations to perform in parallel')
     argparser.add_argument('--format',
                            action='store',
+                           nargs='+',
                            default='json',
                            choices=['json', 'csv', 'xml'],
                            help='Change the output filetype')
