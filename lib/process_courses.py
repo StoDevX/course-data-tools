@@ -162,11 +162,21 @@ def clean_course(course):
     # Pull the text contents out of various HTML elements as lists
     course['instructors'] = split_and_flip_instructors(course)
     if course['gereqs']:
+    if not course['instructors']:
+        del course['instructors']
+
+    if 'gereqs' in course and course['gereqs']:
         course['gereqs'] = parse_links_for_text(course['gereqs'])
-    if course['locations']:
+        if not course['gereqs']:
+            del course['gereqs']
+    if 'locations' in course and course['locations']:
         course['locations'] = parse_links_for_text(course['locations'])
-    if course['times']:
+        if not course['locations']:
+            del course['locations']
+    if 'times' in course and course['times']:
         course['times'] = parse_paragraph_as_list(course['times'])
+        if not course['times']:
+            del course['times']
 
     return {key: value for key, value in course.items() if value is not None}
 
