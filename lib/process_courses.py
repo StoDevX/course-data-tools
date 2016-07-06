@@ -160,8 +160,7 @@ def clean_course(course):
     del course['meetingtimes']
 
     # Pull the text contents out of various HTML elements as lists
-    course['instructors'] = split_and_flip_instructors(course)
-    if course['gereqs']:
+    course['instructors'] = split_and_flip_instructors(course['instructors'])
     if not course['instructors']:
         del course['instructors']
 
