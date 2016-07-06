@@ -15,15 +15,15 @@ def load_previous(course_path):
     except FileNotFoundError:
         prior_data = None
 
-    try:
-        prior = json.loads(prior_data)
-    except Exception:
-        print("Error loading JSON")
-        print(prior_data)
+    if prior_data:
+        try:
+            prior = json.loads(prior_data)
+        except Exception:
+            log("Error loading JSON from", prior_data)
+    else:
         prior = None
 
     revisions = []
-    # print(course_path, revisions)
 
     if prior and ('revisions' in prior):
         revisions = prior['revisions']
