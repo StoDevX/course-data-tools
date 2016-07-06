@@ -14,7 +14,7 @@ def csvify(data):
             if type(item[key]) is str:
                 item[key] = item[key].replace('\n', '\\n')
     with io.StringIO() as outfile:
-        csv_file = csv.DictWriter(outfile, get_all_keys(data))
+        csv_file = csv.DictWriter(outfile, get_all_keys(data), dialect=csv.unix_dialect)
         csv_file.writeheader()
         csv_file.writerows(data)
         str_contents = outfile.getvalue()
