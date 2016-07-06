@@ -65,7 +65,7 @@ def load_data_from_server(term, dry_run=False):
     if not dry_run:
         reparsed_data = xmltodict.unparse(embedded_terms, pretty=True)
         save_data(reparsed_data, xml_term_path)
-        log('Fetched', xml_term_path)
+        # log('Fetched', xml_term_path)
 
     return embedded_terms
 
