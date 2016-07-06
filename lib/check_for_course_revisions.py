@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from tzlocal import get_localzone
 from datetime import datetime
-from datadiff import diff as pretty_diff
 import json
 
 from .load_data_from_file import load_data_from_file
@@ -49,7 +48,6 @@ def check_for_revisions(course, ignore_revisions):
         now = get_localzone().localize(datetime.now())
         ordered_diff['_updated'] = now.isoformat()
         revisions.append(ordered_diff)
-        log('revision:', pretty_diff(a=prior, b=course, fromfile='old', tofile='new'))
 
     if revisions and ('revisions' not in course or revisions != course.get('revisions')):
         return revisions
