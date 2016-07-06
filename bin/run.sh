@@ -3,10 +3,6 @@
 # prepare bash
 set -ve
 
-# make sure dependencies are correct
-# git pull --rebase origin master
-pip3 install --upgrade -r requirements.txt
-
 # prepare the repositories
 cd ../
 if [ ! -d ./course-data ]; then
