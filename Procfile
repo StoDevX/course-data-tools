@@ -1,2 +1,2 @@
-worker: course-data-tools/bin/run.sh
+worker: bin/run.sh
 
