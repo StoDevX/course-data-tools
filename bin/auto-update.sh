@@ -9,7 +9,6 @@ SLACKBOT_NAME='databot'
 SLACKBOT_ICON=':moyai:'
 SLACK_URL='https://hooks.slack.com/services/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'
 
-TODAY=$(date)
 YEAR="2015 2016"
 
 # update in case code has changed
@@ -21,7 +20,7 @@ python3 ./scripts/get-data.py $YEAR --force-download-terms
 git add .
 git status
 
-git commit -m "[data-update] $TODAY"
+git commit -m "[data-update] $(date)"
 
 git push origin master
 
