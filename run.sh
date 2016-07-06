@@ -18,7 +18,7 @@ git push origin master
 # update bundled information for public consumption
 git branch -d gh-pages
 git checkout --orphan gh-pages
-python3 ../course-data-tools/bundle.py --out ./ --format json,xml,csv
+python3 ../course-data-tools/bundle.py --out ./ --format json xml csv
 
 # remove the source files
 git rm -rf courses/ details/ raw_xml/
