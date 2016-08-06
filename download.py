@@ -10,35 +10,34 @@ from lib.fetch_course_details import fetch_course_details
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_courses
 from lib.fetch_term_data import load_term
-from lib.log import log
 
 
 def one_term(args, term):
     str_term = str(term)
     pretty_term = str_term[0:4] + ':' + str_term[4]
 
-    log(pretty_term, 'Loading term')
+    print(pretty_term, 'Loading term')
     raw_term_data = load_term(term, force_download=args.force_terms)
 
     if not raw_term_data:
         return []
 
-    log(pretty_term, 'Extracting courses')
+    print(pretty_term, 'Extracting courses')
     courses = raw_term_data['searchresults']['course']
 
-    log(pretty_term, 'Loading details')
+    print(pretty_term, 'Loading details')
     clbids = [c['clbid'] for c in courses]
     details = fetch_course_details(clbids,
                                    dry_run=args.dry_run,
                                    force_download=args.force_details)
 
-    log(pretty_term, 'Processing courses')
+    print(pretty_term, 'Processing courses')
     process_courses(courses, details,
                     dry_run=args.dry_run,
                     find_revisions=args.find_revisions,
                     ignore_revisions=args.ignore_revisions)
 
-    log(pretty_term, 'Saving course mapping')
+    print(pretty_term, 'Saving course mapping')
     # do it again: this time, we get the numeric versions
     clbids = [c['clbid'] for c in courses]
     save_term_clbid_list(term, clbids)

@@ -1,11 +1,11 @@
 import sys
 import os
+import logging
 
 
 def log(*args, **kwargs):
-    if not os.getenv('QUIET', False):
-        print(*args, file=sys.stderr, **kwargs)
+    logging.info(*args, file=sys.stderr, **kwargs)
 
 
 def log_err(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+    logging.warning(*args, file=sys.stderr, **kwargs)

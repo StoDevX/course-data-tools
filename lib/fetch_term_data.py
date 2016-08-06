@@ -5,7 +5,7 @@ import re
 from .load_data_from_file import load_data_from_file
 from .paths import make_xml_term_path
 from .save_data import save_data
-from .log import log, log_err
+import logging
 
 
 def fix_invalid_xml(raw):
@@ -25,10 +25,10 @@ def request_term_from_server(term):
     request = requests.get(url)
 
     if 'Sorry, there\'s been an error.' in request.text:
-        log_err('Error in', url, '\nWhoops! Made another error in the server.')
+        logging.warning('Error in the request for %s', url)
+        logging.warning('Whoops! Made another error in the server.')
         if 'The request has exceeded the allowable time limit' in request.text:
-            log_err('''And that error is exceeding the time limit. Again.
-                We should probably do something about that.''')
+            logging.warning('We exceeded the server\'s internal time limit for the request.')
 
         return None
 
@@ -46,14 +46,14 @@ def load_data_from_server(term, dry_run=False):
 
     raw_data = request_term_from_server(term)
     if not raw_data:
-        log('No data returned for', term)
+        logging.info('No data returned for', term)
         return None
 
     valid_data = fix_invalid_xml(raw_data)
-    parsed_data = xmltodict.parse(valid_data, force_list=('course',))
+    parsed_data = xmltodict.parse(valid_data, force_list=['course',])
 
     if not parsed_data['searchresults']:
-        log('No data returned for', term)
+        logging.info('No data returned for', term)
         return None
 
     # We sort the courses here, before we save it to disk, so that we don't
@@ -65,7 +65,7 @@ def load_data_from_server(term, dry_run=False):
     if not dry_run:
         reparsed_data = xmltodict.unparse(embedded_terms, pretty=True)
         save_data(reparsed_data, xml_term_path)
-        # log('Fetched', xml_term_path)
+        logging.debug('Fetched', xml_term_path)
 
     return embedded_terms
 
@@ -84,14 +84,14 @@ def load_term(term, force_download=False, dry_run=False):
 
     if not force_download:
         try:
-            # log('Loading', term, 'from disk')
+            logging.debug('Loading %d from disk', term)
             raw_data = load_data_from_file(xml_term_path)
-            data = xmltodict.parse(raw_data, force_list=('course',))
+            data = xmltodict.parse(raw_data, force_list=['course',])
         except FileNotFoundError:
-            log('Requesting', term, 'from server')
+            logging.info('Requesting %d from server', term)
             data = load_data_from_server(term, dry_run=dry_run)
     else:
-        log('Forced to request', term, 'from server')
+        logging.info('Forced to request %d from server', term)
         data = load_data_from_server(term, dry_run=dry_run)
 
     data = unorder_dicts_in_term(data)
