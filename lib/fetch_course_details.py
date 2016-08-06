@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 import requests
 import re
 
@@ -27,15 +27,16 @@ def get_details(clbid, force_download, dry_run):
 
     if not force_download:
         try:
-            # log('Loading', clbid, 'from disk')
-            raw_data = load_data_from_file(html_term_path)
-            soup = BeautifulSoup(raw_data, 'html.parser')
+            logging.debug('Loading %d from disk', clbid)
+            strainer = SoupStrainer('p')
+            with open(html_term_path, 'r', encoding='utf-8') as infile:
+                soup = BeautifulSoup(infile, 'lxml', parse_only=strainer)
         except FileNotFoundError:
-            # log('Nope. Requesting', clbid, 'from server')
+            logging.debug('Nope. Requesting %d from server', clbid)
             raw_data = request_detailed_course_data(clbid)
             soup = clean_markup(raw_data, clbid, dry_run)
     else:
-        # log('Forced to request', clbid, 'from server')
+        logging.debug('Forced to request %d from server', clbid)
         raw_data = request_detailed_course_data(clbid)
         soup = clean_markup(raw_data, clbid, dry_run)
 
@@ -48,7 +49,7 @@ def is_empty_paragraph(tag):
 
 
 def clean_markup(raw_data, clbid, dry_run):
-    soup = BeautifulSoup(raw_data, 'html.parser')
+    soup = BeautifulSoup(raw_data, 'lxml')
 
     # Clean up the HTML
     # .decompose() destroys the tag and all contents.
