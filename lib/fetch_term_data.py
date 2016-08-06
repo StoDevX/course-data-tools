@@ -31,7 +31,7 @@ def request_term_from_server(term):
     url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?' + urllib.parse.urlencode(query)
 
     try:
-        request = requests.get(url, timeout=45)
+        request = requests.get(url, timeout=60)
     except requests.exceptions.Timeout as ex:
         logging.warning('Timeout requesting %s', url)
         return None
