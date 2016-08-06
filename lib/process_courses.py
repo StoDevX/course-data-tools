@@ -181,8 +181,8 @@ def clean_course(course):
     return {key: value for key, value in course.items() if value is not None}
 
 
-def process_course(course, details, find_revisions, ignore_revisions, dry_run):
-    detail = details.get(course['clbid'])
+def process_course(course, detail, find_revisions, ignore_revisions, dry_run):
+    ignore_revisions = [] if ignore_revisions is None else ignore_revisions
 
     course['title'] = detail.get('title', None)
     course['description'] = detail.get('description', None)
@@ -209,14 +209,3 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
         save_course(cleaned)
 
     return cleaned
-
-
-def process_courses(courses, details, find_revisions=True, ignore_revisions=None, dry_run=False):
-    ignore_revisions = [] if ignore_revisions is None else ignore_revisions
-
-    return [process_course(course,
-                           details=details,
-                           find_revisions=find_revisions,
-                           ignore_revisions=ignore_revisions,
-                           dry_run=dry_run)
-            for course in courses]

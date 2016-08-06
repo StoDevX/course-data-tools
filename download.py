@@ -8,38 +8,30 @@ import functools
 from lib.save_term_clbid_list import save_term_clbid_list
 from lib.fetch_course_details import fetch_course_details
 from lib.calculate_terms import calculate_terms
-from lib.process_courses import process_courses
+from lib.process_courses import process_course
 from lib.fetch_term_data import load_term
 
 
 def one_term(args, term):
     str_term = str(term)
     pretty_term = str_term[0:4] + ':' + str_term[4]
+    clbids = []
 
-    print(pretty_term, 'Loading term')
-    raw_term_data = load_term(term, force_download=args.force_terms)
+    def single_course(_, course):
+        nonlocal args
+        nonlocal clbids
 
-    if not raw_term_data:
-        return []
+        details = fetch_course_details(course['clbid'], dry_run=args.dry_run, force_download=args.force_details)
+        course = process_course(course, details, dry_run=args.dry_run, find_revisions=args.find_revisions, ignore_revisions=args.ignore_revisions)
+        clbids.append(course['clbid'])
 
-    print(pretty_term, 'Extracting courses')
-    courses = raw_term_data['searchresults']['course']
+        return True
 
-    print(pretty_term, 'Loading details')
-    clbids = [c['clbid'] for c in courses]
-    details = fetch_course_details(clbids,
-                                   dry_run=args.dry_run,
-                                   force_download=args.force_details)
-
-    print(pretty_term, 'Processing courses')
-    process_courses(courses, details,
-                    dry_run=args.dry_run,
-                    find_revisions=args.find_revisions,
-                    ignore_revisions=args.ignore_revisions)
+    print(pretty_term, 'Processing term')
+    load_term(term, force_download=args.force_terms, cb=single_course)
 
     print(pretty_term, 'Saving course mapping')
     # do it again: this time, we get the numeric versions
-    clbids = [c['clbid'] for c in courses]
     save_term_clbid_list(term, clbids)
 
 

@@ -82,25 +82,15 @@ def load_data_from_server(term, dry_run=False):
     return embedded_terms
 
 
-def unorder_dicts_in_term(term):
-    if not term:
-        return {}
-    term = dict(term.items())
-    term['searchresults'] = dict(term['searchresults'].items())
-    term['searchresults']['course'] = [dict(course.items())
-                                       for course in term['searchresults']['course']]
-
-    return term
-
-
-def load_term(term, force_download=False, dry_run=False):
+def load_term(term, cb, force_download=False, dry_run=False):
     xml_term_path = make_xml_term_path(term)
 
+    data = None
     if not force_download:
         try:
             logging.debug('Loading %d from disk', term)
-            raw_data = load_data_from_file(xml_term_path)
-            data = xmltodict.parse(raw_data, force_list=['course',])
+            with open(xml_term_path, 'rb') as infile:
+                xmltodict.parse(infile, force_list=['course',], item_depth=2, item_callback=cb)
         except FileNotFoundError:
             logging.info('Requesting %d from server', term)
             data = load_data_from_server(term, dry_run=dry_run)
@@ -108,5 +98,7 @@ def load_term(term, force_download=False, dry_run=False):
         logging.info('Forced to request %d from server', term)
         data = load_data_from_server(term, dry_run=dry_run)
 
-    data = unorder_dicts_in_term(data)
-    return data
+    if data:
+        for course in data['searchresults']['course']:
+            if not cb(None, course):
+                break

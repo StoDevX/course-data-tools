@@ -149,17 +149,8 @@ def clean_details(soup):
     return details
 
 
-def process_course_info(clbid, dry_run, force_download):
+def fetch_course_details(clbid, dry_run=False, force_download=False):
     clbid = str(clbid).zfill(10)
 
     soup = get_details(clbid, force_download, dry_run)
-    details = clean_details(soup)
-
-    return (clbid, details)
-
-
-def fetch_course_details(clbids, dry_run=False, force_download=False):
-    mapped_details = [process_course_info(clbid, dry_run, force_download)
-                      for clbid in clbids]
-
-    return dict(mapped_details)
+    return clean_details(soup)
