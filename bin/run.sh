@@ -3,6 +3,9 @@
 # prepare bash
 set -ve
 
+pwd
+ls
+
 # prepare the repositories
 cd ../
 if [ ! -d ./course-data ]; then
