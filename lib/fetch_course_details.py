@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 
+import logging
 from .load_data_from_file import load_data_from_file
 from .paths import make_html_path
 from .save_data import save_data

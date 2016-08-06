@@ -1,6 +1,7 @@
 import json
 import re
 from collections import OrderedDict
+import logging
 
 from .break_apart_departments import break_apart_departments
 from .check_for_course_revisions import check_for_revisions
@@ -205,8 +206,8 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
 
     # There's no reason to save the course if nothing has changed
     if not dry_run and (course.items() != sorted_course.items()):
-        # log('Saving course')
         save_course(sorted_course)
+        logging.debug('Saving course')
 
     return sorted_course
 
