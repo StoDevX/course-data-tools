@@ -1,6 +1,5 @@
 from collections import OrderedDict
-from tzlocal import get_localzone
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 from .load_data_from_file import load_data_from_file
@@ -48,13 +47,7 @@ def check_for_revisions(course, ignore_revisions):
 
     ordered_diff = sort_diff(diff, ignore_revisions=ignore_revisions)
 
-    # TODO: Change these to run in UTC, rather than local time.
-    # Also it's slow. Very slow.
-    # Of the 0.894361s this function takes total on 20151,
-    # the next line accounts for 0.055712s of that.
-    # For only two calls.
-    now = get_localzone().localize(datetime.now())
-    ordered_diff['_updated'] = now.isoformat()
+    ordered_diff['_updated'] = datetime.now(timezone.utc)
     revisions.append(ordered_diff)
 
     return revisions
