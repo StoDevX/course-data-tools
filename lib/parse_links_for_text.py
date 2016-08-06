@@ -1,8 +1,9 @@
-from bs4 import BeautifulSoup
+import re
+linkre = re.compile(r'<a.*?>(.*?)<\/a>')
 
 
 def parse_links_for_text(string_with_links):
-    strings = [link.get_text()
-               for link in BeautifulSoup(string_with_links, 'html.parser').find_all('a')]
+    matches = linkre.finditer(string_with_links)
+    strings = [link.group(1) for link in matches if link]
     splitted = [' '.join(s.split()).strip() for s in strings]
     return [s for s in splitted if s]
