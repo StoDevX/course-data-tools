@@ -3,19 +3,23 @@
 # prepare bash
 set -ve
 
+git config user.name "Heroku Databot"
+git config user.email "hawkrives+sto-course-databot@gmail.com"
+
 # prepare the repositories
 if [ ! -d ./course-data ]; then
 	git clone https://github.com/stodevx/course-data.git
 fi
 cd course-data
 git checkout master
+git pull origin master
 
 # update course data files
 python3 ../download.py --force-terms 2015 2016
 python3 ../maintain-datafiles.py
 git add .
 git commit -m "course data update $(date)" || (echo "No updates found." && exit 0)
-git push origin master
+git push "https://$GITHUB_OAUTH:github.com/stodevx/course-data.git" master
 
 # update bundled information for public consumption
 git checkout gh-pages
