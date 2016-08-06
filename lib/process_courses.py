@@ -203,7 +203,8 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
         revisions = []
 
     # There's no reason to save the course if nothing has changed
-    if revisions and (not dry_run):
+    # But we should save if we didn't look for changes
+    if (revisions or not find_revisions) and (not dry_run):
         logging.debug('Saving course')
         save_course(cleaned)
 
