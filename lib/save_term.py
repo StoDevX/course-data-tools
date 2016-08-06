@@ -30,10 +30,12 @@ def save_term(term, courses, kind):
         return
 
     term_path = make_built_term_path(term, kind)
-    log('saving term', term, 'to', term_path)
+    print('saving term', term, 'to', term_path)
     if kind == 'json':
         save_json_term(term_path, courses)
     elif kind == 'csv':
         save_csv_term(term_path, courses)
     elif kind == 'xml':
         save_xml_term(term_path, courses)
+    else:
+        raise Exception('Unknown filetype %s' % kind)
