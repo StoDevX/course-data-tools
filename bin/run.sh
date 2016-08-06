@@ -27,3 +27,5 @@ python3 ../course-data-tools/bundle.py --format json xml csv
 git add .
 git commit -m 'course data bundles'
 git push -f origin gh-pages
+
+curl https://nosnch.in/9243a27544
