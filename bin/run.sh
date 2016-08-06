@@ -20,7 +20,7 @@ python3 ../download.py --force-terms 2015 2016
 python3 ../maintain-datafiles.py
 git add .
 git commit -m "course data update $(date)" || (echo "No updates found." && exit 0)
-git push "https://$GITHUB_OAUTH:github.com/stodevx/course-data.git" master
+git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
 
 # update bundled information for public consumption
 git checkout gh-pages
