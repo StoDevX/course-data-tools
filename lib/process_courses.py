@@ -196,7 +196,7 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
     cleaned['prerequisites'] = parse_prerequisites(cleaned)
 
     if find_revisions:
-        revisions = check_for_revisions(cleaned, ignore_revisions)
+        revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
         if revisions:
             cleaned['revisions'] = revisions
 
