@@ -199,17 +199,15 @@ def process_course(course, details, find_revisions, ignore_revisions, dry_run):
         revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
         if revisions:
             cleaned['revisions'] = revisions
-
-    sorted_course = OrderedDict()
-    for key in sorted(cleaned.keys()):
-        sorted_course[key] = cleaned[key]
+    else:
+        revisions = []
 
     # There's no reason to save the course if nothing has changed
-    if not dry_run and (course.items() != sorted_course.items()):
-        save_course(sorted_course)
+    if revisions and (not dry_run):
         logging.debug('Saving course')
+        save_course(cleaned)
 
-    return sorted_course
+    return cleaned
 
 
 def process_courses(courses, details, find_revisions=True, ignore_revisions=None, dry_run=False):
