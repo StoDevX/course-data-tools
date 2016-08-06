@@ -53,7 +53,7 @@ def main():
     argparser.add_argument('--format',
                            action='store',
                            nargs='+',
-                           default='json',
+                           default=['json'],
                            choices=['json', 'csv', 'xml'],
                            help='Change the output filetype')
 
