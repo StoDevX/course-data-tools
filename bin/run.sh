@@ -16,11 +16,11 @@ git config user.name "Heroku Databot"
 git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files
-python3 ../download.py --force-terms 2015 2016
+python3 ../download.py --force-terms 2015 2016 -w 2
 python3 ../maintain-datafiles.py
 git add .
 git commit -m "course data update $(date)" || (echo "No updates found." && exit 0)
-git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
+# git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
 
 # update bundled information for public consumption
 git checkout gh-pages
@@ -30,6 +30,6 @@ python3 ../bundle.py --format json xml csv
 # remove the source files
 git add .
 git commit -m 'course data bundles'
-git push -f origin gh-pages
+# git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
 
 curl https://nosnch.in/9243a27544
