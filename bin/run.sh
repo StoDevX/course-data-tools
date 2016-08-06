@@ -3,16 +3,17 @@
 # prepare bash
 set -ve
 
-git config user.name "Heroku Databot"
-git config user.email "hawkrives+sto-course-databot@gmail.com"
-
 # prepare the repositories
 if [ ! -d ./course-data ]; then
 	git clone https://github.com/stodevx/course-data.git
 fi
 cd course-data
+
 git checkout master
 git pull origin master
+
+git config user.name "Heroku Databot"
+git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files
 python3 ../download.py --force-terms 2015 2016
