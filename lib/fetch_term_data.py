@@ -1,5 +1,6 @@
 import xmltodict
 import requests
+import urllib
 import re
 
 from .load_data_from_file import load_data_from_file
@@ -17,12 +18,23 @@ def fix_invalid_xml(raw):
 
 def request_term_from_server(term):
     # Yes, the request needs all of these extra parameters in order to run.
-    url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?searchyearterm=' \
-        + str(term) \
-        + '&searchkeywords=&searchdepts=&searchgereqs=&searchopenonly=off&' \
-        + 'searchlabonly=off&searchfsnum=&searchtimeblock='
+    query = {
+        'searchyearterm': str(term),
+        'searchkeywords': '',
+        'searchdepts': '',
+        'searchgereqs': '',
+        'searchopenonly': 'off',
+        'searchlabonly': 'off',
+        'searchfsnum': '',
+        'searchtimeblock': '',
+    }
+    url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?' + urllib.parse.urlencode(query)
 
-    request = requests.get(url)
+    try:
+        request = requests.get(url, timeout=10)
+    except requests.exceptions.Timeout as ex:
+        logging.warning('Timeout requesting %s', url)
+        return None
 
     if 'Sorry, there\'s been an error.' in request.text:
         logging.warning('Error in the request for %s', url)
