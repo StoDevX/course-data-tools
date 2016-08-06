@@ -1,5 +1,5 @@
-beautifulsoup4==4.4.1
-PyYAML==3.11
+beautifulsoup4==4.5.1
+lxml==3.6.1
 requests==2.10.0
 tzlocal==1.2.2
-xmltodict==0.10.1
+xmltodict==0.10.2
