@@ -30,7 +30,7 @@ def get_details(clbid, force_download, dry_run):
             logging.debug('Loading %d from disk', clbid)
             strainer = SoupStrainer('p')
             with open(html_term_path, 'r', encoding='utf-8') as infile:
-                soup = BeautifulSoup(infile, 'lxml', parse_only=strainer)
+                soup = BeautifulSoup(infile, 'html.parser', parse_only=strainer)
         except FileNotFoundError:
             logging.debug('Nope. Requesting %d from server', clbid)
             raw_data = request_detailed_course_data(clbid)
@@ -49,7 +49,7 @@ def is_empty_paragraph(tag):
 
 
 def clean_markup(raw_data, clbid, dry_run):
-    soup = BeautifulSoup(raw_data, 'lxml')
+    soup = BeautifulSoup(raw_data, 'html.parser')
 
     # Clean up the HTML
     # .decompose() destroys the tag and all contents.
