@@ -2,3 +2,4 @@
 __pycache__
 .nfs*
 venv/
+./course-data
