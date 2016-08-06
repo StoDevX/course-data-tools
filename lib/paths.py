@@ -1,6 +1,6 @@
 from os.path import join
 
-COURSE_DATA = join('.', 'course-data')
+COURSE_DATA = join('..', 'course-data')
 details_source = join(COURSE_DATA, 'details')
 xml_source = join(COURSE_DATA, 'raw_xml')
 course_dest = join(COURSE_DATA, 'courses')
