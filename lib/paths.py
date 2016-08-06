@@ -18,19 +18,17 @@ def make_clbid_map_path(term):
 def find_details_subdir(clbid):
     str_clbid = str(clbid).zfill(10)
 
-    n_thousand = int(int(clbid) / 1000)
-    thousands_subdir = (n_thousand * 1000)
+    n_thousand = int(clbid) // 1000
+    thousands_subdir = str(n_thousand * 1000).zfill(5)
 
-    return join(str(thousands_subdir).zfill(5), str_clbid)
+    return join(thousands_subdir, str_clbid)
 
 
 def make_course_path(clbid):
-    clbid = str(clbid).zfill(10)
     return join(course_dest, find_details_subdir(clbid) + '.json')
 
 
 def make_html_path(clbid):
-    clbid = str(clbid).zfill(10)
     return join(details_source, find_details_subdir(clbid) + '.html')
 
 
