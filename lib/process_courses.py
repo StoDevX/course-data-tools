@@ -146,7 +146,7 @@ def clean_course(course):
 
     # Add the course level
     if type(course['number']) is int:
-        course['level'] = int(course['number'] / 100) * 100
+        course['level'] = (course['number'] // 100) * 100
     elif course['number'] == 'XX':
         course['level'] = 0
     elif 'X' in course['number']:
