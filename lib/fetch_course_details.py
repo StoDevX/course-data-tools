@@ -7,6 +7,7 @@ from .load_data_from_file import load_data_from_file
 from .paths import make_html_path
 from .save_data import save_data
 
+apology = 'Sorry, no description is available for this course.'
 
 bad_endings = [
     'Click on course title in the Class & Lab for more information about the course for that term.',
@@ -98,55 +99,54 @@ def clean_markup(raw_data, clbid, dry_run):
 
 def clean_details(soup):
     strings = soup('p')
-    apology = 'Sorry, no description is available for this course.'
 
-    details = {}
+    title = None
+    description = None
 
     # Possibilities:
     # One paragraph, apology.
     # Two paragraphs, the second is the title, repeated.
     # Two or more paragraphs; everything after the first is the description.
 
-    if strings[0] == apology:
-        details['title'] = None
-        details['description'] = None
+    str0 = strings[0].text
+    if str0 == apology:
+        title = None
+        description = None
     else:
-        details['title'] = strings[0].text
+        title = str0
         if len(strings) >= 2:
             desc_strings = [' '.join(string.text.split())
                             for string in strings[1:]]
-            details['description'] = '\n'.join(desc_strings)
+            description = '\n'.join(desc_strings)
 
-    if details.get('title'):
+    if title:
         # Remove extra spaces from the string
-        details['title'] = ' '.join(details['title'].split())
+        title = ' '.join(title.split())
         # Remove the course time info from the end
-        details['title'] = details['title'].split('(')[0]
-        # Remove anything before the first colon; reinsert the rest of the
-        # colons.
-        details['title'] = ':'.join(details['title'].split(':')[1:])
+        title = title.split('(', maxsplit=1)[0]
+        # Remove anything before the first colon; reinsert the rest of the colons.
+        title = ':'.join(title.split(':')[1:])
         # Clean any extra whitespace off the title
-        details['title'] = details['title'].strip()
+        title = title.strip()
 
-    if details.get('description'):
+    if description:
         # Remove silly endings and beginnings
         for ending in bad_endings:
-            details['description'] = ' '.join(details['description'].split(ending))
+            if ending in description:
+                description = ' '.join(description.split(ending))
         for beginning in bad_beginnings:
-            details['description'] = ' '.join(details['description'].split(beginning))
+            if beginning in description:
+                description = ' '.join(description.split(beginning))
         # Clean any extra whitespace off the description
-        details['description'] = details['description'].strip()
-
-    description = details.get('description')
-    title = details.get('title')
+        description = description.strip()
 
     if description == '' or description == apology or description == title:
-        details['description'] = None
+        description = None
 
     if title == '':
-        details['title'] = None
+        title = None
 
-    return details
+    return {'title': title, 'description': description}
 
 
 def fetch_course_details(clbid, dry_run=False, force_download=False):
