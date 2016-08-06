@@ -71,6 +71,8 @@ def load_data_from_server(term, dry_run=False):
 
 
 def unorder_dicts_in_term(term):
+    if not term:
+        return {}
     term = dict(term.items())
     term['searchresults'] = dict(term['searchresults'].items())
     term['searchresults']['course'] = [dict(course.items())
