@@ -15,20 +15,13 @@ from lib.fetch_term_data import load_term
 def one_term(args, term):
     str_term = str(term)
     pretty_term = str_term[0:4] + ':' + str_term[4]
+
     clbids = []
-
-    def single_course(_, course):
-        nonlocal args
-        nonlocal clbids
-
+    print(pretty_term, 'Processing term')
+    for course in load_term(term, force_download=args.force_terms):
         details = fetch_course_details(course['clbid'], dry_run=args.dry_run, force_download=args.force_details)
         course = process_course(course, details, dry_run=args.dry_run, find_revisions=args.find_revisions, ignore_revisions=args.ignore_revisions)
         clbids.append(course['clbid'])
-
-        return True
-
-    print(pretty_term, 'Processing term')
-    load_term(term, force_download=args.force_terms, cb=single_course)
 
     print(pretty_term, 'Saving course mapping')
     # do it again: this time, we get the numeric versions
