@@ -5,8 +5,11 @@ from .paths import course_dest, make_course_path, make_clbid_map_path
 
 
 def load_course(path):
-    with open(path, 'r', encoding='utf-8') as infile:
-        return json.load(infile)
+    try:
+        with open(path, 'r', encoding='utf-8') as infile:
+            return json.load(infile)
+    except FileNotFoundError:
+        raise FileNotFoundError('Could not find course {}!'.format(path))
 
 
 def load_all_courses():
