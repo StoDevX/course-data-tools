@@ -18,7 +18,7 @@ def one_term(args, term):
     pretty_term = '{}:{}'.format(str_term[0:4], str_term[4])
 
     log(pretty_term, 'Loading courses')
-    courses = load_some_courses(term)
+    courses = list(load_some_courses(term))
 
     log(pretty_term, 'Saving term')
     for f in args.format:
