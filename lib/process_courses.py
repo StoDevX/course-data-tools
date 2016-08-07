@@ -2,6 +2,7 @@ import json
 import re
 from collections import OrderedDict
 import logging
+import os
 
 from .break_apart_departments import break_apart_departments
 from .check_for_course_revisions import check_for_revisions
@@ -20,6 +21,10 @@ def save_course(course):
                                   separators=(',', ': '),
                                   sort_keys=True) + '\n'
     save_data(json_course_data, course_path)
+
+
+def check_for_course_file_existence(clbid):
+    return os.path.exists(make_course_path(clbid))
 
 
 def extract_notes(course):
@@ -194,17 +199,23 @@ def process_course(course, detail, find_revisions, ignore_revisions, dry_run):
 
     # course[''] = extract_notes(cleaned)
     cleaned['prerequisites'] = parse_prerequisites(cleaned)
+    course_existed_before = check_for_course_file_existence(cleaned['clbid'])
 
-    if find_revisions:
+    if course_existed_before and find_revisions:
         revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
         if revisions:
             cleaned['revisions'] = revisions
     else:
         revisions = []
 
-    # There's no reason to save the course if nothing has changed
-    # But we should save if we didn't look for changes
-    if (revisions or not find_revisions) and (not dry_run):
+    # There's no reason to save the course if nothing has changed,
+    # but we should save if we didn't look for changes.
+    # We also must save it if it didn't exist before.
+    should_save = not dry_run and (
+        (not course_existed_before) or
+        (revisions or not find_revisions)
+    )
+    if should_save:
         logging.debug('Saving course')
         save_course(cleaned)
 
