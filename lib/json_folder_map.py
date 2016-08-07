@@ -40,4 +40,4 @@ def json_folder_map(folder, path, dry_run=False):
         with open(info_path, 'w') as outfile:
             outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
             outfile.write('\n')
-            log('Wrote info.json to', info_path)
+            log('Wrote index.json to', info_path)
