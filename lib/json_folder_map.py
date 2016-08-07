@@ -7,32 +7,34 @@ from .paths import info_path
 from .log import log
 
 
-def parse_year_from_filename(filename):
-    # ex: 19943.json -> 1994
-    return int(filename[0:4])
-
-
 def json_folder_map(folder, path, dry_run=False):
     output = {
         'files': [],
         'type': 'courses',
     }
 
-    files = os.listdir(folder)
-    for filename in files:
-        if filename == '.DS_Store':
+    files = os.scandir(folder)
+    for file in files:
+        filename = file.name
+        if filename.startswith('.'):
             continue
 
-        with open(os.path.join(folder, filename), 'rb') as infile:
+        filepath = os.path.join(folder, filename)
+        with open(filepath, 'rb') as infile:
+            basename, extension = os.path.splitext(filename)
+            extension = extension[1:]  # splitext's extension includes the preceding dot
+
             info = {
                 'path': 'terms/' + filename,
-                'hash': hashlib.sha1(infile.read()).hexdigest(),
-                'year': parse_year_from_filename(filename)
+                'hash': hashlib.sha256(infile.read()).hexdigest(),
+                'year': int(basename[0:4]),  # eg: 19943.json -> 1994
+                'term': int(basename),  # eg: 19943.json -> 19943
+                'type': extension,
             }
+
             output['files'].append(OrderedDict(sorted(info.items())))
 
     output['files'] = sorted(output['files'], key=lambda item: item['path'])
-
     output = OrderedDict(sorted(output.items()))
 
     log('Hashed files')
