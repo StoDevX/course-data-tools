@@ -97,6 +97,8 @@ def load_term(term, force_download=False, dry_run=False):
     else:
         logging.info('Forced to request %d from server', term)
         data = load_data_from_server(term, dry_run=dry_run)
+        if not data:
+            data = load_term(term, force_download=False, dry_run=dry_run)
 
     if data:
         for course in data['searchresults']['course']:
