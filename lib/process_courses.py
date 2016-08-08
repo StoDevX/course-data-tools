@@ -14,11 +14,22 @@ from .save_data import save_data
 from .split_and_flip_instructors import split_and_flip_instructors
 
 
+def json_date_handler(obj):
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    else:
+        raise TypeError(
+            'Object of type {} with value of {} is not JSON serializable'.format(
+                type(obj),
+                repr(obj)))
+
+
 def save_course(course):
     course_path = make_course_path(course['clbid'])
     json_course_data = json.dumps(course,
                                   indent='\t',
                                   separators=(',', ': '),
+                                  default=json_date_handler,
                                   sort_keys=True) + '\n'
     save_data(json_course_data, course_path)
 
