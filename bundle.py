@@ -4,6 +4,7 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
+import os
 
 from lib.json_folder_map import json_folder_map
 from lib.calculate_terms import calculate_terms
