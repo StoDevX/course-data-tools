@@ -32,10 +32,8 @@ git checkout -B gh-pages master --no-track
 # update bundled information for public consumption
 python3 ../bundle.py --format json xml csv
 
-# remove the source files
-git rm -rf courses/
-git rm -rf details/
-git rm -rf raw_xml/
+# remove the source files ([-q]uietly)
+git rm -rfq courses/ details/ raw_xml/
 
 # and … push
 git add --all .
