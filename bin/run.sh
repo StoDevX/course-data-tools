@@ -24,7 +24,6 @@ git commit -m "course data update $(date)" || (echo "No updates found." && exit 
 git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
 
 # update bundled information for public consumption
-git branch -D gh-pages
 git checkout gh-pages
 git merge -m "merge course data" master
 python3 ../bundle.py --format json xml csv
