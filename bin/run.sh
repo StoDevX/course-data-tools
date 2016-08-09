@@ -33,12 +33,12 @@ git checkout -B gh-pages master --no-track
 python3 ../bundle.py --format json xml csv
 
 # remove the source files
-rm -rf courses/
-rm -rf details/
-rm -rf raw_xml/
+git rm -rf courses/
+git rm -rf details/
+git rm -rf raw_xml/
 
 # and … push
-git add .
+git add --all .
 git commit -m "course data bundles"
 git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
 
