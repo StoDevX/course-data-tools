@@ -11,6 +11,14 @@ from lib.load_courses import load_some_courses
 from lib.save_term import save_term
 from lib.paths import term_dest
 from lib.log import log
+from lib.paths import term_clbid_mapping_path
+
+
+def list_all_course_index_files():
+    for file in os.listdir(term_clbid_mapping_path):
+        if file.startswith('.'):
+            continue
+        yield int(file.split('.')[0])
 
 
 def one_term(args, term):
@@ -26,7 +34,10 @@ def one_term(args, term):
 
 
 def run(args):
-    terms = calculate_terms(args.term_or_year)
+    if args.term_or_year:
+        terms = calculate_terms(args.term_or_year)
+    else:
+        terms = list_all_course_index_files()
     edit_one_term = functools.partial(one_term, args)
 
     if args.workers > 1:
