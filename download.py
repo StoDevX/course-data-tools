@@ -23,6 +23,10 @@ def one_term(args, term):
         course = process_course(course, details, dry_run=args.dry_run, find_revisions=args.find_revisions, ignore_revisions=args.ignore_revisions)
         clbids.append(course['clbid'])
 
+    if not clbids:
+        print(pretty_term, 'No classes found')
+        return
+
     print(pretty_term, 'Saving course mapping')
     # do it again: this time, we get the numeric versions
     save_term_clbid_list(term, clbids)

@@ -85,24 +85,18 @@ def load_data_from_server(term, dry_run=False):
 def load_term(term, force_download=False, dry_run=False):
     xml_term_path = make_xml_term_path(term)
 
-    data = None
     if not force_download:
         try:
             logging.info('Loading %d from disk', term)
             with open(xml_term_path, 'rb') as infile:
                 data = xmltodict.parse(infile, force_list=['course',])
-                courses = data['searchresults']['course']
         except FileNotFoundError:
             logging.info('Requesting %d from server', term)
             data = load_data_from_server(term, dry_run=dry_run)
-            courses = data['searchresults']['course']
     else:
         logging.info('Forced to request %d from server', term)
         data = load_data_from_server(term, dry_run=dry_run)
-        courses = data['searchresults']['course']
-        if not data:
-            courses = load_term(term, force_download=False, dry_run=dry_run)
 
     if data:
-        for course in courses:
+        for course in data['searchresults']['course']:
             yield course
