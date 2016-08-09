@@ -23,12 +23,21 @@ git add .
 git commit -m "course data update $(date)" || (echo "No updates found." && exit 0)
 git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
 
+# prepare the gh-pages branch
+if test "$(git branch --list gh-pages)"; then
+	git branch -D gh-pages
+fi
+git checkout -B gh-pages master --no-track
+
 # update bundled information for public consumption
-git checkout gh-pages
-git merge -m "merge course data" master
 python3 ../bundle.py --format json xml csv
 
 # remove the source files
+rm -rf courses/
+rm -rf details/
+rm -rf raw_xml/
+
+# and … push
 git add .
 git commit -m "course data bundles"
 git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
