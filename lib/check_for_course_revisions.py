@@ -36,7 +36,7 @@ def check_for_revisions(course, ignore_revisions):
         revisions = prior['revisions']
         del prior['revisions']
     else:
-        return None
+        revisions = []
 
     if prior == course:
         return course.get('revisions', None)
