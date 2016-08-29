@@ -41,6 +41,8 @@ def request_term_from_server(term):
         logging.warning('Whoops! Made another error in the server.')
         if 'The request has exceeded the allowable time limit' in request.text:
             logging.warning('We exceeded the server\'s internal time limit for the request.')
+        else:
+            logging.warning(request.text)
 
         return None
 
