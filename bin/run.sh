@@ -5,7 +5,7 @@ set -ve
 
 # prepare the repositories
 if [ ! -d ./course-data ]; then
-	git clone https://github.com/stodevx/course-data.git
+	git clone -q https://github.com/stodevx/course-data.git
 fi
 cd course-data
 
