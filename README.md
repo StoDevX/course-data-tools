@@ -7,6 +7,11 @@ There are three scripts: `download.py`, `maintain-datafiles.py`, and `bundle.py`
 
 All of these tools expect the [course data][course-data] to be one folder up from the CWD, in `../course-data`.
 
+These scripts require `python3` >= 3.4, as well as `beautifulsoup4`, `requests`, `xmltodict`. 
+
+The libraries are also specified in the `requirements.txt` file, so a `pip3 install --user -r requirements.txt` should do it. I *highly* reccommend using [Homebrew](https://brew.sh) to install and update Python on macOS.
+
+
 ## `download.py`
 ###### Usage: 
 
@@ -53,3 +58,6 @@ You can pass a mix of years and terms to `bundle.py`. A term is a year followed 
 ```
 
 `maintain-datafiles.py` takes no arguments and does one thing: it loads every course in `../course-data`, and it collects lists of departments, gereqs, instructors, locations, times, and types into `../course-data/data-lists`.
+
+
+[course-data]: https://github.com/stodevx/course-data
