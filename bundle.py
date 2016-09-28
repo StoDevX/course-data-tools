@@ -67,6 +67,7 @@ def main():
                            metavar='WORKERS',
                            type=int,
                            default=cpu_count(),
+                           dest='workers',
                            help='The number of operations to perform in parallel')
     argparser.add_argument('--legacy',
                            action='store_true',
