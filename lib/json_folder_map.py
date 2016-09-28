@@ -3,23 +3,22 @@ import hashlib
 import json
 import os
 
-from .paths import info_path
 from .log import log
 
 
-def json_folder_map(folder, path, dry_run=False):
+def json_folder_map(root, folder, name='index', dry_run=False):
     output = {
         'files': [],
         'type': 'courses',
     }
 
-    files = os.scandir(folder)
+    files = os.scandir(os.path.join(root, folder))
     for file in files:
         filename = file.name
         if filename.startswith('.'):
             continue
 
-        filepath = os.path.join(folder, filename)
+        filepath = os.path.join(root, folder, filename)
         with open(filepath, 'rb') as infile:
             basename, extension = os.path.splitext(filename)
             extension = extension[1:]  # splitext's extension includes the preceding dot
@@ -38,8 +37,11 @@ def json_folder_map(folder, path, dry_run=False):
     output = OrderedDict(sorted(output.items()))
 
     log('Hashed files')
-    if not dry_run:
-        with open(info_path, 'w') as outfile:
-            outfile.write(json.dumps(output, indent='\t', separators=(',', ': ')))
-            outfile.write('\n')
-            log('Wrote index.json to', info_path)
+    if dry_run:
+        return
+
+    index_path = os.path.join(root, '{}.json'.format(name))
+    with open(index_path, 'w') as outfile:
+        json.dump(output, outfile, indent='\t', separators=(',', ': '))
+        outfile.write('\n')
+        log('Wrote index.json to', index_path)

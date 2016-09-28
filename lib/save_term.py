@@ -1,4 +1,5 @@
 import json
+import os
 
 from .log import log
 from .save_data import save_data
@@ -25,11 +26,12 @@ def save_xml_term(term_path, courses):
     save_data(xml_term_data + '\n', term_path)
 
 
-def save_term(term, courses, kind):
+def save_term(term, courses, kind, root_path):
     if not courses:
         return
 
-    term_path = make_built_term_path(term, kind)
+    term_path = os.path.join(root_path, 'terms', make_built_term_path(term, kind))
+
     print('saving term', term, 'to', term_path)
     if kind == 'json':
         save_json_term(term_path, courses)
