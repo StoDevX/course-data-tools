@@ -11,7 +11,7 @@ from lib.calculate_terms import calculate_terms
 from lib.regress_course import regress_course
 from lib.load_courses import load_some_courses
 from lib.save_term import save_term
-from lib.paths import term_dest
+from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
 
@@ -52,7 +52,7 @@ def run(args):
     else:
         list(map(edit_one_term, terms))
 
-    json_folder_map(folder=args.out_dir, path=args.out_dir)
+    json_folder_map(root=args.out_dir, folder='terms', name='index' if not args.legacy else 'legacy')
 
 
 def main():
@@ -63,25 +63,29 @@ def main():
                            type=int,
                            nargs='*',
                            help='Terms (or entire years) for which to request data from the SIS')
-    argparser.add_argument('--workers', '-w',
+    argparser.add_argument('-w',
+                           metavar='WORKERS',
                            type=int,
                            default=cpu_count(),
-                           help='Control the number of operations to perform in parallel')
+                           help='The number of operations to perform in parallel')
     argparser.add_argument('--legacy',
-                           type='store_true',
+                           action='store_true',
                            help="Use legacy mode (you don't need this)")
-    argparser.add_argument('--out-dir', '-o',
-                           type='store',
-                           default=term_dest,
-                           help='Change the root term output directory')
-    argparser.add_argument('--format',
+    argparser.add_argument('--out-dir',
+                           nargs='?',
                            action='store',
-                           nargs='+',
-                           default=['json'],
+                           default=COURSE_DATA,
+                           help='Where to put info.json and terms/')
+    argparser.add_argument('--format',
+                           action='append',
+                           nargs='?',
                            choices=['json', 'csv', 'xml'],
                            help='Change the output filetype')
 
-    run(argparser.parse_args())
+    args = argparser.parse_args()
+    args.format = ['json'] if not args.format else args.format
+
+    run(args)
 
 
 if __name__ == '__main__':

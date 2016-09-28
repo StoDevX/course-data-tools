@@ -1,4 +1,5 @@
 import json
+import os
 
 from .log import log
 from .save_data import save_data
@@ -29,7 +30,7 @@ def save_term(term, courses, kind, root_path):
     if not courses:
         return
 
-    term_path = make_built_term_path(term, kind, root_path)
+    term_path = os.path.join(root_path, 'terms', make_built_term_path(term, kind))
 
     print('saving term', term, 'to', term_path)
     if kind == 'json':

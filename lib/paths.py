@@ -4,8 +4,7 @@ COURSE_DATA = join('..', 'course-data')
 details_source = join(COURSE_DATA, 'details')
 xml_source = join(COURSE_DATA, 'raw_xml')
 course_dest = join(COURSE_DATA, 'courses')
-info_path = join(COURSE_DATA, 'index.json')
-term_dest = join(COURSE_DATA, 'terms')
+term_dest = join(COURSE_DATA)
 mappings_path = join(COURSE_DATA, 'data-lists')
 handmade_path = join(COURSE_DATA, 'data-mappings')
 term_clbid_mapping_path = join(COURSE_DATA, 'courses', '_index')
@@ -36,5 +35,5 @@ def make_xml_term_path(term):
     return join(xml_source, str(term) + '.xml')
 
 
-def make_built_term_path(term, kind, folder):
-    return join(folder, '{}.{}'.format(term, kind))
+def make_built_term_path(term, kind):
+    return '{}.{}'.format(term, kind)
