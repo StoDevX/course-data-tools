@@ -31,7 +31,7 @@ def one_term(args, term):
 
     log(pretty_term, 'Saving term')
     for f in args.format:
-        save_term(term, courses, kind=f)
+        save_term(term, courses, kind=f, root_path=args.out_dir)
 
 
 def run(args):
@@ -47,7 +47,7 @@ def run(args):
     else:
         list(map(edit_one_term, terms))
 
-    json_folder_map(folder=term_dest, path=term_dest)
+    json_folder_map(folder=args.out_dir, path=args.out_dir)
 
 
 def main():
@@ -62,6 +62,10 @@ def main():
                            type=int,
                            default=cpu_count(),
                            help='Control the number of operations to perform in parallel')
+    argparser.add_argument('--out-dir', '-o',
+                           type='store',
+                           default=term_dest,
+                           help='Change the root term output directory')
     argparser.add_argument('--format',
                            action='store',
                            nargs='+',
