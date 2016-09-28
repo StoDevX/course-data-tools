@@ -52,7 +52,7 @@ def run(args):
     else:
         list(map(edit_one_term, terms))
 
-    json_folder_map(root=args.out_dir, folder='terms')
+    json_folder_map(root=args.out_dir, folder='terms', name='info')
 
 
 def main():
