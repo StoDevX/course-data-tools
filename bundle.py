@@ -52,7 +52,7 @@ def run(args):
     else:
         list(map(edit_one_term, terms))
 
-    json_folder_map(root=args.out_dir, folder='terms', name='index' if not args.legacy else 'legacy')
+    json_folder_map(root=args.out_dir, folder='terms')
 
 
 def main():
