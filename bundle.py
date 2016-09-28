@@ -8,6 +8,7 @@ import os
 
 from lib.json_folder_map import json_folder_map
 from lib.calculate_terms import calculate_terms
+from lib.regress_course import regress_course
 from lib.load_courses import load_some_courses
 from lib.save_term import save_term
 from lib.paths import term_dest
@@ -28,6 +29,10 @@ def one_term(args, term):
 
     log(pretty_term, 'Loading courses')
     courses = list(load_some_courses(term))
+
+    if args.legacy:
+      for c in courses:
+        regress_course(c)
 
     log(pretty_term, 'Saving term')
     for f in args.format:
@@ -62,6 +67,9 @@ def main():
                            type=int,
                            default=cpu_count(),
                            help='Control the number of operations to perform in parallel')
+    argparser.add_argument('--legacy',
+                           type='store_true',
+                           help="Use legacy mode (you don't need this)")
     argparser.add_argument('--out-dir', '-o',
                            type='store',
                            default=term_dest,
