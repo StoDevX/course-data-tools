@@ -7,13 +7,13 @@ There are three scripts: `download.py`, `maintain-datafiles.py`, and `bundle.py`
 
 All of these tools expect the [course data][course-data] to be one folder up from the CWD, in `../course-data`.
 
-These scripts require `python3` >= 3.4, as well as `beautifulsoup4`, `requests`, `xmltodict`. 
+These scripts require `python3` >= 3.4, as well as `beautifulsoup4`, `requests`, `xmltodict`.
 
 The libraries are also specified in the `requirements.txt` file, so a `pip3 install --user -r requirements.txt` should do it. I *highly* reccommend using [Homebrew](https://brew.sh) to install and update Python on macOS.
 
 
 ## `download.py`
-###### Usage: 
+###### Usage:
 
 ```console
 ./download.py
@@ -33,7 +33,7 @@ You can pass a mix of years and terms to `download.py`. A term is a year followe
 
 
 ## `bundle.py`
-###### Usage: 
+###### Usage:
 
 ```console
 ./bundle.py
@@ -46,12 +46,14 @@ You can pass a mix of years and terms to `bundle.py`. A term is a year followed 
 `bundle.py` outputs bundles into `../course-data/terms`.
 
 ###### Arguments:
-- `-w, --workers` — how many processes to spawn
-- `--format (json|csv|xml)` — how to output the bundle
+- `-w` — how many processes to spawn
+- `--format (json|csv|xml)` — how to output the bundle. can be given multiple times to generate multiple formats
+- `--legacy` — create files in the legacy gobbldygook format
+- `--out-dir` — path to a folder to contain the output
 
 
 ## `maintain-datafiles.py`
-###### Usage: 
+###### Usage:
 
 ```console
 ./maintain-datafiles.py
