@@ -7,8 +7,6 @@ set -ve
 git clone --depth=1 https://github.com/stodevx/course-data.git
 cd course-data
 
-git checkout master
-
 git config user.name "Heroku Databot"
 git config user.email "hawkrives+sto-course-databot@gmail.com"
 
