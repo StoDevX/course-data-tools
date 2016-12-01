@@ -1,0 +1,13 @@
+# pick our container
+sudo: false
+dist: trusty
+
+# pick our language/runtime
+language: python
+python: '3.5'
+cache: pip
+
+# install our deps
+install: pip3 install -r requirements.txt
+
+script: bin/travis.sh
