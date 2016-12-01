@@ -26,11 +26,11 @@ python3 ../bundle.py --out-dir ../course-data --format json --format xml --forma
 python3 ../bundle.py --legacy --out-dir ../course-data/legacy --format json
 
 # remove the source files (quietly)
-git rm -rf courses/ details/ raw_xml/
+git rm -rf --quiet courses/ details/ raw_xml/
 
 # and … push
 git add --all ./
-git commit -m "course data bundles"
+git commit -m "course data bundles" --quiet
 git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
 
 curl https://nosnch.in/9243a27544
