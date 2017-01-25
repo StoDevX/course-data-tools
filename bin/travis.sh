@@ -26,7 +26,7 @@ python3 ../bundle.py --out-dir ../course-data --format json --format xml --forma
 python3 ../bundle.py --legacy --out-dir ../course-data/legacy --format json
 
 # remove the source files (quietly)
-git rm -rf --quiet courses/ details/ raw_xml/
+git rm -rf --quiet details/ raw_xml/
 
 # and … push
 git add --all ./
