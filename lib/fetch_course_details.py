@@ -28,16 +28,16 @@ def get_details(clbid, force_download, dry_run):
 
     if not force_download:
         try:
-            logging.debug('Loading %d from disk', clbid)
+            logging.debug('Loading {} from disk'.format(clbid))
             strainer = SoupStrainer('p')
             with open(html_term_path, 'r', encoding='utf-8') as infile:
                 soup = BeautifulSoup(infile, 'html.parser', parse_only=strainer)
         except FileNotFoundError:
-            logging.debug('Nope. Requesting %d from server', clbid)
+            logging.debug('Nope. Requesting {} from server'.format(clbid))
             raw_data = request_detailed_course_data(clbid)
             soup = clean_markup(raw_data, clbid, dry_run)
     else:
-        logging.debug('Forced to request %d from server', clbid)
+        logging.debug('Forced to request {} from server'.format(clbid))
         raw_data = request_detailed_course_data(clbid)
         soup = clean_markup(raw_data, clbid, dry_run)
 
