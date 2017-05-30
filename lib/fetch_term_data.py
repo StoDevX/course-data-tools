@@ -1,6 +1,5 @@
 import xmltodict
 import requests
-import urllib
 import re
 
 from .load_data_from_file import load_data_from_file
@@ -17,18 +16,7 @@ def fix_invalid_xml(raw):
 
 
 def request_term_from_server(term):
-    # Yes, the request needs all of these extra parameters in order to run.
-    query = {
-        'searchyearterm': str(term),
-        'searchkeywords': '',
-        'searchdepts': '',
-        'searchgereqs': '',
-        'searchopenonly': 'off',
-        'searchlabonly': 'off',
-        'searchfsnum': '',
-        'searchtimeblock': '',
-    }
-    url = 'http://www.stolaf.edu/sis/public-acl-inez.cfm?' + urllib.parse.urlencode(query)
+    url = 'http://www.stolaf.edu/sis/static-classlab/{}.xml'.format(term)
 
     try:
         request = requests.get(url, timeout=60)
