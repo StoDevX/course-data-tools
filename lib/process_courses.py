@@ -1,5 +1,6 @@
 import json
 import re
+import html
 import logging
 import os
 
@@ -101,7 +102,7 @@ def parse_prerequisites(course):
 
 def clean_course(course):
     # Unescape &amp; in course names
-    course['name'] = course['coursename'].replace('&amp;', '&')
+    course['name'] = html.unescape(course['coursename'])
     del course['coursename']
 
     course['section'] = course['coursesection']
