@@ -27,7 +27,6 @@ def save_course(course):
     course_path = make_course_path(course['clbid'])
     json_course_data = json.dumps(course,
                                   indent='\t',
-                                  separators=(',', ': '),
                                   default=json_date_handler,
                                   sort_keys=True) + '\n'
     save_data(json_course_data, course_path)
