@@ -91,10 +91,15 @@ def extract_notes(course):
 
 def parse_prerequisites(course):
     search_str = 'Prereq'
+    # FIXME: use this
+    # for part in course.get('description', []):
+    #     if search_str in part:
+    #         index = part.index(search_str)
+    #         return part[index:]
     if search_str in course.get('description', ''):
-        index = course['description'].index(search_str)
-        return course['description'][index:]
-    elif search_str in course.get('notes', ''):
+        index = course.get('description', '').index(search_str)
+        return course.get('description', '')[index:]
+    if search_str in course.get('notes', ''):
         index = course['notes'].index(search_str)
         return course['notes'][index:]
     return False
@@ -113,8 +118,12 @@ def clean_course(course):
 
     # Remove <br> tags from the 'notes' field.
     if course['notes']:
-        course['notes'] = course['notes'].replace('<br>', ' ')
-        course['notes'] = ' '.join(course['notes'].split())
+        course['notes'] = course['notes'].split('<br>')
+        course['notes'] = [' '.join(note.split()) for note in course['notes']]
+        course['notes'] = [html.unescape(note) for note in course['notes']]
+        course['notes'] = [note for note in course['notes'] if note]
+        # FIXME: remove
+        course['notes'] = " ".join(course['notes'])
 
     # Remove the unused varcredits property
     del course['varcredits']
