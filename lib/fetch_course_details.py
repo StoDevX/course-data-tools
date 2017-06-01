@@ -1,10 +1,10 @@
-from bs4 import BeautifulSoup, SoupStrainer
 import requests
+import logging
+import json
+import html
 import re
 
-import logging
-from .load_data_from_file import load_data_from_file
-from .paths import make_html_path
+from .paths import make_detail_path
 from .save_data import save_data
 
 apology = 'Sorry, no description is available for this course.'
@@ -16,22 +16,22 @@ bad_endings = [
 
 bad_beginnings = []
 
+html_regex = re.compile(r'<[^>]*>')
+
 
 def request_detailed_course_data(clbid):
-    url = 'https://www.stolaf.edu/sis/public-coursedesc.cfm?clbid=' + clbid
-    request = requests.get(url)
-    return request.text
+    url = 'https://www.stolaf.edu/sis/public-coursedesc-json.cfm?clbid={}'.format(clbid)
+    return requests.get(url).text
 
 
 def get_details(clbid, force_download, dry_run):
-    html_term_path = make_html_path(clbid)
+    html_term_path = make_detail_path(clbid)
 
     if not force_download:
         try:
             logging.debug('Loading {} from disk'.format(clbid))
-            strainer = SoupStrainer('p')
             with open(html_term_path, 'r', encoding='utf-8') as infile:
-                soup = BeautifulSoup(infile, 'html.parser', parse_only=strainer)
+                soup = json.load(infile)
         except FileNotFoundError:
             logging.debug('Nope. Requesting {} from server'.format(clbid))
             raw_data = request_detailed_course_data(clbid)
@@ -44,106 +44,99 @@ def get_details(clbid, force_download, dry_run):
     return soup
 
 
-def is_empty_paragraph(tag):
-    return (tag.name == 'p' and tag.find(True) is None and
-            (tag.string is None or tag.string.strip() == ""))
-
-
 def clean_markup(raw_data, clbid, dry_run):
-    soup = BeautifulSoup(raw_data, 'html.parser')
+    start_str = '<!-- content:start -->'
+    end_str = '<!-- content:end -->'
 
-    # Clean up the HTML
-    # .decompose() destroys the tag and all contents.
-    # .unwrap() removes the tag and returns the contents.
-    if soup.head:
-        bookstoremsg = '\nTo find books for this class, please visit the\n'
-        soup.head.decompose()
-        soup.body.find(id='bigbodymainstyle').unwrap()
-        soup.find(class_='sis-smallformfont').decompose()
-        for tag in soup.find_all('script'):
-            tag.decompose()
-        for tag in soup.find_all(href='JavaScript:window.close();'):
-            # It's a pointless link, wrapped in two <p>s.
-            tag.parent.unwrap()
-            tag.parent.unwrap()
-            tag.decompose()
-        for tag in soup.find_all(href="JavaScript:sis_openwindow('http://www.stolafbookstore.com/home.aspx');"):
-            tag.unwrap()
+    try:
+        start_idx = raw_data.index(start_str) + len(start_str)
+        end_idx = raw_data.index(end_str)
+    except ValueError:
+        raise Exception('"{}" did not return any data, or returned an error'.format(clbid))
 
-        empty_tags = soup.find_all(is_empty_paragraph)
+    extracted_data = raw_data[start_idx:end_idx]
+    data = json.loads(extracted_data)
 
-        [tag.decompose() for tag in empty_tags]
-        [string.parent.decompose()
-         for string in soup.find_all(text=re.compile(bookstoremsg))]
+    if len(data) is 0:
+        raise Exception('"{}" had zero results! {}'.format(clbid, extracted_data))
+    elif len(data) > 1:
+        raise Exception('"{}" had more than one result! {}'.format(clbid, extracted_data))
 
-        if soup.body.p.p:
-            soup.body.p.unwrap()
+    data = data[clbid]
 
-        if soup.find(id='fusiondebugging'):
-            soup.find(id='fusiondebugging').decompose()
+    if not dry_run:
+        detail_path = make_detail_path(clbid)
+        save_data(json.dumps(data, indent='\t', ensure_ascii=False, sort_keys=True) + '\n', detail_path)
 
-    for tag in soup.select('p'):
-        del tag['style']
-
-    str_soup = str(soup)
-    str_soup = re.sub(r' +', ' ', str_soup)
-    str_soup = re.sub(r'\n+', '\n', str_soup)
-    str_soup = str_soup.strip() + '\n'
-
-    if not dry_run and (str_soup != raw_data):
-        html_term_path = make_html_path(clbid)
-        save_data(str_soup, html_term_path)
-
-    return soup
+    return data
 
 
-def clean_details(soup):
-    strings = soup('p')
-
-    title = None
-    description = None
-
-    # Possibilities:
-    # One paragraph, apology.
-    # Two paragraphs, the second is the title, repeated.
-    # Two or more paragraphs; everything after the first is the description.
-
-    str0 = strings[0].text
-    if str0 == apology:
-        title = None
-        description = None
-    else:
-        title = str0
-        if len(strings) >= 2:
-            desc_strings = [' '.join(string.text.split())
-                            for string in strings[1:]]
-            description = '\n'.join(desc_strings)
+def clean_details(data):
+    title = data['fullname'] if 'fullname' in data else None
+    description = data['description'] if 'description' in data else None
 
     if title:
+        # Remove html entities from the title
+        title = html.unescape(title)
         # Remove extra spaces from the string
         title = ' '.join(title.split())
         # Remove the course time info from the end
         title = title.split('(', maxsplit=1)[0]
-        # Remove anything before the first colon; reinsert the rest of the colons.
-        title = ':'.join(title.split(':')[1:])
+        # FIXME: use this
+        # title = re.sub(r'(.*)\(.*\)$', r'\1', title)
         # Clean any extra whitespace off the title
         title = title.strip()
+        # Remove html tags from the title
+        title = html_regex.sub('', title)
 
     if description:
+        # Collect the paragraphs into a list of strings
+        full_description = {}
+        paragraph_index = 0
+        for part in description:
+            if not part:
+                paragraph_index += 1
+                continue
+            full_description[paragraph_index] = full_description.get(paragraph_index, "") + " " + part
+
+        # Remove any remaining HTML tags
+        description = [html_regex.sub('', para) for para in full_description.values()]
+
+        # Remove extra spaces
+        description = [' '.join(para.split()) for para in description]
+
+        # Unescape any html entities
+        # description = [html.unescape(para) for para in description]
+
         # Remove silly endings and beginnings
         for ending in bad_endings:
-            if ending in description:
-                description = ' '.join(description.split(ending))
+            description = [' '.join(para.split(ending))
+                           if ending in para
+                           else para
+                           for para in description]
         for beginning in bad_beginnings:
-            if beginning in description:
-                description = ' '.join(description.split(beginning))
-        # Clean any extra whitespace off the description
-        description = description.strip()
+            description = [' '.join(para.split(beginning))
+                           if beginning in para
+                           else para
+                           for para in description]
 
-    if description == '' or description == apology or description == title:
+        # Clean any extra whitespace off the description
+        description = [para.strip() for para in description]
+
+        # Remove any blank strings
+        description = [para for para in description if para]
+
+        # FIXME: remove this
+        description = "\n".join(description)
+        # FIXME: keep this
+        description = html.unescape(description)
+
+    # FIXME: use this
+    # if not description or description == [apology] or description == [title]:
+    if not description or description == apology or description == title:
         description = None
 
-    if title == '':
+    if not title:
         title = None
 
     return {'title': title, 'description': description}
@@ -152,5 +145,5 @@ def clean_details(soup):
 def fetch_course_details(clbid, dry_run=False, force_download=False):
     clbid = str(clbid).zfill(10)
 
-    soup = get_details(clbid, force_download, dry_run)
-    return clean_details(soup)
+    data = get_details(clbid, force_download, dry_run)
+    return clean_details(data)

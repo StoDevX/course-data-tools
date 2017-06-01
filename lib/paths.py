@@ -27,8 +27,8 @@ def make_course_path(clbid):
     return join(course_dest, find_details_subdir(clbid) + '.json')
 
 
-def make_html_path(clbid):
-    return join(details_source, find_details_subdir(clbid) + '.html')
+def make_detail_path(clbid):
+    return join(details_source, find_details_subdir(clbid) + '.json')
 
 
 def make_xml_term_path(term):
