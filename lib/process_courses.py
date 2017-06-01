@@ -29,6 +29,7 @@ def save_course(course):
     json_course_data = json.dumps(course,
                                   indent='\t',
                                   default=json_date_handler,
+                                  # ensure_ascii=False,
                                   sort_keys=True) + '\n'
     save_data(json_course_data, course_path)
 
@@ -229,7 +230,7 @@ def process_course(course, detail, ignore_revisions, dry_run):
     # We also must save it if it didn't exist before.
     should_save = not dry_run
     if should_save:
-        logging.debug('Saving course')
+        logging.debug('Saving course {}'.format(cleaned['clbid']))
         save_course(cleaned)
 
     return cleaned
