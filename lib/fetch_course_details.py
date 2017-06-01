@@ -124,16 +124,9 @@ def clean_details(data):
         description = [para.strip() for para in description]
 
         # Remove any blank strings
-        description = [para for para in description if para]
+        description = [html.unescape(para) for para in description if para]
 
-        # FIXME: remove this
-        description = "\n".join(description)
-        # FIXME: keep this
-        description = html.unescape(description)
-
-    # FIXME: use this
-    # if not description or description == [apology] or description == [title]:
-    if not description or description == apology or description == title:
+    if not description or description == [apology] or description == [title]:
         description = None
 
     if not title:

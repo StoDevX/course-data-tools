@@ -92,17 +92,21 @@ def extract_notes(course):
 
 def parse_prerequisites(course):
     search_str = 'Prereq'
-    # FIXME: use this
-    # for part in course.get('description', []):
-    #     if search_str in part:
-    #         index = part.index(search_str)
-    #         return part[index:]
-    if search_str in course.get('description', ''):
-        index = course.get('description', '').index(search_str)
-        return course.get('description', '')[index:]
-    if search_str in course.get('notes', ''):
-        index = course['notes'].index(search_str)
-        return course['notes'][index:]
+
+    in_description = [para[para.index(search_str):]
+                      for para in course.get('description', [])
+                      if search_str in para]
+
+    if in_description:
+        return "\n".join(in_description)
+
+    in_notes = [note[note.index(search_str):]
+                for note in course.get('notes', [])
+                if search_str in note]
+
+    if in_notes:
+        return "\n".join(in_notes)
+
     return False
 
 
@@ -123,8 +127,6 @@ def clean_course(course):
         course['notes'] = [' '.join(note.split()) for note in course['notes']]
         course['notes'] = [html.unescape(note) for note in course['notes']]
         course['notes'] = [note for note in course['notes'] if note]
-        # FIXME: remove
-        course['notes'] = " ".join(course['notes'])
 
     # Remove the unused varcredits property
     del course['varcredits']
@@ -134,7 +136,7 @@ def clean_course(course):
         course['type'] = course_types[course['coursesubtype']]
     else:
         course['type'] = course['coursesubtype']
-        print(course['type'], 'doesn\'t appear in the types list.')
+        print("'{}' doesn't appear in the types list.".format(course['type']))
     del course['coursesubtype']
 
     # Break apart dept names into lists
