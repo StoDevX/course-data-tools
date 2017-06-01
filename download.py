@@ -20,7 +20,7 @@ def one_term(args, term):
     print(pretty_term, 'Processing term')
     for course in load_term(term, force_download=args.force_terms):
         details = fetch_course_details(course['clbid'], dry_run=args.dry_run, force_download=args.force_details)
-        course = process_course(course, details, dry_run=args.dry_run, find_revisions=args.find_revisions, ignore_revisions=args.ignore_revisions)
+        course = process_course(course, details, dry_run=args.dry_run, ignore_revisions=args.ignore_revisions)
         clbids.append(course['clbid'])
 
     if not clbids:
@@ -64,9 +64,6 @@ def main():
     argparser.add_argument('--dry-run', '-d',
                            action='store_true',
                            help='Only print output; don\'t write files.')
-    argparser.add_argument('--no-revisions', '-n',
-                           action='store_false',
-                           help='Prevent searching for revisions of courses.')
     argparser.add_argument('--ignore-revisions',
                            metavar='PROP',
                            nargs='+',
@@ -77,7 +74,6 @@ def main():
                            help='Silence logging; mostly used when looking for data.')
 
     args = argparser.parse_args()
-    args.find_revisions = args.no_revisions
 
     run(args)
 

@@ -197,7 +197,7 @@ def clean_course(course):
     return {key: value for key, value in course.items() if value is not None}
 
 
-def process_course(course, detail, find_revisions, ignore_revisions, dry_run):
+def process_course(course, detail, ignore_revisions, dry_run):
     ignore_revisions = [] if ignore_revisions is None else ignore_revisions
 
     course['title'] = detail.get('title', None)
@@ -212,20 +212,14 @@ def process_course(course, detail, find_revisions, ignore_revisions, dry_run):
     cleaned['prerequisites'] = parse_prerequisites(cleaned)
     course_existed_before = check_for_course_file_existence(cleaned['clbid'])
 
-    if course_existed_before and find_revisions:
-        revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
-        if revisions:
-            cleaned['revisions'] = revisions
-    else:
-        revisions = []
+    revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
+    if course_existed_before and revisions:
+        cleaned['revisions'] = revisions
 
     # There's no reason to save the course if nothing has changed,
     # but we should save if we didn't look for changes.
     # We also must save it if it didn't exist before.
-    should_save = not dry_run and (
-        (not course_existed_before) or
-        (revisions or not find_revisions)
-    )
+    should_save = not dry_run
     if should_save:
         logging.debug('Saving course')
         save_course(cleaned)
