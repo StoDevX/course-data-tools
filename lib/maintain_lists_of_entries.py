@@ -33,5 +33,5 @@ def maintain_lists_of_entries(all_courses):
 
     for key, data in data_sets.items():
         filename = os.path.join(mappings_path, 'valid_%s.json' % key)
-        json_data = json.dumps(data, indent='\t', separators=(',', ': '))
+        json_data = json.dumps(data, indent='\t', separators=(',', ': '), ensure_ascii=False)
         save_data(json_data + '\n', filename)
