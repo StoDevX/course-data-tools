@@ -1,6 +1,5 @@
 import json
 import re
-from collections import OrderedDict
 import logging
 import os
 
