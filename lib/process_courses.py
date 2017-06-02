@@ -221,8 +221,8 @@ def process_course(course, detail, ignore_revisions, dry_run):
 
     # course[''] = extract_notes(cleaned)
     cleaned['prerequisites'] = parse_prerequisites(cleaned)
-    course_existed_before = check_for_course_file_existence(cleaned['clbid'])
 
+    course_existed_before = check_for_course_file_existence(cleaned['clbid'])
     revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
     if course_existed_before and revisions:
         cleaned['revisions'] = revisions
