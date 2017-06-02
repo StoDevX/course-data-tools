@@ -11,7 +11,12 @@ git config user.name "Heroku Databot"
 git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files
-python3 ../download.py --force-terms 2016 2017 -w 1
+
+start_year=1994
+this_year=$(date +%Y)
+end_year=$((this_year + 1))
+
+python3 ../download.py --force-terms $(seq $start_year $end_year) -w 1
 python3 ../maintain-datafiles.py
 
 git add .
