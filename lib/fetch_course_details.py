@@ -71,13 +71,30 @@ def clean_markup(raw_data, clbid, dry_run):
     return data
 
 
+def sanitize_for_unicode(string: str):
+    # Remove html entities
+    string = html.unescape(string)
+
+    string = string.replace('\u0091', '‘')
+    string = string.replace('\u0092', '’')
+    string = string.replace('\u0093', '“')
+    string = string.replace('\u0094', '”')
+
+    string = string.replace('\u0096', '–')
+    string = string.replace('\u0097', '—')
+
+    string = string.replace('\u00ad', '-')
+    string = string.replace('\u00ae', '®')
+
+    return string
+
+
 def clean_details(data):
     title = data['fullname'] if 'fullname' in data else None
     description = data['description'] if 'description' in data else None
 
     if title:
-        # Remove html entities from the title
-        title = html.unescape(title)
+        title = sanitize_for_unicode(title)
         # Remove extra spaces from the string
         title = ' '.join(title.split())
         # Remove the course time info from the end
@@ -124,7 +141,7 @@ def clean_details(data):
         description = [para.strip() for para in description]
 
         # Remove any blank strings
-        description = [html.unescape(para) for para in description if para]
+        description = [sanitize_for_unicode(para) for para in description if para]
 
     if not description or description == [apology] or description == [title]:
         description = None
