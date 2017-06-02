@@ -1,7 +1,12 @@
-def flatten(l):
+def flatten(iter):
     # from http://stackoverflow.com/a/2158532/2347774
-    for el in l:
-        if isinstance(el, list) and not isinstance(el, str):
-            yield from flatten(el)
-        else:
-            yield el
+    try:
+        for el in iter:
+            if isinstance(el, str):
+                yield el
+            else:
+                yield from flatten(el)
+    except TypeError:
+        # oops, guess it's not iterable after all.
+        # better just return it
+        yield iter

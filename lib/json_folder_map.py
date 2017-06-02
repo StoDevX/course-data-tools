@@ -24,7 +24,7 @@ def json_folder_map(root, folder, name='index', dry_run=False):
             extension = extension[1:]  # splitext's extension includes the preceding dot
 
             info = {
-                'path': 'terms/' + filename,
+                'path': f'terms/{filename}',
                 'hash': hashlib.sha256(infile.read()).hexdigest(),
                 'year': int(basename[0:4]),  # eg: 19943.json -> 1994
                 'term': int(basename),  # eg: 19943.json -> 19943
@@ -40,8 +40,8 @@ def json_folder_map(root, folder, name='index', dry_run=False):
     if dry_run:
         return
 
-    index_path = os.path.join(root, '{}.json'.format(name))
+    index_path = os.path.join(root, f'{name}.json')
     with open(index_path, 'w') as outfile:
-        json.dump(output, outfile, indent='\t', separators=(',', ': '))
+        json.dump(output, outfile, indent='\t', ensure_ascii=False)
         outfile.write('\n')
         log('Wrote', index_path)

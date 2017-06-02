@@ -2,7 +2,6 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 import json
 
-from .load_data_from_file import load_data_from_file
 from .get_old_dict_values import get_old_dict_values
 from .log import log
 from .paths import make_course_path

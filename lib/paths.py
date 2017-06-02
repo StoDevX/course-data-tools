@@ -24,16 +24,16 @@ def find_details_subdir(clbid):
 
 
 def make_course_path(clbid):
-    return join(course_dest, find_details_subdir(clbid) + '.json')
+    return join(course_dest, f'{find_details_subdir(clbid)}.json')
 
 
 def make_detail_path(clbid):
-    return join(details_source, find_details_subdir(clbid) + '.json')
+    return join(details_source, f'{find_details_subdir(clbid)}.json')
 
 
 def make_xml_term_path(term):
-    return join(xml_source, str(term) + '.xml')
+    return join(xml_source, f'{term}.xml')
 
 
 def make_built_term_path(term, kind):
-    return '{}.{}'.format(term, kind)
+    return f'{term}.{kind}'

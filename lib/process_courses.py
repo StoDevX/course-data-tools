@@ -3,6 +3,7 @@ import re
 import html
 import logging
 import os
+from textwrap import dedent
 
 from .break_apart_departments import break_apart_departments
 from .check_for_course_revisions import check_for_revisions
@@ -18,10 +19,7 @@ def json_date_handler(obj):
     if hasattr(obj, 'isoformat'):
         return obj.isoformat()
     else:
-        raise TypeError(
-            'Object of type {} with value of {} is not JSON serializable'.format(
-                type(obj),
-                repr(obj)))
+        raise TypeError(f'Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable')
 
 
 def save_course(course):
@@ -40,13 +38,11 @@ def check_for_course_file_existence(clbid):
 
 def extract_notes(course):
     if course['notes'] and 'Will also meet' in course['notes']:
-        info = '[%d%d] %s (%s %d | %d %d):\n\t%s\n\t%s %s' % (
-            course['year'], course['semester'], course['type'][0],
-            '/'.join(course['departments']), course['number'],
-            course['clbid'], course['crsid'],
-            course['notes'],
-            course['times'], course['places']
-        )
+        info = dedent(f'''
+            [{course['year']}{course['semester']}] {course['type'][0]} ({'/'.join(course['departments'])} {course['number']} | {course['clbid']} {course['crsid']}):
+            \t{course['notes']}
+            \t{course['times']} {course['locations']}
+        ''')
 
         # get the timestring and location string out of the notes field
         notes_into_time_and_location_regex = r'.*meet ([MTWF][/-]?.*) in (.*)\.'
@@ -136,7 +132,7 @@ def clean_course(course):
         course['type'] = course_types[course['coursesubtype']]
     else:
         course['type'] = course['coursesubtype']
-        print("'{}' doesn't appear in the types list.".format(course['type']))
+        print(f"'{course['type']}' doesn't appear in the types list.")
     del course['coursesubtype']
 
     # Break apart dept names into lists
@@ -232,7 +228,7 @@ def process_course(course, detail, ignore_revisions, dry_run):
     # We also must save it if it didn't exist before.
     should_save = not dry_run
     if should_save:
-        logging.debug('Saving course {}'.format(cleaned['clbid']))
+        logging.debug(f"Saving course {cleaned['clbid']}")
         save_course(cleaned)
 
     return cleaned
