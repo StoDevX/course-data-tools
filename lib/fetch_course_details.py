@@ -20,8 +20,10 @@ html_regex = re.compile(r'<[^>]*>')
 
 
 def request_detailed_course_data(clbid):
-    url = 'https://www.stolaf.edu/sis/public-coursedesc-json.cfm?clbid={}'.format(clbid)
-    return requests.get(url).text
+    url = f'https://www.stolaf.edu/sis/public-coursedesc-json.cfm?clbid={clbid}'
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
 
 def get_details(clbid, force_download, dry_run):

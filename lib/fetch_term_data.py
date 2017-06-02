@@ -19,22 +19,22 @@ def request_term_from_server(term):
     url = 'http://www.stolaf.edu/sis/static-classlab/{}.xml'.format(term)
 
     try:
-        request = requests.get(url, timeout=60)
-    except requests.exceptions.Timeout as ex:
-        logging.warning('Timeout requesting {}'.format(url))
+        r = requests.get(url)
+        r.raise_for_status()
+    except requests.exceptions.Timeout:
+        logging.warning(f'Timeout requesting {url}')
         return None
-
-    if "Sorry, there's been an error." in request.text:
-        logging.warning(f'Error in the request for {url}')
-        logging.warning('Whoops! Made another error in the server.')
-        if 'The request has exceeded the allowable time limit' in request.text:
+    except requests.HTTPError as err:
+        if err.response.status_code == 404:
+            raise err
+        if "Sorry, there's been an error." in err.response.text:
+            logging.warning('Whoops! Made another error in the server:')
+            logging.warning(f'{r.text}')
+        if 'The request has exceeded the allowable time limit' in err.response.text:
             logging.warning("We exceeded the server's internal time limit for the request.")
-        else:
-            logging.warning(f'{request.text}')
+        raise err
 
-        return None
-
-    return request.text
+    return r.text
 
 
 def embed_term_in_courses(xml_term_data, term):
