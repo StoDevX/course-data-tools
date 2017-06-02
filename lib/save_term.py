@@ -12,6 +12,7 @@ def save_json_term(term_path, courses):
     json_term_data = json.dumps(courses,
                                 indent='\t',
                                 separators=(',', ': '),
+                                ensure_ascii=False,
                                 sort_keys=True)
     save_data(json_term_data + '\n', term_path)
 
