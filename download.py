@@ -13,8 +13,7 @@ from lib.fetch_term_data import load_term
 
 
 def one_term(args, term):
-    str_term = str(term)
-    pretty_term = str_term[0:4] + ':' + str_term[4]
+    pretty_term = f'{str(term)[:4]}:{str(term)[4]}'
 
     clbids = []
     print(pretty_term, 'Processing term')
@@ -40,7 +39,7 @@ def run(args):
         with ProcessPoolExecutor(max_workers=args.workers) as pool:
             list(pool.map(edit_one_term, terms))
     else:
-        list(map(edit_one_term, terms))
+        [edit_one_term(term) for term in terms]
 
 
 def main():

@@ -24,15 +24,13 @@ def list_all_course_index_files():
 
 
 def one_term(args, term):
-    str_term = str(term)
-    pretty_term = '{}:{}'.format(str_term[0:4], str_term[4])
+    pretty_term = f'{str(term)[:4]}:{str(term)[4]}'
 
     log(pretty_term, 'Loading courses')
     courses = list(load_some_courses(term))
 
     if args.legacy:
-      for c in courses:
-        regress_course(c)
+        [regress_course(c) for c in courses]
 
     log(pretty_term, 'Saving term')
     for f in args.format:
