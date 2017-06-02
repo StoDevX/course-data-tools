@@ -27,7 +27,7 @@ def save_course(course):
     json_course_data = json.dumps(course,
                                   indent='\t',
                                   default=json_date_handler,
-                                  # ensure_ascii=False,
+                                  ensure_ascii=False,
                                   sort_keys=True) + '\n'
     save_data(json_course_data, course_path)
 
