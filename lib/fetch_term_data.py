@@ -1,11 +1,10 @@
 import xmltodict
 import requests
 import re
+import logging
 
-from .load_data_from_file import load_data_from_file
 from .paths import make_xml_term_path
 from .save_data import save_data
-import logging
 
 
 def fix_invalid_xml(raw):
@@ -37,21 +36,15 @@ def request_term_from_server(term):
     return r.text
 
 
-def embed_term_in_courses(xml_term_data, term):
-    for course in xml_term_data['searchresults']['course']:
-        course['term'] = term
-    return xml_term_data
-
-
 def load_data_from_server(term, dry_run=False):
-    xml_term_path = make_xml_term_path(term)
-
     raw_data = request_term_from_server(term)
     if not raw_data:
         logging.info(f'No data returned for {term}')
         return None
 
     valid_data = fix_invalid_xml(raw_data)
+
+    # Parse the data into an actual data structure
     parsed_data = xmltodict.parse(valid_data, force_list=['course'])
 
     if not parsed_data['searchresults']:
@@ -62,23 +55,25 @@ def load_data_from_server(term, dry_run=False):
     # need to re-sort every time we load from disk.
     parsed_data['searchresults']['course'].sort(key=lambda c: c['clbid'])
 
-    embedded_terms = embed_term_in_courses(parsed_data, term)
+    # Embed the term into each course individually
+    for course in parsed_data['searchresults']['course']:
+        course['term'] = term
 
     if not dry_run:
-        reparsed_data = xmltodict.unparse(embedded_terms, pretty=True)
-        save_data(reparsed_data, xml_term_path)
-        logging.debug(f'Fetched {xml_term_path}')
+        destination = make_xml_term_path(term)
+        serialized_data = xmltodict.unparse(parsed_data, pretty=True)
+        save_data(serialized_data, destination)
+        logging.debug(f'Fetched {destination}')
 
-    return embedded_terms
+    return parsed_data
 
 
 def load_term(term, force_download=False, dry_run=False):
-    xml_term_path = make_xml_term_path(term)
-
     if not force_download:
         try:
             logging.info(f'Loading {term} from disk')
-            with open(xml_term_path, 'rb') as infile:
+            term_path = make_xml_term_path(term)
+            with open(term_path, 'rb') as infile:
                 data = xmltodict.parse(infile, force_list=['course'])
         except FileNotFoundError:
             logging.info(f'Requesting {term} from server')
