@@ -19,7 +19,7 @@ def one_term(args, term):
     print(pretty_term, 'Processing term')
     for course in load_term(term, force_download=args.force_terms):
         details = fetch_course_details(course['clbid'], dry_run=args.dry_run, force_download=args.force_details)
-        course = process_course(course, details, dry_run=args.dry_run, ignore_revisions=args.ignore_revisions)
+        course = process_course(course, details, dry_run=args.dry_run, ignore_revision_keys=args.ignore_revision_keys, no_revisions=args.no_revisions)
         clbids.append(course['clbid'])
 
     if not clbids:
@@ -63,11 +63,14 @@ def main():
     argparser.add_argument('--dry-run', '-d',
                            action='store_true',
                            help='Only print output; don\'t write files.')
-    argparser.add_argument('--ignore-revisions',
+    argparser.add_argument('--ignore-revision-keys',
                            metavar='PROP',
                            nargs='+',
                            default=[],
                            help='Prevent storing revisions within property $PROP.')
+    argparser.add_argument('--no-revisions',
+                           action='store_true',
+                           help='Do not check for revisions at all.')
     argparser.add_argument('--quiet', '-q',
                            action='store_true',
                            help='Silence logging; mostly used when looking for data.')

@@ -204,8 +204,10 @@ def clean_course(course):
     return {key: value for key, value in course.items() if value is not None}
 
 
-def process_course(course, detail, ignore_revisions, dry_run):
-    ignore_revisions = [] if ignore_revisions is None else ignore_revisions
+def process_course(course, detail, ignore_revision_keys, dry_run, no_revisions):
+    """Combines the 'course' and the 'detail' objects into one. Also 'cleans' the course, to remove html from various
+    spots, and cleans up the key names, etc. Also records the revisions to the course."""
+    ignore_revision_keys = [] if ignore_revision_keys is None else ignore_revision_keys
 
     course['title'] = detail.get('title', None)
     course['description'] = detail.get('description', None)
@@ -218,8 +220,10 @@ def process_course(course, detail, ignore_revisions, dry_run):
     # course[''] = extract_notes(cleaned)
     cleaned['prerequisites'] = parse_prerequisites(cleaned)
 
+    # I don't remember why I added this check for "did the course already exist", but I needed it for something.
+    # TODO: document this
     course_existed_before = check_for_course_file_existence(cleaned['clbid'])
-    revisions = check_for_revisions(cleaned, ignore_revisions=ignore_revisions)
+    revisions = check_for_revisions(cleaned, ignore_revision_keys=ignore_revision_keys, no_revisions=no_revisions)
     if course_existed_before and revisions:
         cleaned['revisions'] = revisions
 
