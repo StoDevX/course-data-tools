@@ -31,15 +31,15 @@ def get_details(clbid, force_download, dry_run):
 
     if not force_download:
         try:
-            logging.debug('Loading {} from disk'.format(clbid))
+            logging.debug(f'Loading {clbid} from disk')
             with open(html_term_path, 'r', encoding='utf-8') as infile:
                 soup = json.load(infile)
         except FileNotFoundError:
-            logging.debug('Nope. Requesting {} from server'.format(clbid))
+            logging.debug(f'Nope. Requesting {clbid} from server')
             raw_data = request_detailed_course_data(clbid)
             soup = clean_markup(raw_data, clbid, dry_run)
     else:
-        logging.debug('Forced to request {} from server'.format(clbid))
+        logging.debug(f'Forced to request {clbid} from server')
         raw_data = request_detailed_course_data(clbid)
         soup = clean_markup(raw_data, clbid, dry_run)
 
@@ -54,15 +54,15 @@ def clean_markup(raw_data, clbid, dry_run):
         start_idx = raw_data.index(start_str) + len(start_str)
         end_idx = raw_data.index(end_str)
     except ValueError:
-        raise Exception('"{}" did not return any data, or returned an error'.format(clbid))
+        raise Exception(f'"{clbid}" did not return any data, or returned an error')
 
     extracted_data = raw_data[start_idx:end_idx]
     data = json.loads(extracted_data)
 
     if len(data) is 0:
-        raise Exception('"{}" had zero results! {}'.format(clbid, extracted_data))
+        raise Exception(f'"{clbid}" had zero results! {extracted_data}')
     elif len(data) > 1:
-        raise Exception('"{}" had more than one result! {}'.format(clbid, extracted_data))
+        raise Exception(f'"{clbid}" had more than one result! {extracted_data}')
 
     data = data[clbid]
 
@@ -116,7 +116,7 @@ def clean_details(data):
             if not part:
                 paragraph_index += 1
                 continue
-            full_description[paragraph_index] = full_description.get(paragraph_index, "") + " " + part
+            full_description[paragraph_index] = f'{full_description.get(paragraph_index, "")} {part}'
 
         # Remove any remaining HTML tags
         description = [html_regex.sub('', para) for para in full_description.values()]

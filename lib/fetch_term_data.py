@@ -16,7 +16,7 @@ def fix_invalid_xml(raw):
 
 
 def request_term_from_server(term):
-    url = 'http://www.stolaf.edu/sis/static-classlab/{}.xml'.format(term)
+    url = f'http://www.stolaf.edu/sis/static-classlab/{term}.xml'
 
     try:
         r = requests.get(url)
