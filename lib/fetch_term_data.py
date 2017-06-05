@@ -8,10 +8,8 @@ from .save_data import save_data
 
 
 def fix_invalid_xml(raw):
-    # Replace any invalid XML entities with &amp;
-    subst = '&amp;'
-    cleaned = re.sub(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)', subst, raw)
-    return cleaned
+    """Replace any invalid XML entities with &amp;"""
+    return re.sub(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)', '&amp;', raw)
 
 
 def request_term_from_server(term):
