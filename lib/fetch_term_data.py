@@ -40,6 +40,11 @@ def load_data_from_server(term, dry_run=False):
         logging.info(f'No data returned for {term}')
         return None
 
+    # remove the coldfusion debugging output
+    end = '</searchresults>'
+    raw_data = raw_data[:raw_data.index(end) + len(end)]
+
+    # remove invalid xml entities
     valid_data = fix_invalid_xml(raw_data)
 
     # Parse the data into an actual data structure
