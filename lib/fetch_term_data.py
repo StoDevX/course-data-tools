@@ -1,10 +1,17 @@
 import xmltodict
 import requests
+import re
 import logging
-import html
 
 from .paths import make_xml_term_path
 from .save_data import save_data
+
+
+def fix_invalid_xml(raw):
+    # Replace any invalid XML entities with &amp;
+    subst = '&amp;'
+    cleaned = re.sub(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)', subst, raw)
+    return cleaned
 
 
 def request_term_from_server(term):
@@ -35,8 +42,7 @@ def load_data_from_server(term, dry_run=False):
         logging.info(f'No data returned for {term}')
         return None
 
-    # Replace any invalid XML entities with their utf-8 equivalents
-    valid_data = html.unescape(raw_data)
+    valid_data = fix_invalid_xml(raw_data)
 
     # Parse the data into an actual data structure
     parsed_data = xmltodict.parse(valid_data, force_list=['course'])
