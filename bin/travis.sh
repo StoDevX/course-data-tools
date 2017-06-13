@@ -12,7 +12,7 @@ git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files
 
-python3 ../download.py --force-terms -w 2
+python3 ../download.py --force-terms -w 1
 python3 ../maintain-datafiles.py
 
 git add .
