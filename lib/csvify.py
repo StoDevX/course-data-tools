@@ -11,10 +11,14 @@ def csvify(data):
         if 'revisions' in item:
             item.pop('revisions')
         for key in item:
+            if type(item[key]) is list:
+                item[key] = ';'.join(item[key])
             if type(item[key]) is str:
                 item[key] = item[key].replace('\n', '\\n')
     with io.StringIO() as outfile:
-        csv_file = csv.DictWriter(outfile, get_all_keys(data), dialect=csv.unix_dialect)
+        csv_file = csv.DictWriter(outfile,
+                                  get_all_keys(data),
+                                  dialect=csv.unix_dialect)
         csv_file.writeheader()
         csv_file.writerows(data)
         str_contents = outfile.getvalue()
