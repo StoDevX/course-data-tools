@@ -30,7 +30,7 @@ def build_term_url(term):
 
 
 def request_term_from_server(term):
-    url = f'https://www.stolaf.edu/sis/static-classlab/{term}.xml'
+    url = build_term_url(term)
 
     try:
         r = requests.get(url)
