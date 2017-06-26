@@ -1,5 +1,6 @@
 import xmltodict
 import requests
+import urllib.parse
 import re
 import logging
 
@@ -10,6 +11,22 @@ from .save_data import save_data
 def fix_invalid_xml(raw):
     """Replace any invalid XML entities with &amp;"""
     return re.sub(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)', '&amp;', raw)
+
+
+def build_term_url(term):
+    base_url = 'https://www.stolaf.edu/sis/public-acl-inez.cfm'
+    # Yes, the request needs all of these extra parameters in order to run.
+    querystring = urllib.parse.urlencode({
+        'searchyearterm': str(term),
+        'searchkeywords': '',
+        'searchdepts': '',
+        'searchgereqs': '',
+        'searchopenonly': 'off',
+        'searchlabonly': 'off',
+        'searchfsnum': '',
+        'searchtimeblock': '',
+    })
+    return f'{base_url}?{querystring}'
 
 
 def request_term_from_server(term):
