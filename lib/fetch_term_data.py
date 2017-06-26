@@ -59,7 +59,12 @@ def load_data_from_server(term, dry_run=False):
 
     # remove the coldfusion debugging output
     end = '</searchresults>'
-    raw_data = raw_data[:raw_data.index(end) + len(end)]
+
+    try:
+        end_idx = raw_data.index(end) + len(end)
+        raw_data = raw_data[:end_idx]
+    except ValueError:
+        raise Exception(f'{term} did not return any xml')
 
     # remove invalid xml entities
     valid_data = fix_invalid_xml(raw_data)
