@@ -8,6 +8,10 @@ from .paths import make_xml_term_path
 from .save_data import save_data
 
 
+class BadDataException(Exception):
+    pass
+
+
 def fix_invalid_xml(raw):
     """Replace any invalid XML entities with &amp;"""
     return re.sub(r'&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)', '&amp;', raw)
@@ -29,9 +33,11 @@ def build_term_url(term):
     return f'{base_url}?{querystring}'
 
 
-def request_term_from_server(term):
-    url = build_term_url(term)
+def build_static_term_url(term):
+    return f'https://www.stolaf.edu/sis/static-classlab/{term}.xml'
 
+
+def request_from_server(url):
     try:
         r = requests.get(url)
         r.raise_for_status()
@@ -51,26 +57,34 @@ def request_term_from_server(term):
     return r.text
 
 
-def load_data_from_server(term, dry_run=False):
-    raw_data = request_term_from_server(term)
+def request_data(url, term):
+    raw_data = request_from_server(term)
     if not raw_data:
         logging.info(f'No data returned for {term}')
         return None
 
-    # remove the coldfusion debugging output
-    end = '</searchresults>'
-
     try:
+        # remove the coldfusion debugging output
+        end = '</searchresults>'
         end_idx = raw_data.index(end) + len(end)
         raw_data = raw_data[:end_idx]
     except ValueError:
-        raise Exception(f'{term} did not return any xml')
+        raise BadDataException(f'{term} did not return any xml')
 
     # remove invalid xml entities
     valid_data = fix_invalid_xml(raw_data)
 
     # Parse the data into an actual data structure
-    parsed_data = xmltodict.parse(valid_data, force_list=['course'])
+    return xmltodict.parse(valid_data, force_list=['course'])
+
+
+def load_data_from_server(term, dry_run=False):
+    try:
+        url = build_static_term_url(term)
+        parsed_data = request_data(url, term)
+    except BadDataException e:
+        url = build_term_url(term)
+        parsed_data = request_data(url, term)
 
     if not parsed_data['searchresults']:
         logging.info(f'No data returned for {term}')
