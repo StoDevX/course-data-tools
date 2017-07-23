@@ -82,7 +82,7 @@ def load_data_from_server(term, dry_run=False):
     try:
         url = build_static_term_url(term)
         parsed_data = request_data(url, term)
-    except BadDataException e:
+    except BadDataException:
         url = build_term_url(term)
         parsed_data = request_data(url, term)
 
