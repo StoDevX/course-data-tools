@@ -16,7 +16,7 @@ for y in $(seq 1994 $(date +%Y)); do
     for s in $(seq 1 5); do
         echo "$y$s"
     done
-done | xargs -t -n1 -P4 -- python3 ../download.py --force-terms -w 1
+done | xargs -t -n1 -P1 -- python3 ../download.py --force-terms -w 1
 python3 ../maintain-datafiles.py
 
 git add .
