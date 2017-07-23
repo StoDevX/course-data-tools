@@ -83,16 +83,20 @@ def load_data_from_server(term, dry_run=False):
         url = build_static_term_url(term)
         parsed_data = request_data(url, term)
     except BadDataException:
+        print(f'{term}: static file is invlid xml; attempting database query')
         url = build_term_url(term)
         try:
             parsed_data = request_data(url, term)
         except BadDataException:
+            print(f'{term}: fetching attempt #1 failed')
             try:
                 parsed_data = request_data(url, term)
             except BadDataException:
+                print(f'{term}: fetching attempt #2 failed')
                 try:
                     parsed_data = request_data(url, term)
                 except BadDataException:
+                    print(f'{term}: fetching attempt #3 failed')
                     print(f'{term}: no xml returned after three tries')
                     return None
 
