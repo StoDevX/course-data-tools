@@ -58,7 +58,7 @@ def request_from_server(url):
 
 
 def request_data(url, term):
-    raw_data = request_from_server(term)
+    raw_data = request_from_server(url)
     if not raw_data:
         logging.info(f'No data returned for {term}')
         return None
