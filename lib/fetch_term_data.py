@@ -84,7 +84,17 @@ def load_data_from_server(term, dry_run=False):
         parsed_data = request_data(url, term)
     except BadDataException:
         url = build_term_url(term)
-        parsed_data = request_data(url, term)
+        try:
+            parsed_data = request_data(url, term)
+        except BadDataException:
+            try:
+                parsed_data = request_data(url, term)
+            except BadDataException:
+                try:
+                    parsed_data = request_data(url, term)
+                except BadDataException:
+                    logging.info(f'{term} did not return any xml after three tries')
+                    return None
 
     if not parsed_data['searchresults']:
         logging.info(f'No data returned for {term}')
