@@ -8,6 +8,8 @@ python: '3.6'
 cache: pip
 
 # install our deps
-install: pip3 install -r requirements.txt
+install:
+  - pip3 install pipenv
+  - pipenv install
 
-script: bin/travis.sh
+script: pipenv run bin/travis.sh
