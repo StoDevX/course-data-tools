@@ -9,7 +9,7 @@ All of these tools expect the [course data][course-data] to be one folder up fro
 
 These scripts require `python3` >= 3.4, as well as `beautifulsoup4`, `requests`, `xmltodict`.
 
-The libraries are also specified in the `requirements.txt` file, so a `pip3 install --user -r requirements.txt` should do it. I *highly* reccommend using [Homebrew](https://brew.sh) to install and update Python on macOS.
+The libraries are also specified in the `Pipfile` file, so a `pip3 install pipenv` and `pipenv run $command`
 
 
 ## `download.py`
