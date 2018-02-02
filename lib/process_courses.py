@@ -89,19 +89,18 @@ def extract_notes(course):
 def parse_prerequisites(course):
     search_str = 'Prereq'
 
-    in_description = [para[para.index(search_str):]
+    prereqs_list = [para[para.index(search_str):]
                       for para in course.get('description', [])
                       if search_str in para]
 
-    if in_description:
-        return "\n".join(in_description)
+    if not prereqs_list:
+        prereqs_list = [note[note.index(search_str):]
+                          for note in course.get('notes', [])
+                          if search_str in note]
 
-    in_notes = [note[note.index(search_str):]
-                for note in course.get('notes', [])
-                if search_str in note]
-
-    if in_notes:
-        return "\n".join(in_notes)
+    if prereqs_list:
+        return "\n".join(prereqs_list)\
+            .replace('Prerequisite: ', '')
 
     return False
 
