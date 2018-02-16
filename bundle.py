@@ -16,7 +16,7 @@ from lib.save_term import save_term
 from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
-import lib.database as db
+import lib.database_manual as db
 
 
 def list_all_course_index_files():
@@ -44,11 +44,11 @@ def generate_sqlite_db(args):
 
     if os.path.exists('../courses.db'):
         os.remove('../courses.db')
-    engine = create_engine('sqlite:///../courses.db')
+    # engine = create_engine('sqlite:///../courses.db', echo=True)
+    engine = create_engine('sqlite:///../courses.db', echo=False)
 
-    db.Base.metadata.create_all(engine)
-    make_session = sessionmaker(bind=engine)
-    s = make_session()
+    db.metadata.create_all(engine)
+    conn = engine.connect()
 
     if args.term_or_year:
         terms = calculate_terms(args.term_or_year)
@@ -61,10 +61,8 @@ def generate_sqlite_db(args):
         courses = list(load_some_courses(term))
         print(pretty_term, 'Saving term')
         cleaned = [db.clean_course(c) for c in courses]
-        s.add_all(cleaned)
-
-    print('Writing to disk')
-    s.commit()
+        for c in cleaned:
+            db.insert_course(c, conn)
 
 
 def run(args):
