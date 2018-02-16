@@ -231,20 +231,34 @@ class Course(Base):
 
     def __repr__(self):
         depts = ','.join([repr(d) for d in self.departments])
+        locs = ','.join([repr(d) for d in self.locations])
         clbid = self.clbid
         year = self.year
         semester = self.semester
         number = self.number
-        return f"<Course(clbid='{clbid}', term='{year}-{semester}', depts='{depts}', number='{number}')>"
+        return f"<Course(clbid='{clbid}', term='{year}-{semester}', depts='{depts}', number='{number}', loc='{locs}')>"
 
 
 def lookup_or_create(session):
     def do_things(kind, filters, creation):
         query = session.query(kind).filter(*filters)
+        if kind == Location:
+            print()
+            print(str(query))
+            print(creation)
+            print(query.all())
         extant = query.first()
         if extant:
+            if kind == Location:
+                print('found')
+                print()
             return extant
-        return kind(**creation)
+        if kind == Location:
+            print('created')
+            print()
+        item = kind(**creation)
+        session.add(item)
+        return item
 
     return do_things
 
@@ -267,11 +281,6 @@ def clean_course(c, session):
 
     make = lookup_or_create(session)
 
-    # c['departments'] = [Department(abbr=d) for d in c['departments']]
-    # c['instructors'] = [Instructor(name=x) for x in c['instructors']]
-    # c['locations'] = [Location(name=l) for l in c.get('locations', [])]
-    # c['times'] = [TimeSlot(sis=x) for x in c.get('times', [])]
-    # c['gereqs'] = [GeReq(abbr=x) for x in c.get('gereqs', [])]
     c['departments'] = [make(Department, [Department.abbr == d], {'abbr': d}) for d in c['departments']]
     c['instructors'] = [make(Instructor, [Instructor.name == x], {'name': x}) for x in c['instructors']]
     c['locations'] = [make(Location, [Location.name == l], {'name': l}) for l in c.get('locations', [])]
@@ -279,17 +288,14 @@ def clean_course(c, session):
     c['gereqs'] = [make(GeReq, [GeReq.abbr == ge], {'abbr': ge}) for ge in c.get('gereqs', [])]
 
     if 'description' in c:
-        # c['descriptions'] = [Description(text=dsc) for dsc in c.get('description', [])]
         c['descriptions'] = [make(Description, [Description.text == x], {'text': x}) for x in c.get('description', [])]
         del c['description']
 
-    # c['notes'] = [Note(text=note) for note in c.get('notes', [])]
     c['notes'] = [make(Note, [Note.text == x], {'text': x}) for x in c.get('notes', [])]
 
     if c['prerequisites'] is False:
         del c['prerequisites']
     else:
-        # c['prerequisites'] = [Prerequisite(text=p) for p in c.get('prerequisites', [])]
         prereqs = c.get('prerequisites', None)
         if not prereqs:
             del c['prerequisites']
@@ -300,30 +306,28 @@ def clean_course(c, session):
         gid = c['groupid']
         if 'grouptype' in c:
             t = c['grouptype']
-            # c['group'] = Group(gid=gid, type=t)
             c['group'] = make(Group, [Group.gid == gid, Group.type == t], {'gid': gid, 'type': t})
             del c['groupid']
             del c['grouptype']
         else:
-            # c['group'] = Group(gid=c['groupid'])
             c['group'] = make(Group, [Group.gid == gid], {'gid': gid})
             del c['groupid']
     elif 'grouptype' in c:
         t = c['grouptype']
-        # c['group'] = Group(type=c['grouptype'])
         c['group'] = make(Group, [Group.type == t], {'type': t})
         del c['grouptype']
 
     if 'type' in c:
-        # c['type'] = Type(name=c['type'])
         name = c['type']
         c['type'] = make(Type, [Type.name == name], {'name': name})
-        # del c['type']
 
     if 'status' in c:
         status = c['status']
-        # c['status'] = Status(status=c['status'])
         c['status'] = make(Status, [Status.status == status], {'status': status})
-        # del c['status']
 
-    return Course(**c)
+    item = Course(**c)
+
+    # session.add(item)
+    # session.commit()
+
+    return item

@@ -19,10 +19,10 @@ from lib.paths import term_clbid_mapping_path
 import lib.database_manual as db
 import lib.database as orm
 
-import logging
-
-logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
+# import logging
+#
+# logging.basicConfig()
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
 
 
 def list_all_course_index_files():
@@ -66,11 +66,14 @@ def generate_sqlite_db_orm(args):
         print(pretty_term, 'Loading courses')
         courses = list(load_some_courses(term))
         print(pretty_term, 'Saving term')
-        # for c in courses:
-        #     cleaned = orm.clean_course(c, s)
-        #     s.add(cleaned)
-        cleaned = [orm.clean_course(c, s) for c in courses]
-        s.add_all(cleaned)
+        for c in courses:
+            cleaned = orm.clean_course(c, s)
+            s.add(cleaned)
+            print(cleaned)
+            print('Writing to disk')
+            s.commit()
+        # cleaned = [orm.clean_course(c, s) for c in courses]
+        # s.add_all(cleaned)
         print('Writing to disk')
         s.commit()
 
