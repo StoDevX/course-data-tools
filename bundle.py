@@ -17,6 +17,12 @@ from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
 import lib.database_manual as db
+import lib.database as orm
+
+import logging
+
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
 
 
 def list_all_course_index_files():
@@ -40,8 +46,59 @@ def one_term(args, term):
         save_term(term, courses, kind=f, root_path=args.out_dir)
 
 
-def generate_sqlite_db(args):
+def generate_sqlite_db_orm(args):
+    if os.path.exists('../courses.db'):
+        os.remove('../courses.db')
+    # engine = create_engine('sqlite:///../courses.db', echo=True)
+    engine = create_engine('sqlite:///../courses.db', echo=False)
 
+    orm.Base.metadata.create_all(engine)
+    make_session = sessionmaker(bind=engine)
+    s = make_session()
+
+    if args.term_or_year:
+        terms = calculate_terms(args.term_or_year)
+    else:
+        terms = sorted(list_all_course_index_files())
+
+    for term in terms:
+        pretty_term = f'{str(term)[:4]}:{str(term)[4]}'
+        print(pretty_term, 'Loading courses')
+        courses = list(load_some_courses(term))
+        print(pretty_term, 'Saving term')
+        # for c in courses:
+        #     cleaned = orm.clean_course(c, s)
+        #     s.add(cleaned)
+        cleaned = [orm.clean_course(c, s) for c in courses]
+        s.add_all(cleaned)
+        print('Writing to disk')
+        s.commit()
+
+    print('Writing to disk')
+    s.commit()
+
+
+def query_sqlite_orm(args):
+    if not os.path.exists('../courses.db'):
+        print('missing database')
+        return
+    engine = create_engine('sqlite:///../courses.db', echo=True)
+    # engine = create_engine('sqlite:///../courses.db', echo=False)
+
+    orm.Base.metadata.create_all(engine)
+    make_session = sessionmaker(bind=engine)
+    s = make_session()
+
+    # c = s.query(orm.Course).filter(and_(
+    #     orm.Course.year == 2012,
+    # ))
+
+    # print(c.first())
+
+    print(s.query(orm.Department).filter(orm.Department.abbr.in_(['CSCI'])).first())
+
+
+def generate_sqlite_db(args):
     if os.path.exists('../courses.db'):
         os.remove('../courses.db')
     # engine = create_engine('sqlite:///../courses.db', echo=True)
@@ -106,7 +163,7 @@ def main():
     argparser.add_argument('--format',
                            action='append',
                            nargs='?',
-                           choices=['json', 'csv', 'xml', 'sqlite'],
+                           choices=['json', 'csv', 'xml', 'sqlite', 'orm', 'query'],
                            help='Change the output filetype')
 
     args = argparser.parse_args()
@@ -114,6 +171,10 @@ def main():
 
     if 'sqlite' in args.format:
         generate_sqlite_db(args)
+    elif 'orm' in args.format:
+        generate_sqlite_db_orm(args)
+    elif 'query' in args.format:
+        query_sqlite_orm(args)
     else:
         run(args)
 

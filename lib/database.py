@@ -4,29 +4,65 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-course_to_depts = Table('courses_to_depts', Base.metadata,
-                        Column('course_id', Integer, ForeignKey('courses.id'), primary_key=True),
-                        Column('department_id', Integer, ForeignKey('departments.id'), primary_key=True))
+course_to_depts = Table(
+    'courses_to_depts',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('department_id', Integer, ForeignKey('department.id'), primary_key=True)
+)
 
-course_to_gereqs = Table('courses_to_gereqs', Base.metadata,
-                         Column('course_id', Integer, ForeignKey('courses.id'), primary_key=True),
-                         Column('gereq_id', Integer, ForeignKey('gereqs.id'), primary_key=True))
+course_to_gereqs = Table(
+    'courses_to_gereqs',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('gereq_id', Integer, ForeignKey('gereq.id'), primary_key=True)
+)
 
-course_to_timeslots = Table('courses_to_timeslots', Base.metadata,
-                            Column('course_id', Integer, ForeignKey('courses.id'), primary_key=True),
-                            Column('timeslot_id', Integer, ForeignKey('timeslots.id'), primary_key=True))
+course_to_timeslots = Table(
+    'courses_to_timeslots',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('timeslot_id', Integer, ForeignKey('timeslot.id'), primary_key=True)
+)
 
-course_to_locations = Table('courses_to_locations', Base.metadata,
-                            Column('course_id', Integer, ForeignKey('courses.id'), primary_key=True),
-                            Column('location_id', Integer, ForeignKey('locations.id'), primary_key=True))
+course_to_locations = Table(
+    'courses_to_locations',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('location_id', Integer, ForeignKey('location.id'), primary_key=True)
+)
 
-course_to_instructors = Table('courses_to_instructors', Base.metadata,
-                              Column('course_id', Integer, ForeignKey('courses.id'), primary_key=True),
-                              Column('instructor_id', Integer, ForeignKey('instructors.id'), primary_key=True))
+course_to_instructors = Table(
+    'courses_to_instructors',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('instructor_id', Integer, ForeignKey('instructor.id'), primary_key=True)
+)
+
+course_to_notes = Table(
+    'courses_to_notes',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('note_id', Integer, ForeignKey('note.id'), primary_key=True),
+)
+
+course_to_prereqs = Table(
+    'courses_to_prereqs',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('prerequisite_id', Integer, ForeignKey('prerequisite.id'), primary_key=True),
+)
+
+course_to_descriptions = Table(
+    'courses_to_descriptions',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+    Column('description_id', Integer, ForeignKey('description.id'), primary_key=True),
+)
 
 
 class Department(Base):
-    __tablename__ = 'departments'
+    __tablename__ = 'department'
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -38,7 +74,7 @@ class Department(Base):
 
 
 class Instructor(Base):
-    __tablename__ = 'instructors'
+    __tablename__ = 'instructor'
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -47,8 +83,69 @@ class Instructor(Base):
         return f"<Instructor('{self.name}')>"
 
 
+class Description(Base):
+    __tablename__ = 'description'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String)
+
+    def __repr__(self):
+        return f"<Description('{self.text}')>"
+
+
+class Note(Base):
+    __tablename__ = 'note'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String)
+
+    def __repr__(self):
+        return f"<Note('{self.text}')>"
+
+
+class Prerequisite(Base):
+    __tablename__ = 'prerequisite'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String)
+
+    def __repr__(self):
+        return f"<Prerequisite('{self.text}')>"
+
+
+class Type(Base):
+    __tablename__ = 'type'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    def __repr__(self):
+        return f"<Type('{self.name}')>"
+
+
+class Group(Base):
+    __tablename__ = 'group'
+
+    id = Column(Integer, primary_key=True)
+    gid = Column(Integer)
+    type = Column(String)
+
+    def __repr__(self):
+        return f"<Group(id='{self.gid}' type='{self.type}')>"
+
+
+class Status(Base):
+    __tablename__ = 'status'
+
+    id = Column(Integer, primary_key=True)
+    status = Column(String)
+
+    def __repr__(self):
+        return f"<Status('{self.status}')>"
+
+
 class Location(Base):
-    __tablename__ = 'locations'
+    __tablename__ = 'location'
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -60,20 +157,20 @@ class Location(Base):
 
 
 class TimeSlot(Base):
-    __tablename__ = 'timeslots'
+    __tablename__ = 'timeslot'
 
     id = Column(Integer, primary_key=True)
-    desc = Column(String)
+    sis = Column(String)
     days = Column(String)
     start = Column(String)
     end = Column(String)
 
     def __repr__(self):
-        return f"<Time('{self.desc}')>"
+        return f"<Time('{self.sis}')>"
 
 
 class GeReq(Base):
-    __tablename__ = 'gereqs'
+    __tablename__ = 'gereq'
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -84,7 +181,7 @@ class GeReq(Base):
 
 
 class Course(Base):
-    __tablename__ = 'courses'
+    __tablename__ = 'course'
 
     id = Column(Integer, primary_key=True)
 
@@ -96,27 +193,41 @@ class Course(Base):
     section = Column(String, nullable=True)
     name = Column(String, nullable=False)
     full_name = Column(String)
-    description = Column(String)
-    notes = Column(String)
+    # description = Column(String)
+    # notes = Column(String)
     pn = Column(Boolean)
-    status = Column(String)
-    term = Column(String)
-    type = Column(String)
+    # status = Column(String)
+    term = Column(Integer)
+    # type = Column(String)
 
-    groupid = Column(Integer)
-    grouptype = Column(String)
+    # groupid = Column(Integer)
+    # grouptype = Column(String)
 
+    year = Column(Integer)
+    semester = Column(Integer)
+
+    # prerequisites = Column(String, nullable=True)
+    level = Column(String)  # course level, e.g. 2XX
+
+    # many-to-many relationships
     departments = relationship('Department', secondary=course_to_depts)
     gereqs = relationship('GeReq', secondary=course_to_gereqs)
     times = relationship('TimeSlot', secondary=course_to_timeslots)
     locations = relationship('Location', secondary=course_to_locations)
     instructors = relationship('Instructor', secondary=course_to_instructors)
+    prerequisites = relationship('Prerequisite', secondary=course_to_prereqs)
+    notes = relationship('Note', secondary=course_to_notes)
+    descriptions = relationship('Description', secondary=course_to_descriptions)
 
-    year = Column(String)
-    semester = Column(String)
+    # many-to-one relationships
+    type_id = Column(Integer, ForeignKey('type.id'))
+    type = relationship("Type")
 
-    prerequisites = Column(String, nullable=True)
-    level = Column(String)  # course level, e.g. 2XX
+    group_id = Column(Integer, ForeignKey('group.id'))
+    group = relationship("Group")
+
+    status_id = Column(Integer, ForeignKey('status.id'))
+    status = relationship("Status")
 
     def __repr__(self):
         depts = ','.join([repr(d) for d in self.departments])
@@ -127,31 +238,92 @@ class Course(Base):
         return f"<Course(clbid='{clbid}', term='{year}-{semester}', depts='{depts}', number='{number}')>"
 
 
-def clean_course(c):
+def lookup_or_create(session):
+    def do_things(kind, filters, creation):
+        query = session.query(kind).filter(*filters)
+        extant = query.first()
+        if extant:
+            return extant
+        return kind(**creation)
+
+    return do_things
+
+
+def clean_course(c, session):
     c['semester'] = str(c['semester'])
     c['year'] = str(c['year'])
     c['term'] = str(c['term'])
     c['level'] = str(c['level'])
-    c['description'] = str(c.get('description', None))
     c['grouptype'] = str(c.get('grouptype', None))
-    c['notes'] = str(c.get('notes', None))
+
     c['full_name'] = c.get('title', None)
     if 'title' in c:
         del c['title']
+
     if 'halfcredit' in c:
         del c['halfcredit']
     if 'revisions' in c:
         del c['revisions']
 
-    c['departments'] = [Department(abbr=d) for d in c['departments']]
-    c['instructors'] = [Instructor(name=x) for x in c['instructors']]
-    c['locations'] = [Location(name=l) for l in c.get('locations', [])]
-    c['times'] = [TimeSlot(desc=x) for x in c.get('times', [])]
-    c['gereqs'] = [GeReq(abbr=x) for x in c.get('gereqs', [])]
+    make = lookup_or_create(session)
+
+    # c['departments'] = [Department(abbr=d) for d in c['departments']]
+    # c['instructors'] = [Instructor(name=x) for x in c['instructors']]
+    # c['locations'] = [Location(name=l) for l in c.get('locations', [])]
+    # c['times'] = [TimeSlot(sis=x) for x in c.get('times', [])]
+    # c['gereqs'] = [GeReq(abbr=x) for x in c.get('gereqs', [])]
+    c['departments'] = [make(Department, [Department.abbr == d], {'abbr': d}) for d in c['departments']]
+    c['instructors'] = [make(Instructor, [Instructor.name == x], {'name': x}) for x in c['instructors']]
+    c['locations'] = [make(Location, [Location.name == l], {'name': l}) for l in c.get('locations', [])]
+    c['times'] = [make(TimeSlot, [TimeSlot.sis == time], {'sis': time}) for time in c.get('times', [])]
+    c['gereqs'] = [make(GeReq, [GeReq.abbr == ge], {'abbr': ge}) for ge in c.get('gereqs', [])]
+
+    if 'description' in c:
+        # c['descriptions'] = [Description(text=dsc) for dsc in c.get('description', [])]
+        c['descriptions'] = [make(Description, [Description.text == x], {'text': x}) for x in c.get('description', [])]
+        del c['description']
+
+    # c['notes'] = [Note(text=note) for note in c.get('notes', [])]
+    c['notes'] = [make(Note, [Note.text == x], {'text': x}) for x in c.get('notes', [])]
+
+    if c['prerequisites'] is False:
+        del c['prerequisites']
+    else:
+        # c['prerequisites'] = [Prerequisite(text=p) for p in c.get('prerequisites', [])]
+        prereqs = c.get('prerequisites', None)
+        if not prereqs:
+            del c['prerequisites']
+        else:
+            c['prerequisites'] = [make(Prerequisite, [Prerequisite.text == prereqs], {'text': prereqs})]
+
+    if 'groupid' in c:
+        gid = c['groupid']
+        if 'grouptype' in c:
+            t = c['grouptype']
+            # c['group'] = Group(gid=gid, type=t)
+            c['group'] = make(Group, [Group.gid == gid, Group.type == t], {'gid': gid, 'type': t})
+            del c['groupid']
+            del c['grouptype']
+        else:
+            # c['group'] = Group(gid=c['groupid'])
+            c['group'] = make(Group, [Group.gid == gid], {'gid': gid})
+            del c['groupid']
+    elif 'grouptype' in c:
+        t = c['grouptype']
+        # c['group'] = Group(type=c['grouptype'])
+        c['group'] = make(Group, [Group.type == t], {'type': t})
+        del c['grouptype']
+
+    if 'type' in c:
+        # c['type'] = Type(name=c['type'])
+        name = c['type']
+        c['type'] = make(Type, [Type.name == name], {'name': name})
+        # del c['type']
+
+    if 'status' in c:
+        status = c['status']
+        # c['status'] = Status(status=c['status'])
+        c['status'] = make(Status, [Status.status == status], {'status': status})
+        # del c['status']
+
     return Course(**c)
-
-# c = s.query(Course).filter(Course.year == '2018').first()
-# print(c)
-
-# print(s.query(Course).from_statement(
-#     text("SELECT * FROM courses where name LIKE :name")).params(name='%Amer%').all())
