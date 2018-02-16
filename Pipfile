@@ -11,6 +11,7 @@ name = "pypi"
 requests = "*"
 xmltodict = "*"
 pylint = "*"
+sqlalchemy = "*"
 
 
 [dev-packages]

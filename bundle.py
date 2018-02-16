@@ -5,6 +5,8 @@ from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from lib.json_folder_map import json_folder_map
 from lib.calculate_terms import calculate_terms
@@ -14,6 +16,7 @@ from lib.save_term import save_term
 from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
+import lib.database as db
 
 
 def list_all_course_index_files():
@@ -35,6 +38,33 @@ def one_term(args, term):
     log(pretty_term, 'Saving term')
     for f in args.format:
         save_term(term, courses, kind=f, root_path=args.out_dir)
+
+
+def generate_sqlite_db(args):
+
+    if os.path.exists('../courses.db'):
+        os.remove('../courses.db')
+    engine = create_engine('sqlite:///../courses.db')
+
+    db.Base.metadata.create_all(engine)
+    make_session = sessionmaker(bind=engine)
+    s = make_session()
+
+    if args.term_or_year:
+        terms = calculate_terms(args.term_or_year)
+    else:
+        terms = sorted(list_all_course_index_files())
+
+    for term in terms:
+        pretty_term = f'{str(term)[:4]}:{str(term)[4]}'
+        print(pretty_term, 'Loading courses')
+        courses = list(load_some_courses(term))
+        print(pretty_term, 'Saving term')
+        cleaned = [db.clean_course(c) for c in courses]
+        s.add_all(cleaned)
+
+    print('Writing to disk')
+    s.commit()
 
 
 def run(args):
@@ -78,13 +108,16 @@ def main():
     argparser.add_argument('--format',
                            action='append',
                            nargs='?',
-                           choices=['json', 'csv', 'xml'],
+                           choices=['json', 'csv', 'xml', 'sqlite'],
                            help='Change the output filetype')
 
     args = argparser.parse_args()
     args.format = ['json'] if not args.format else args.format
 
-    run(args)
+    if 'sqlite' in args.format:
+        generate_sqlite_db(args)
+    else:
+        run(args)
 
 
 if __name__ == '__main__':
