@@ -261,6 +261,11 @@ class Course(Base):
         return f"<Course(clbid='{clbid}', term='{year}-{semester}', depts='{depts}', number='{number}', when='{when}')>"
 
 
+def useif(query, model):
+    extant = query.first()
+    return extant if extant else model
+
+
 def clean_course(c, session):
     c['semester'] = str(c['semester'])
     c['year'] = str(c['year'])
@@ -277,23 +282,17 @@ def clean_course(c, session):
     if 'revisions' in c:
         del c['revisions']
 
-    c['departments'] = [Department(abbr=d)
-                        if session.query(Department).filter(Department.abbr == d).first() is None
-                        else session.query(Department).filter(Department.abbr == d).first()
+    c['departments'] = [useif(session.query(Department).filter(Department.abbr == d), Department(abbr=d))
                         for d in c['departments']]
-    c['instructors'] = [Instructor(name=name)
-                        if session.query(Instructor).filter(Instructor.name == name).first() is None
-                        else session.query(Instructor).filter(Instructor.name == name).first()
+    c['instructors'] = [useif(session.query(Instructor).filter(Instructor.name == name), Instructor(name=name))
                         for name in c.get('instructors', [])]
-    c['gereqs'] = [GeReq(abbr=abbr)
-                   if session.query(GeReq).filter(GeReq.abbr == abbr).first() is None
-                   else session.query(GeReq).filter(GeReq.abbr == abbr).first()
+    c['gereqs'] = [useif(session.query(GeReq).filter(GeReq.abbr == abbr), GeReq(abbr=abbr))
                    for abbr in c.get('gereqs', [])]
 
     c['offerings'] = []
     for time, location in zip(c.get('times', []), c.get('locations', [])):
-        time_ = session.query(TimeSlot).filter(TimeSlot.sis == time).first()
-        location_ = session.query(Location).filter(Location.name == location).first()
+        time_ = useif(session.query(TimeSlot).filter(TimeSlot.sis == time), TimeSlot(sis=time))
+        location_ = useif(session.query(Location).filter(Location.name == location), Location(name=location))
 
         if time_ and location_:
             offering_ = session.query(Offering) \
@@ -306,9 +305,7 @@ def clean_course(c, session):
         if offering_:
             c['offerings'].append(offering_)
         else:
-            ts = time_ if time_ else TimeSlot(sis=time)
-            loc = location_ if location_ else Location(name=location)
-            item = Offering(timeslot=ts, location=loc)
+            item = Offering(timeslot=time_, location=location_)
             c['offerings'].append(item)
 
     if 'locations' in c:
@@ -317,15 +314,11 @@ def clean_course(c, session):
         del c['times']
 
     if 'description' in c:
-        c['descriptions'] = [Description(text=text)
-                             if session.query(Description).filter(Description.text == text).first() is None
-                             else session.query(Description).filter(Description.text == text).first()
+        c['descriptions'] = [useif(session.query(Description).filter(Description.text == text), Description(text=text))
                              for text in c.get('description', [])]
         del c['description']
 
-    c['notes'] = [Note(text=text)
-                  if session.query(Note).filter(Note.text == text).first() is None
-                  else session.query(Note).filter(Note.text == text).first()
+    c['notes'] = [useif(session.query(Note).filter(Note.text == text), Note(text=text))
                   for text in c.get('notes', [])]
 
     if c['prerequisites'] is False:
@@ -335,42 +328,31 @@ def clean_course(c, session):
         if not prereqs:
             del c['prerequisites']
         else:
-            prereq = Prerequisite(text=prereqs) \
-                if session.query(Prerequisite).filter(Prerequisite.text == prereqs).first() is None \
-                else session.query(Prerequisite).filter(Prerequisite.text == prereqs).first()
+            prereq = useif(session.query(Prerequisite).filter(Prerequisite.text == prereqs), Prerequisite(text=prereqs))
             c['prerequisites'] = [prereq]
 
     if 'groupid' in c:
         gid = c['groupid']
         if 'grouptype' in c:
             t = c['grouptype']
-            c['group'] = Group(gid=gid, type=t) \
-                if session.query(Group).filter(Group.gid == gid).filter(Group.type == t).first() is None \
-                else session.query(Group).filter(Group.gid == gid).filter(Group.type == t).first()
+            c['group'] = useif(session.query(Group).filter(Group.gid == gid).filter(Group.type == t),
+                               Group(gid=gid, type=t))
             del c['groupid']
             del c['grouptype']
         else:
-            c['group'] = Group(gid=gid) \
-                if session.query(Group).filter(Group.gid == gid).first() is None \
-                else session.query(Group).filter(Group.gid == gid).first()
+            c['group'] = useif(session.query(Group).filter(Group.gid == gid), Group(gid=gid))
             del c['groupid']
     elif 'grouptype' in c:
         t = c['grouptype']
-        c['group'] = Group(type=t) \
-            if session.query(Group).filter(Group.type == t).first() is None \
-            else session.query(Group).filter(Group.type == t).first()
+        c['group'] = useif(session.query(Group).filter(Group.type == t), Group(type=t))
         del c['grouptype']
 
     if 'type' in c:
         name = c['type']
-        c['type'] = Type(name=name) \
-            if session.query(Type).filter(Type.name == name).first() is None \
-            else session.query(Type).filter(Type.name == name).first()
+        c['type'] = useif(session.query(Type).filter(Type.name == name), Type(name=name))
 
     if 'status' in c:
         status = c['status']
-        c['status'] = Status(status=status) \
-            if session.query(Status).filter(Status.status == status).first() is None \
-            else session.query(Status).filter(Status.status == status).first()
+        c['status'] = useif(session.query(Status).filter(Status.status == status), Status(status=status))
 
     return Course(**c)
