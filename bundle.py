@@ -65,17 +65,13 @@ def generate_sqlite_db_orm(args):
         pretty_term = f'{str(term)[:4]}:{str(term)[4]}'
         print(pretty_term, 'Loading courses')
         courses = list(load_some_courses(term))
-        print(pretty_term, 'Saving term')
+        print(pretty_term, 'Filling database')
         for c in courses:
             cleaned = orm.clean_course(c, s)
             s.add(cleaned)
-            print(cleaned)
-            print('Writing to disk')
-            s.commit()
         # cleaned = [orm.clean_course(c, s) for c in courses]
+        # print(pretty_term, 'Saving term')
         # s.add_all(cleaned)
-        print('Writing to disk')
-        s.commit()
 
     print('Writing to disk')
     s.commit()

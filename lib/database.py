@@ -18,19 +18,26 @@ course_to_gereqs = Table(
     Column('gereq_id', Integer, ForeignKey('gereq.id'), primary_key=True)
 )
 
-course_to_timeslots = Table(
-    'courses_to_timeslots',
+course_to_offerings = Table(
+    'courses_to_offerings',
     Base.metadata,
     Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
-    Column('timeslot_id', Integer, ForeignKey('timeslot.id'), primary_key=True)
+    Column('offering_id', Integer, ForeignKey('offering.id'), primary_key=True)
 )
 
-course_to_locations = Table(
-    'courses_to_locations',
-    Base.metadata,
-    Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
-    Column('location_id', Integer, ForeignKey('location.id'), primary_key=True)
-)
+# course_to_timeslots = Table(
+#     'courses_to_timeslots',
+#     Base.metadata,
+#     Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+#     Column('timeslot_id', Integer, ForeignKey('timeslot.id'), primary_key=True)
+# )
+#
+# course_to_locations = Table(
+#     'courses_to_locations',
+#     Base.metadata,
+#     Column('course_id', Integer, ForeignKey('course.id'), primary_key=True),
+#     Column('location_id', Integer, ForeignKey('location.id'), primary_key=True)
+# )
 
 course_to_instructors = Table(
     'courses_to_instructors',
@@ -169,6 +176,19 @@ class TimeSlot(Base):
         return f"<Time('{self.sis}')>"
 
 
+class Offering(Base):
+    __tablename__ = 'offering'
+
+    id = Column(Integer, primary_key=True)
+    timeslot_id = Column(Integer, ForeignKey('timeslot.id'))
+    timeslot = relationship(TimeSlot)
+    location_id = Column(Integer, ForeignKey('location.id'))
+    location = relationship(Location)
+
+    def __repr__(self):
+        return f"<Offering(time='{self.timeslot}', location='{self.location}')>"
+
+
 class GeReq(Base):
     __tablename__ = 'gereq'
 
@@ -212,12 +232,13 @@ class Course(Base):
     # many-to-many relationships
     departments = relationship('Department', secondary=course_to_depts)
     gereqs = relationship('GeReq', secondary=course_to_gereqs)
-    times = relationship('TimeSlot', secondary=course_to_timeslots)
-    locations = relationship('Location', secondary=course_to_locations)
+    # times = relationship('TimeSlot', secondary=course_to_timeslots)
+    # locations = relationship('Location', secondary=course_to_locations)
     instructors = relationship('Instructor', secondary=course_to_instructors)
     prerequisites = relationship('Prerequisite', secondary=course_to_prereqs)
     notes = relationship('Note', secondary=course_to_notes)
     descriptions = relationship('Description', secondary=course_to_descriptions)
+    offerings = relationship('Offering', secondary=course_to_offerings)
 
     # many-to-one relationships
     type_id = Column(Integer, ForeignKey('type.id'))
@@ -231,36 +252,13 @@ class Course(Base):
 
     def __repr__(self):
         depts = ','.join([repr(d) for d in self.departments])
-        locs = ','.join([repr(d) for d in self.locations])
+        # locs = ','.join([repr(d) for d in self.locations])
+        when = ','.join([repr(d) for d in self.offerings])
         clbid = self.clbid
         year = self.year
         semester = self.semester
         number = self.number
-        return f"<Course(clbid='{clbid}', term='{year}-{semester}', depts='{depts}', number='{number}', loc='{locs}')>"
-
-
-def lookup_or_create(session):
-    def do_things(kind, filters, creation):
-        query = session.query(kind).filter(*filters)
-        if kind == Location:
-            print()
-            print(str(query))
-            print(creation)
-            print(query.all())
-        extant = query.first()
-        if extant:
-            if kind == Location:
-                print('found')
-                print()
-            return extant
-        if kind == Location:
-            print('created')
-            print()
-        item = kind(**creation)
-        session.add(item)
-        return item
-
-    return do_things
+        return f"<Course(clbid='{clbid}', term='{year}-{semester}', depts='{depts}', number='{number}', when='{when}')>"
 
 
 def clean_course(c, session):
@@ -279,19 +277,56 @@ def clean_course(c, session):
     if 'revisions' in c:
         del c['revisions']
 
-    make = lookup_or_create(session)
+    c['departments'] = [Department(abbr=d)
+                        if session.query(Department).filter(Department.abbr == d).first() is None
+                        else session.query(Department).filter(Department.abbr == d).first()
+                        for d in c['departments']]
+    c['instructors'] = [Instructor(name=name)
+                        if session.query(Instructor).filter(Instructor.name == name).first() is None
+                        else session.query(Instructor).filter(Instructor.name == name).first()
+                        for name in c.get('instructors', [])]
+    c['gereqs'] = [GeReq(abbr=abbr)
+                   if session.query(GeReq).filter(GeReq.abbr == abbr).first() is None
+                   else session.query(GeReq).filter(GeReq.abbr == abbr).first()
+                   for abbr in c.get('gereqs', [])]
 
-    c['departments'] = [make(Department, [Department.abbr == d], {'abbr': d}) for d in c['departments']]
-    c['instructors'] = [make(Instructor, [Instructor.name == x], {'name': x}) for x in c['instructors']]
-    c['locations'] = [make(Location, [Location.name == l], {'name': l}) for l in c.get('locations', [])]
-    c['times'] = [make(TimeSlot, [TimeSlot.sis == time], {'sis': time}) for time in c.get('times', [])]
-    c['gereqs'] = [make(GeReq, [GeReq.abbr == ge], {'abbr': ge}) for ge in c.get('gereqs', [])]
+    c['offerings'] = []
+    for time, location in zip(c.get('times', []), c.get('locations', [])):
+        time_ = session.query(TimeSlot).filter(TimeSlot.sis == time).first()
+        location_ = session.query(Location).filter(Location.name == location).first()
+
+        if time_ and location_:
+            offering_ = session.query(Offering) \
+                .filter(Offering.timeslot_id == time_.id) \
+                .filter(Offering.location_id == location_.id) \
+                .first()
+        else:
+            offering_ = None
+
+        if offering_:
+            c['offerings'].append(offering_)
+        else:
+            ts = time_ if time_ else TimeSlot(sis=time)
+            loc = location_ if location_ else Location(name=location)
+            item = Offering(timeslot=ts, location=loc)
+            c['offerings'].append(item)
+
+    if 'locations' in c:
+        del c['locations']
+    if 'times' in c:
+        del c['times']
 
     if 'description' in c:
-        c['descriptions'] = [make(Description, [Description.text == x], {'text': x}) for x in c.get('description', [])]
+        c['descriptions'] = [Description(text=text)
+                             if session.query(Description).filter(Description.text == text).first() is None
+                             else session.query(Description).filter(Description.text == text).first()
+                             for text in c.get('description', [])]
         del c['description']
 
-    c['notes'] = [make(Note, [Note.text == x], {'text': x}) for x in c.get('notes', [])]
+    c['notes'] = [Note(text=text)
+                  if session.query(Note).filter(Note.text == text).first() is None
+                  else session.query(Note).filter(Note.text == text).first()
+                  for text in c.get('notes', [])]
 
     if c['prerequisites'] is False:
         del c['prerequisites']
@@ -300,34 +335,42 @@ def clean_course(c, session):
         if not prereqs:
             del c['prerequisites']
         else:
-            c['prerequisites'] = [make(Prerequisite, [Prerequisite.text == prereqs], {'text': prereqs})]
+            prereq = Prerequisite(text=prereqs) \
+                if session.query(Prerequisite).filter(Prerequisite.text == prereqs).first() is None \
+                else session.query(Prerequisite).filter(Prerequisite.text == prereqs).first()
+            c['prerequisites'] = [prereq]
 
     if 'groupid' in c:
         gid = c['groupid']
         if 'grouptype' in c:
             t = c['grouptype']
-            c['group'] = make(Group, [Group.gid == gid, Group.type == t], {'gid': gid, 'type': t})
+            c['group'] = Group(gid=gid, type=t) \
+                if session.query(Group).filter(Group.gid == gid).filter(Group.type == t).first() is None \
+                else session.query(Group).filter(Group.gid == gid).filter(Group.type == t).first()
             del c['groupid']
             del c['grouptype']
         else:
-            c['group'] = make(Group, [Group.gid == gid], {'gid': gid})
+            c['group'] = Group(gid=gid) \
+                if session.query(Group).filter(Group.gid == gid).first() is None \
+                else session.query(Group).filter(Group.gid == gid).first()
             del c['groupid']
     elif 'grouptype' in c:
         t = c['grouptype']
-        c['group'] = make(Group, [Group.type == t], {'type': t})
+        c['group'] = Group(type=t) \
+            if session.query(Group).filter(Group.type == t).first() is None \
+            else session.query(Group).filter(Group.type == t).first()
         del c['grouptype']
 
     if 'type' in c:
         name = c['type']
-        c['type'] = make(Type, [Type.name == name], {'name': name})
+        c['type'] = Type(name=name) \
+            if session.query(Type).filter(Type.name == name).first() is None \
+            else session.query(Type).filter(Type.name == name).first()
 
     if 'status' in c:
         status = c['status']
-        c['status'] = make(Status, [Status.status == status], {'status': status})
+        c['status'] = Status(status=status) \
+            if session.query(Status).filter(Status.status == status).first() is None \
+            else session.query(Status).filter(Status.status == status).first()
 
-    item = Course(**c)
-
-    # session.add(item)
-    # session.commit()
-
-    return item
+    return Course(**c)
