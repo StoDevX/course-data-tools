@@ -120,7 +120,9 @@ def query_sqlite_manual(args):
             ON course.id = dept.course_id
           LEFT JOIN department
             ON department.id = dept.department_id 
-        WHERE course.year = :year AND department.abbr = :dept
+        WHERE course.year = :year 
+          AND department.abbr = :dept
+          AND course.name NOT IN ('IR/', 'IS/', 'Academic Internship')
     """)
 
     stmt = stmt.bindparams(dept="CSCI", year=2016)
