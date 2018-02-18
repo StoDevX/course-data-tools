@@ -7,6 +7,7 @@ import functools
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
 
 from lib.json_folder_map import json_folder_map
 from lib.calculate_terms import calculate_terms
@@ -18,6 +19,7 @@ from lib.log import log
 from lib.paths import term_clbid_mapping_path
 import lib.database_manual as db
 import lib.database as orm
+
 
 # import logging
 #
@@ -88,13 +90,45 @@ def query_sqlite_orm(args):
     make_session = sessionmaker(bind=engine)
     s = make_session()
 
-    # c = s.query(orm.Course).filter(and_(
-    #     orm.Course.year == 2012,
-    # ))
+    # dept = s.query(orm.Department).filter(orm.Department.abbr == 'CSCI').first()
+
+    # c = s.query(orm.Course, orm.Department)\
+    #     .filter(orm.Course.year == 2012)\
+    #     .filter(orm.Course.departments.in_([dept.id]))
 
     # print(c.first())
 
-    print(s.query(orm.Department).filter(orm.Department.abbr.in_(['CSCI'])).first())
+    print(s.query(orm.Course).filter(orm.Course.abbr.in_(['CSCI'])).first())
+
+
+def query_sqlite_manual(args):
+    if not os.path.exists('../courses.db'):
+        print('missing database')
+        return
+    # engine = create_engine('sqlite:///../courses.db', echo=True)
+    engine = create_engine('sqlite:///../courses.db', echo=False)
+    conn = engine.connect()
+
+    stmt = text("""
+        SELECT 
+          course.clbid, 
+          department.abbr || ' ' || course.number || COALESCE(course.section, '') as deptnum,
+          course.name, 
+          course.year || '-' || course.semester as term
+        FROM course
+        LEFT JOIN courses_to_depts dept
+            ON course.id = dept.course_id
+          LEFT JOIN department
+            ON department.id = dept.department_id 
+        WHERE course.year = :year AND department.abbr = :dept
+    """)
+
+    stmt = stmt.bindparams(dept="CSCI", year=2016)
+
+    print(stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+
+    for row in conn.execute(stmt).fetchall():
+        print(dict(row))
 
 
 def generate_sqlite_db(args):
@@ -162,7 +196,7 @@ def main():
     argparser.add_argument('--format',
                            action='append',
                            nargs='?',
-                           choices=['json', 'csv', 'xml', 'sqlite', 'orm', 'query'],
+                           choices=['json', 'csv', 'xml', 'sqlite', 'orm', 'query-orm', 'query'],
                            help='Change the output filetype')
 
     args = argparser.parse_args()
@@ -172,8 +206,10 @@ def main():
         generate_sqlite_db(args)
     elif 'orm' in args.format:
         generate_sqlite_db_orm(args)
-    elif 'query' in args.format:
+    elif 'query-orm' in args.format:
         query_sqlite_orm(args)
+    elif 'query' in args.format:
+        query_sqlite_manual(args)
     else:
         run(args)
 
