@@ -176,7 +176,7 @@ def clean_course(course):
     else:
         raise UserWarning('Course number is weird in', course)
 
-    # Shorten meetinglocations, meetingtimes, and instructors
+    # Shorten meetinglocations and meetingtimes
     course['locations'] = course['meetinglocations']
     del course['meetinglocations']
     course['times'] = course['meetingtimes']
