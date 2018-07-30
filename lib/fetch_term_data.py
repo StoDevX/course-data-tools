@@ -20,16 +20,7 @@ def fix_invalid_xml(raw):
 def build_term_url(term):
     base_url = 'https://www.stolaf.edu/sis/public-acl-inez.cfm'
     # Yes, the request needs all of these extra parameters in order to run.
-    querystring = urllib.parse.urlencode({
-        'searchyearterm': str(term),
-        'searchkeywords': '',
-        'searchdepts': '',
-        'searchgereqs': '',
-        'searchopenonly': 'off',
-        'searchlabonly': 'off',
-        'searchfsnum': '',
-        'searchtimeblock': '',
-    })
+    querystring = urllib.parse.urlencode({'searchyearterm': str(term)})
     return f'{base_url}?{querystring}'
 
 
