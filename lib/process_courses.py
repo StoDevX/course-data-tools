@@ -156,6 +156,9 @@ def clean_course(course):
     if course['groupid']:
         course['groupid'] = int(course['groupid'])
 
+    course['enroll'] = int(course['enroll'])
+    course['max'] = int(course['max'])
+
     # Turn booleans into booleans
     course['pn'] = True if course['pn'] is 'Y' else False
 
