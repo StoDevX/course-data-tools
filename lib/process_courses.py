@@ -5,7 +5,6 @@ import logging
 import os
 from textwrap import dedent
 
-from .break_apart_departments import break_apart_departments
 from .check_for_course_revisions import check_for_revisions
 from .data import course_types
 from .parse_links_for_text import parse_links_for_text
@@ -13,6 +12,9 @@ from .parse_paragraph_as_list import parse_paragraph_as_list
 from .paths import make_course_path
 from .save_data import save_data
 from .split_and_flip_instructors import split_and_flip_instructors
+from .parse_timestring import parse_timestring
+from .parse_prerequisites import parse_prerequisites
+from .parse_notes import parse_notes
 
 
 def json_date_handler(obj):
@@ -36,73 +38,30 @@ def check_for_course_file_existence(clbid):
     return os.path.exists(make_course_path(clbid))
 
 
-def extract_notes(course):
-    if course['notes'] and 'Will also meet' in course['notes']:
-        info = dedent(f'''
-            [{course['year']}{course['semester']}] {course['type'][0]} ({'/'.join(course['departments'])} {course['number']} | {course['clbid']} {course['crsid']}):
-            \t{course['notes']}
-            \t{course['times']} {course['locations']}
-        ''')
+def create_offerings(*, times, locations):
+    if not times or not locations:
+        return None
 
-        # get the timestring and location string out of the notes field
-        notes_into_time_and_location_regex = r'.*meet ([MTWF][/-]?.*) in (.*)\.'
-        results = re.search(notes_into_time_and_location_regex,
-                            course['notes'])
-        extra_times, extra_locations = results.groups()
-        # print(info + '\n\t' + 'regex matches:', [extra_times, extra_locations])
-        print(extra_times)
+    o_times = times
+    o_locations = locations
 
-        # split_time_regex =
+    if len(locations) == 1 and len(times) != len(locations):
+        locations = [locations[0] for i in range(len(times))]
 
-        split_location_regex = r'(\w+ ?\d+)(?: or ?(\w+ ?\d+))?'
+    if len(set(locations)) == 1:
+        locations = [locations[0] for i in range(len(times))]
 
-        # expandedDays = {
-        #   'M':  'Mo',
-        #   'T':  'Tu',
-        #   'W':  'We',
-        #   'Th': 'Th',
-        #   'F':  'Fr'
-        # }
+    if times and locations and len(times) != len(locations) and len(locations) != 1:
+        raise UserWarning(f'Times ({len(times)}) and Locations ({len(locations)}) are different lengths in', {'times': times, 'locations': locations}, {'originals': [o_times, o_locations]})
 
-        # listOfDays = []
-
-        # if '-' in daystring:
-        #   # M-F, M-Th, T-F
-        #   sequence = ['M', 'T', 'W', 'Th', 'F']
-        #   startDay = daystring.split('-')[0]
-        #   endDay = daystring.split('-')[1]
-        #   listOfDays = sequence.slice(
-        #       sequence.indexOf(startDay),
-        #       sequence.indexOf(endDay) + 1
-        #   )
-        # else:
-        #   # MTThFW
-        #   spacedOutDays = daystring.replace(/([a-z]*)([A-Z])/g, '$1 $2')
-        #   # The regex sticks an extra space at the front. trim() it.
-        #   spacedOutDays = spacedOutDays.trim()
-        #   listOfDays = spacedOutDays.split(' ')
-
-        # # 'M' => 'Mo'
-        # return list(map(lambda day: expandedDays[day], listOfDays))
-
-
-def parse_prerequisites(course):
-    search_str = 'Prereq'
-
-    prereqs_list = [para[para.index(search_str):]
-                      for para in course.get('description', [])
-                      if search_str in para]
-
-    if not prereqs_list:
-        prereqs_list = [note[note.index(search_str):]
-                          for note in course.get('notes', [])
-                          if search_str in note]
-
-    if prereqs_list:
-        return "\n".join(prereqs_list)\
-            .replace('Prerequisite: ', '')
-
-    return False
+    for time, loc in zip(times, locations):
+        for parsed in parse_timestring(time):
+            yield {
+                'location': loc,
+                'day': parsed['day'],
+                'start': parsed['start'],
+                'end': parsed['end'],
+            }
 
 
 def clean_course(course):
@@ -131,16 +90,14 @@ def clean_course(course):
         course['type'] = course_types[course['coursesubtype']]
     else:
         course['type'] = course['coursesubtype']
-        print(f"'{course['type']}' doesn't appear in the types list.")
+        raise UserWarning(f"'{course['type']}' doesn't appear in the types list, in", course)
     del course['coursesubtype']
 
     # Break apart dept names into lists
-    course['departments'] = break_apart_departments(course['deptname'])
+    course['department'] = course['deptname']
     del course['deptname']
 
     # Turn numbers into numbers
-    course['clbid'] = int(course['clbid'])
-
     if re.search(r'\d{3}$', course['coursenumber']):
         course['number'] = int(course['coursenumber'])
     elif re.match(r'\dXX', course['coursenumber']):
@@ -152,11 +109,9 @@ def clean_course(course):
     del course['coursenumber']
 
     course['credits'] = float(course['credits'])
-    course['crsid'] = int(course['crsid'])
-    if course['groupid']:
-        course['groupid'] = int(course['groupid'])
 
-    course['enroll'] = int(course['enroll'])
+    course['enrolled'] = int(course['enroll'])
+    del course['enroll']
     course['max'] = int(course['max'])
 
     # Turn booleans into booleans
@@ -179,12 +134,6 @@ def clean_course(course):
     else:
         raise UserWarning('Course number is weird in', course)
 
-    # Shorten meetinglocations and meetingtimes
-    course['locations'] = course['meetinglocations']
-    del course['meetinglocations']
-    course['times'] = course['meetingtimes']
-    del course['meetingtimes']
-
     # Pull the text contents out of various HTML elements as lists
     course['instructors'] = split_and_flip_instructors(course['instructors'])
     if not course['instructors']:
@@ -194,15 +143,24 @@ def clean_course(course):
         course['gereqs'] = parse_links_for_text(course['gereqs'])
         if not course['gereqs']:
             del course['gereqs']
-    if 'locations' in course and course['locations']:
-        course['locations'] = parse_links_for_text(course['locations'])
-        if not course['locations']:
-            del course['locations']
-    if 'times' in course and course['times']:
-        course['times'] = parse_paragraph_as_list(course['times'])
-        if not course['times']:
-            del course['times']
 
+    # process locations and times to create offerings
+    locations = course['meetinglocations']
+    if locations:
+        locations = parse_links_for_text(locations)
+
+    times = course['meetingtimes']
+    if times:
+        times = parse_paragraph_as_list(times)
+
+    del course['meetinglocations']
+    del course['meetingtimes']
+
+    offerings = list(create_offerings(times=times, locations=locations))
+    if offerings:
+        course['offerings'] = offerings
+
+    # return the non-None values for serialization
     return {key: value for key, value in course.items() if value is not None}
 
 

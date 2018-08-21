@@ -1,13 +1,12 @@
 from .flattened import flatten
-from datetime import datetime
+from datetime import date
 
 
 def year_plus_term(year, term):
-    return int(str(year) + str(term))
+    return int(f'{year}{term}')
 
 
-def find_terms_for_year(year):
-    now = datetime.now()
+def find_terms_for_year(year, now=date.today()):
     current_month = now.month
     current_year = now.year
 
@@ -31,9 +30,7 @@ def find_terms_for_year(year):
         return [year_plus_term(year, term) for term in all_terms]
 
 
-def find_terms(start_year=None, end_year=None, this_year=False):
-    now = datetime.now()
-
+def find_terms(start_year=None, end_year=None, this_year=False, now=date.today()):
     start_year = start_year or 1994
     end_year = end_year or now.year
     current_year = end_year if end_year is not start_year else end_year + 1
@@ -42,12 +39,15 @@ def find_terms(start_year=None, end_year=None, this_year=False):
     if this_year:
         start_year = current_year - 1 if current_month <= 7 else current_year
 
+    if current_month >= 3:
+        current_year = current_year + 1
+
     most_years = range(start_year, current_year)
-    term_list = [find_terms_for_year(year) for year in most_years]
+    term_list = [find_terms_for_year(year, now=now) for year in most_years]
 
     # Sort the list of terms to 20081, 20082, 20091
-    # (instead of 20081, 20091, 20082) (sorts in-place)
-    term_list.sort()
+    # (instead of 20081, 20091, 20082)
+    term_list = sorted(term_list)
 
     return term_list
 
@@ -69,15 +69,15 @@ def get_years_and_terms(terms_and_years):
     return years, terms
 
 
-def calculate_terms(terms_and_years):
+def calculate_terms(terms_and_years, now=date.today()):
     years, terms = get_years_and_terms(terms_and_years)
 
     if (not terms) and (not years):
-        calculated_terms = find_terms()
+        calculated_terms = find_terms(now=now)
     elif 0 in years:
-        calculated_terms = find_terms(this_year=True)
+        calculated_terms = find_terms(this_year=True, now=now)
     else:
         calculated_terms = terms + \
-            [find_terms(start_year=year, end_year=year) for year in years]
+            [find_terms(start_year=year, end_year=year, now=now) for year in years]
 
     return flatten(calculated_terms)
