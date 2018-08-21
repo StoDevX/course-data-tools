@@ -25,7 +25,11 @@ fi
 
 git add .
 git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
-git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" "$TRAVIS_BRANCH"
+if [[ $TRAVIS_BRANCH == "master" ]]; then
+	git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
+else
+	git push --force "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" "$TRAVIS_BRANCH"
+fi
 
 # prepare the gh-pages branch
 PAGES_BRANCH=gh-pages
