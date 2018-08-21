@@ -38,6 +38,5 @@ git add --all ./
 git commit -m "course data bundles" --quiet
 if [[ $TRAVIS_BRANCH == "master" ]]; then
     git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
+    curl https://nosnch.in/9243a27544
 fi
-
-curl https://nosnch.in/9243a27544
