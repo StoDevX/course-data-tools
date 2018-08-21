@@ -64,7 +64,7 @@ def clean_course(course):
         course['type'] = course_types[course['coursesubtype']]
     else:
         course['type'] = course['coursesubtype']
-        print(f"'{course['type']}' doesn't appear in the types list.")
+        raise UserWarning(f"'{course['type']}' doesn't appear in the types list, in", course)
     del course['coursesubtype']
 
     # Break apart dept names into lists
