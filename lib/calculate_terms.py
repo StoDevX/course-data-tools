@@ -46,8 +46,8 @@ def find_terms(start_year=None, end_year=None, this_year=False):
     term_list = [find_terms_for_year(year) for year in most_years]
 
     # Sort the list of terms to 20081, 20082, 20091
-    # (instead of 20081, 20091, 20082) (sorts in-place)
-    term_list.sort()
+    # (instead of 20081, 20091, 20082)
+    term_list = sorted(term_list)
 
     return term_list
 
