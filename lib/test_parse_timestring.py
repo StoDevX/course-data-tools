@@ -3,9 +3,15 @@ from .parse_timestring import parse_timestring, clean_timestring_segment, find_d
 
 def test_parse_timestring():
 	assert parse_timestring("MWF 300-415") == [
-		{'day': 'Mo', 'start': '1500', 'end': '1615'},
-		{'day': 'We', 'start': '1500', 'end': '1615'},
-		{'day': 'Fr', 'start': '1500', 'end': '1615'},
+		{'day': 'Mo', 'start': '15:00', 'end': '16:15'},
+		{'day': 'We', 'start': '15:00', 'end': '16:15'},
+		{'day': 'Fr', 'start': '15:00', 'end': '16:15'},
+	]
+
+	assert parse_timestring("MWF 900-1015") == [
+		{'day': 'Mo', 'start': '09:00', 'end': '10:15'},
+		{'day': 'We', 'start': '09:00', 'end': '10:15'},
+		{'day': 'Fr', 'start': '09:00', 'end': '10:15'},
 	]
 
 

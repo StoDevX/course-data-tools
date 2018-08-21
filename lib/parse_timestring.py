@@ -19,10 +19,17 @@ def parse_timestring(timestring):
 	days = find_days(daystring)
 	time = find_time(timestring)
 
+	# ensure that the numbers are padded to 4-char width
+	start = str(time['start']).rjust(4, '0')
+	end = str(time['end']).rjust(4, '0')
+
+	start = start[:2] + ':' + start[2:]
+	end = end[:2] + ':' + end[2:]
+
 	return [{
 		'day': day,
-		'start': str(time['start']),
-		'end': str(time['end']),
+		'start': start,
+		'end': end,
 	} for day in days]
 
 
