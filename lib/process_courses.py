@@ -83,7 +83,8 @@ def clean_course(course):
 
     course['credits'] = float(course['credits'])
 
-    course['enroll'] = int(course['enroll'])
+    course['enrolled'] = int(course['enroll'])
+    del course['enroll']
     course['max'] = int(course['max'])
 
     # Turn booleans into booleans
