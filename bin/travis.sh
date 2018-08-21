@@ -24,7 +24,7 @@ if [[ $TRAVIS_BRANCH != "master" ]]; then
 fi
 
 git add .
-git commit -m "course data update $(date)" || (echo "No updates found." && exit 0)
+git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
 git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" "$TRAVIS_BRANCH"
 
 # prepare the gh-pages branch
@@ -32,7 +32,7 @@ PAGES_BRANCH=gh-pages
 if [[ $TRAVIS_BRANCH != "master" ]]; then
 	PAGES_BRANCH="${TRAVIS_BRANCH}-pages"
 fi
-git checkout -B "$PAGES_BRANCH" "$TRAVIS_BRANCH" --no-track
+git checkout --quiet -B "$PAGES_BRANCH" "$TRAVIS_BRANCH" --no-track
 
 # update bundled information for public consumption
 python3 ../bundle.py --out-dir ../course-data --format json --format xml --format csv
@@ -44,7 +44,7 @@ git rm -rf --quiet details/ raw_xml/
 # and … push
 if [[ $TRAVIS_BRANCH == "master" ]]; then
 	git add --all ./
-	git commit -m "course data bundles" --quiet
+	git commit --quiet -m "course data bundles" --quiet
 
     git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
     curl https://nosnch.in/9243a27544
