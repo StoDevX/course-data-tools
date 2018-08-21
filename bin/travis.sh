@@ -20,7 +20,7 @@ done | xargs -t -n1 -P1 -- python3 ../download.py --force-terms -w 1
 python3 ../maintain-datafiles.py
 
 if [[ $TRAVIS_BRANCH != "master" ]]; then
-	git checkout -b "$TRAVIS_BRANCH"
+	git checkout --quiet -b "$TRAVIS_BRANCH"
 fi
 
 git add .
