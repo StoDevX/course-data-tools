@@ -72,8 +72,6 @@ def clean_course(course):
     del course['deptname']
 
     # Turn numbers into numbers
-    course['clbid'] = int(course['clbid'])
-
     if re.search(r'\d{3}$', course['coursenumber']):
         course['number'] = int(course['coursenumber'])
     elif re.match(r'\dXX', course['coursenumber']):
@@ -85,9 +83,6 @@ def clean_course(course):
     del course['coursenumber']
 
     course['credits'] = float(course['credits'])
-    course['crsid'] = int(course['crsid'])
-    if course['groupid']:
-        course['groupid'] = int(course['groupid'])
 
     course['enroll'] = int(course['enroll'])
     course['max'] = int(course['max'])
