@@ -13,6 +13,8 @@ from .parse_paragraph_as_list import parse_paragraph_as_list
 from .paths import make_course_path
 from .save_data import save_data
 from .split_and_flip_instructors import split_and_flip_instructors
+from .parse_prerequisites import parse_prerequisites
+from .parse_notes import parse_notes
 
 
 def json_date_handler(obj):
@@ -34,75 +36,6 @@ def save_course(course):
 
 def check_for_course_file_existence(clbid):
     return os.path.exists(make_course_path(clbid))
-
-
-def extract_notes(course):
-    if course['notes'] and 'Will also meet' in course['notes']:
-        info = dedent(f'''
-            [{course['year']}{course['semester']}] {course['type'][0]} ({'/'.join(course['departments'])} {course['number']} | {course['clbid']} {course['crsid']}):
-            \t{course['notes']}
-            \t{course['times']} {course['locations']}
-        ''')
-
-        # get the timestring and location string out of the notes field
-        notes_into_time_and_location_regex = r'.*meet ([MTWF][/-]?.*) in (.*)\.'
-        results = re.search(notes_into_time_and_location_regex,
-                            course['notes'])
-        extra_times, extra_locations = results.groups()
-        # print(info + '\n\t' + 'regex matches:', [extra_times, extra_locations])
-        print(extra_times)
-
-        # split_time_regex =
-
-        split_location_regex = r'(\w+ ?\d+)(?: or ?(\w+ ?\d+))?'
-
-        # expandedDays = {
-        #   'M':  'Mo',
-        #   'T':  'Tu',
-        #   'W':  'We',
-        #   'Th': 'Th',
-        #   'F':  'Fr'
-        # }
-
-        # listOfDays = []
-
-        # if '-' in daystring:
-        #   # M-F, M-Th, T-F
-        #   sequence = ['M', 'T', 'W', 'Th', 'F']
-        #   startDay = daystring.split('-')[0]
-        #   endDay = daystring.split('-')[1]
-        #   listOfDays = sequence.slice(
-        #       sequence.indexOf(startDay),
-        #       sequence.indexOf(endDay) + 1
-        #   )
-        # else:
-        #   # MTThFW
-        #   spacedOutDays = daystring.replace(/([a-z]*)([A-Z])/g, '$1 $2')
-        #   # The regex sticks an extra space at the front. trim() it.
-        #   spacedOutDays = spacedOutDays.trim()
-        #   listOfDays = spacedOutDays.split(' ')
-
-        # # 'M' => 'Mo'
-        # return list(map(lambda day: expandedDays[day], listOfDays))
-
-
-def parse_prerequisites(course):
-    search_str = 'Prereq'
-
-    prereqs_list = [para[para.index(search_str):]
-                      for para in course.get('description', [])
-                      if search_str in para]
-
-    if not prereqs_list:
-        prereqs_list = [note[note.index(search_str):]
-                          for note in course.get('notes', [])
-                          if search_str in note]
-
-    if prereqs_list:
-        return "\n".join(prereqs_list)\
-            .replace('Prerequisite: ', '')
-
-    return False
 
 
 def clean_course(course):
