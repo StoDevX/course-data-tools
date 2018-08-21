@@ -12,6 +12,7 @@ from .parse_paragraph_as_list import parse_paragraph_as_list
 from .paths import make_course_path
 from .save_data import save_data
 from .split_and_flip_instructors import split_and_flip_instructors
+from .parse_timestring import parse_timestring
 from .parse_prerequisites import parse_prerequisites
 from .parse_notes import parse_notes
 
@@ -35,6 +36,32 @@ def save_course(course):
 
 def check_for_course_file_existence(clbid):
     return os.path.exists(make_course_path(clbid))
+
+
+def create_offerings(*, times, locations):
+    if not times or not locations:
+        return None
+
+    o_times = times
+    o_locations = locations
+
+    if len(locations) == 1 and len(times) != len(locations):
+        locations = [locations[0] for i in range(len(times))]
+
+    if len(set(locations)) == 1:
+        locations = [locations[0] for i in range(len(times))]
+
+    if times and locations and len(times) != len(locations) and len(locations) != 1:
+        raise UserWarning(f'Times ({len(times)}) and Locations ({len(locations)}) are different lengths in', {'times': times, 'locations': locations}, {'originals': [o_times, o_locations]})
+
+    for time, loc in zip(times, locations):
+        for parsed in parse_timestring(time):
+            yield {
+                'location': loc,
+                'day': parsed['day'],
+                'start': parsed['start'],
+                'end': parsed['end'],
+            }
 
 
 def clean_course(course):
@@ -107,12 +134,6 @@ def clean_course(course):
     else:
         raise UserWarning('Course number is weird in', course)
 
-    # Shorten meetinglocations and meetingtimes
-    course['locations'] = course['meetinglocations']
-    del course['meetinglocations']
-    course['times'] = course['meetingtimes']
-    del course['meetingtimes']
-
     # Pull the text contents out of various HTML elements as lists
     course['instructors'] = split_and_flip_instructors(course['instructors'])
     if not course['instructors']:
@@ -122,15 +143,24 @@ def clean_course(course):
         course['gereqs'] = parse_links_for_text(course['gereqs'])
         if not course['gereqs']:
             del course['gereqs']
-    if 'locations' in course and course['locations']:
-        course['locations'] = parse_links_for_text(course['locations'])
-        if not course['locations']:
-            del course['locations']
-    if 'times' in course and course['times']:
-        course['times'] = parse_paragraph_as_list(course['times'])
-        if not course['times']:
-            del course['times']
 
+    # process locations and times to create offerings
+    locations = course['meetinglocations']
+    if locations:
+        locations = parse_links_for_text(locations)
+
+    times = course['meetingtimes']
+    if times:
+        times = parse_paragraph_as_list(times)
+
+    del course['meetinglocations']
+    del course['meetingtimes']
+
+    offerings = list(create_offerings(times=times, locations=locations))
+    if offerings:
+        course['offerings'] = offerings
+
+    # return the non-None values for serialization
     return {key: value for key, value in course.items() if value is not None}
 
 
