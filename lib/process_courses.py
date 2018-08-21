@@ -5,7 +5,6 @@ import logging
 import os
 from textwrap import dedent
 
-from .break_apart_departments import break_apart_departments
 from .check_for_course_revisions import check_for_revisions
 from .data import course_types
 from .parse_links_for_text import parse_links_for_text
@@ -68,7 +67,7 @@ def clean_course(course):
     del course['coursesubtype']
 
     # Break apart dept names into lists
-    course['departments'] = break_apart_departments(course['deptname'])
+    course['department'] = course['deptname']
     del course['deptname']
 
     # Turn numbers into numbers
