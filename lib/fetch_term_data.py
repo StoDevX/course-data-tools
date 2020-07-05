@@ -18,7 +18,7 @@ def fix_invalid_xml(raw):
 
 
 def build_term_url(term):
-    base_url = 'https://www.stolaf.edu/sis/public-acl-inez.cfm'
+    base_url = 'https://sis.stolaf.edu/sis/public-acl-inez.cfm'
     # Yes, the request needs all of these extra parameters in order to run.
     querystring = urllib.parse.urlencode({'searchyearterm': str(term)})
     return f'{base_url}?{querystring}'
@@ -70,12 +70,13 @@ def request_data(url, term):
 
 
 def load_data_from_server(term, dry_run=False):
+    url = build_static_term_url(term)
     try:
-        url = build_static_term_url(term)
         parsed_data = request_data(url, term)
     except BadDataException:
-        print(f'{term}: static file is invlid xml; attempting database query')
+        static_url = url
         url = build_term_url(term)
+        print(f'{term}: static file {static_url} is invlid xml; attempting database query {url}')
         try:
             parsed_data = request_data(url, term)
         except BadDataException:
