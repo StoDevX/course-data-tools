@@ -4,7 +4,7 @@
 set -ve
 
 # prepare the repositories
-git clone --depth=1 https://github.com/stodevx/course-data.git
+git clone --depth=1 https://github.com/StoDevX/course-data.git
 cd course-data
 
 git config user.name "Heroku Databot"
@@ -26,9 +26,9 @@ fi
 git add .
 git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
 if [[ $TRAVIS_BRANCH == "master" ]]; then
-	git push "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" master
+	git push "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" master
 else
-	git push --force "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" "$TRAVIS_BRANCH"
+	git push --force "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" "$TRAVIS_BRANCH"
 fi
 
 # prepare the gh-pages branch
@@ -51,6 +51,6 @@ if [[ $TRAVIS_BRANCH == "master" ]]; then
 	git add --all ./
 	git commit --quiet -m "course data bundles" --quiet
 
-    git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
+    git push -f "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" gh-pages
     curl https://nosnch.in/9243a27544
 fi
