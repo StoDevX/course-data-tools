@@ -25,7 +25,7 @@ def build_term_url(term):
 
 
 def build_static_term_url(term):
-    return f'https://www.stolaf.edu/sis/static-classlab/{term}.xml'
+    return f'https://sis.stolaf.edu/sis/static-classlab/{term}.xml'
 
 
 def request_from_server(url):
