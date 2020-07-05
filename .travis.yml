@@ -1,6 +1,6 @@
 # pick our container
 sudo: false
-dist: trusty
+dist: bionic
 
 # pick our language/runtime
 language: python
