@@ -4,12 +4,11 @@ dist: trusty
 
 # pick our language/runtime
 language: python
-python: '3.6'
+python: '3.7'
 cache: pip
 
 # install our deps
 install:
-  - pip3 install pipenv
-  - pipenv install
+  - pip3 install -r requirements.txt
 
-script: pipenv run bin/travis.sh
+script: bin/travis.sh
