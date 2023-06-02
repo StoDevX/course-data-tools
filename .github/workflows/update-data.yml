@@ -1,0 +1,31 @@
+name: Update Course Data
+
+on:
+  schedule:
+    - cron:  '0 2 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-data:
+    # Adapted from https://github.com/StoDevX/AAO-React-Native/blob/master/.github/workflows/cocoapods.yml
+    name: Course Data Update
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          token: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
+
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      - name: push-on-course-data-change
+        run: bash bin/push-on-course-data-change.sh
+        env:
+          branch: ${{ github.ref_name }}
+          head_ref: ${{ github.ref }}
