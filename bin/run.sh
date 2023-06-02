@@ -40,5 +40,3 @@ git rm -rf --quiet courses/ details/ raw_xml/
 git add --all ./
 git commit -m "course data bundles" --quiet
 git push -f "https://$GITHUB_OAUTH@github.com/stodevx/course-data.git" gh-pages
-
-curl https://nosnch.in/9243a27544

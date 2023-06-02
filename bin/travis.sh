@@ -52,5 +52,4 @@ if [[ $TRAVIS_BRANCH == "master" ]]; then
 	git commit --quiet -m "course data bundles" --quiet
 
     git push -f "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" gh-pages
-    curl https://nosnch.in/9243a27544
 fi
