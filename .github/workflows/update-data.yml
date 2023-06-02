@@ -27,5 +27,6 @@ jobs:
       - name: push-on-course-data-change
         run: bash bin/push-on-course-data-change.sh
         env:
-          branch: ${{ github.ref_name }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
           head_ref: ${{ github.ref }}
+          GITHUB_OAUTH: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
