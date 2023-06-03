@@ -7,7 +7,7 @@ set -ve
 git clone --depth=1 https://github.com/StoDevX/course-data.git
 cd course-data
 
-git config user.name "Heroku Databot"
+git config user.name "Github Databot"
 git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files

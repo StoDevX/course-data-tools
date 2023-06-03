@@ -12,7 +12,7 @@ cd course-data
 git checkout master
 git pull origin master
 
-git config user.name "Heroku Databot"
+git config user.name "Github Databot"
 git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files
