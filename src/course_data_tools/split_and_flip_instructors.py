@@ -2,8 +2,8 @@ from .parse_links_for_text import parse_links_for_text
 
 
 def flip_instructor(name):
-    string_to_split = reversed(name.split(','))
-    actual_name = ' '.join([name_part.strip() for name_part in string_to_split])
+    string_to_split = reversed(name.split(","))
+    actual_name = " ".join([name_part.strip() for name_part in string_to_split])
     return actual_name.strip()
 
 

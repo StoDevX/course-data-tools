@@ -1,5 +1,5 @@
-KEYNOTFOUNDIN1 = '<KEY NOT FOUND IN 1>'  # KeyNotFound for dictDiff
-KEYNOTFOUNDIN2 = '<KEY NOT FOUND IN 2>'  # KeyNotFound for dictDiff
+KEYNOTFOUNDIN1 = "<KEY NOT FOUND IN 1>"  # KeyNotFound for dictDiff
+KEYNOTFOUNDIN2 = "<KEY NOT FOUND IN 2>"  # KeyNotFound for dictDiff
 
 
 def dict_diff(first, second):
@@ -36,7 +36,6 @@ def get_old_dict_values(old, new):
     # Returns the "old" value for two dicts.
     diff = dict_diff(old, new)
 
-    return {key: diff[key][0]
-            if diff[key][0] != KEYNOTFOUNDIN1
-            else None
-            for key in diff}
+    return {
+        key: diff[key][0] if diff[key][0] != KEYNOTFOUNDIN1 else None for key in diff
+    }

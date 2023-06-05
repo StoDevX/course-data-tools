@@ -9,7 +9,7 @@ from .paths import make_course_path
 
 def load_previous(course_path):
     try:
-        with open(course_path, 'r', encoding='utf-8') as infile:
+        with open(course_path, "r", encoding="utf-8") as infile:
             return json.load(infile)
     except FileNotFoundError:
         return None
@@ -26,17 +26,17 @@ def sort_diff(diff, ignore_revision_keys):
 
 
 def check_for_revisions(course, ignore_revision_keys, no_revisions):
-    prior = load_previous(make_course_path(course['clbid']))
+    prior = load_previous(make_course_path(course["clbid"]))
 
     if not prior:
         return None
 
     if no_revisions:
-        return prior.get('revisions', None)
+        return prior.get("revisions", None)
 
-    if 'revisions' in prior:
-        revisions = prior['revisions']
-        del prior['revisions']
+    if "revisions" in prior:
+        revisions = prior["revisions"]
+        del prior["revisions"]
     else:
         revisions = []
 
@@ -47,7 +47,7 @@ def check_for_revisions(course, ignore_revision_keys, no_revisions):
     ordered_diff = sort_diff(diff, ignore_revision_keys=ignore_revision_keys)
 
     if ordered_diff:
-        ordered_diff['_updated'] = datetime.now(timezone.utc)
+        ordered_diff["_updated"] = datetime.now(timezone.utc)
         revisions.append(ordered_diff)
 
     return revisions
