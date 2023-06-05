@@ -2,7 +2,7 @@ name: Update Course Data
 
 on:
   schedule:
-    - cron:  '0 2 * * *'
+    - cron: "0 2 * * *"
 
 permissions:
   contents: write
@@ -14,29 +14,73 @@ jobs:
     name: Course Data Update
     runs-on: ubuntu-latest
     timeout-minutes: 60
+
     strategy:
       matrix:
-        python-version: ["3.7"]
+        python-version:
+          - "3.11"
+
+    env:
+      GITHUB_BRANCH: ${{ github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: "check out course-data-tools repo"
+        uses: actions/checkout@v3
+
+      - name: "check out course-data repo"
+        uses: actions/checkout@v3
         with:
+          repository: StoDevX/course-data
+          path: ./course-data
           token: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
+
+      - name: "set up committer information for course-data repo"
+        working-directory: ./course-data
+        run: |
+          git config user.name "Github Databot"
+          git config user.email "hawkrives+sto-course-databot@gmail.com"
+
+      - name: "Install poetry"
+        run: pipx install poetry
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "poetry"
 
       - name: Install dependencies
+        run: poetry install
+
+      - name: Download course data files
+        working-directory: ./course-data
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          for y in $(seq 1994 "$(date +%Y)"); do
+            for s in $(seq 1 5); do
+              echo "$y$s"
+            done
+          done | xargs -t -n1 -P1 -- course-data-tools download --force-terms -w 1
+
+      - name: Perform datafile maintenance
+        working-directory: ./course-data
+        run: course-data-tools maintain-datafiles
+
+      - name: Commit updated information to the main branch
+        working-directory: ./course-data
+        run: |
+          if [[ $GITHUB_BRANCH != "master" ]]; then
+            git checkout --quiet -b "$GITHUB_BRANCH"
+          fi
+
+          git add .
+          git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
+
+          if [[ $GITHUB_BRANCH == "master" ]]; then
+            git push origin master
+          else
+            git push --force origin "$GITHUB_BRANCH"
+          fi
 
       - name: push-on-course-data-change
+        working-directory: ./course-data
         run: bash bin/github.sh
-        env:
-          GITHUB_BRANCH: ${{ github.ref_name }}
-          head_ref: ${{ github.ref }}
-          GITHUB_OAUTH: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}

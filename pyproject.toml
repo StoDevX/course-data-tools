@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "course-data-tools"
+version = "0.1.0"
+description = ""
+authors = ["Hawken Rives <yellow.pen7780@fastmail.com>"]
+readme = "README.md"
+packages = [{ include = "course_data_tools", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+beautifulsoup4 = "^4.12.2"
+requests = "^2.31.0"
+xmltodict = "^0.13.0"
+click = "^8.1.3"
+structlog = "^23.1.0"
+rich = "^13.4.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+ruff = "^0.0.270"
+pytest = "^7.3.1"
+
+[tool.poetry.scripts]
+course-data-tools = "course_data_tools.console:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
