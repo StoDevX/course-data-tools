@@ -19,6 +19,13 @@ jobs:
         python-version: ["3.7"]
 
     steps:
+      - name: Start check-in
+        if: github.event_name == 'schedule'
+        run: bash bin/monitor.sh start
+        env:
+          SENTRY_DSN: ${{ secrets.COURSE_DATA_TOOLS_GH_SENTRY_DSN }}
+          TARGET_ENV: 'production'
+
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
@@ -40,3 +47,17 @@ jobs:
           GITHUB_BRANCH: ${{ github.ref_name }}
           head_ref: ${{ github.ref }}
           GITHUB_OAUTH: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
+
+      - name: Finish check-in
+        if: github.event_name == 'schedule'
+        run: bash bin/monitor.sh stop
+        env:
+          SENTRY_DSN: ${{ secrets.COURSE_DATA_TOOLS_GH_SENTRY_DSN }}
+          TARGET_ENV: 'production'
+
+      - name: Report failure
+        if: github.event_name == 'schedule' && failure()
+        run: bash bin/monitor.sh fail
+        env:
+          SENTRY_DSN: ${{ secrets.COURSE_DATA_TOOLS_GH_SENTRY_DSN }}
+          TARGET_ENV: 'production'
