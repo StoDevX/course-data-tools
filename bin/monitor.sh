@@ -15,7 +15,7 @@ function start() {
         "$SENTRY_API_URL" \
         --header "$SENTRY_AUTH_HEADER" \
         --header "$CONTENT_TYPE_HEADER" \
-        --data-raw '{"status": "in_progress", "environment": "'$CURRENT_ENV'"}'
+        --data-raw "$(jq -n --arg env "$CURRENT_ENV" '{status: "in_progress", environment: $env}')"
 }
 
 function stop() {
@@ -23,7 +23,7 @@ function stop() {
         "$SENTRY_API_LATEST_URL" \
         --header "$SENTRY_AUTH_HEADER" \
         --header "$CONTENT_TYPE_HEADER" \
-        --data-raw '{"status": "ok", "environment": "'$CURRENT_ENV'"}'
+        --data-raw "$(jq -n --arg env "$CURRENT_ENV" '{status: "ok", environment: $env}')"
 }
 
 function fail() {
@@ -31,7 +31,7 @@ function fail() {
         "$SENTRY_API_LATEST_URL" \
         --header "$SENTRY_AUTH_HEADER" \
         --header "$CONTENT_TYPE_HEADER" \
-        --data-raw '{"status": "error", "environment": "'$CURRENT_ENV'"}'
+        --data-raw "$(jq -n --arg env "$CURRENT_ENV" '{status: "error", environment: $env}')"
 }
 
 function report_status() {
