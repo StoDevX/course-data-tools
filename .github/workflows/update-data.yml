@@ -55,7 +55,7 @@ jobs:
           SENTRY_DSN: ${{ secrets.COURSE_DATA_TOOLS_GH_SENTRY_DSN }}
           TARGET_ENV: 'production'
 
-      - name: Report failure
+      - name: Check for errors
         if: github.event_name == 'schedule' && failure()
         run: bash bin/monitor.sh fail
         env:
