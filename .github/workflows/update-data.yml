@@ -19,16 +19,16 @@ jobs:
         python-version: ["3.7"]
 
     steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
+
       - name: Start check-in
         if: github.event_name == 'schedule'
         run: bash bin/monitor.sh start
         env:
           SENTRY_DSN: ${{ secrets.COURSE_DATA_TOOLS_GH_SENTRY_DSN }}
           TARGET_ENV: 'production'
-
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
