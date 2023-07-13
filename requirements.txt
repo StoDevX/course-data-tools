@@ -3,3 +3,4 @@ requests==2.24.0
 xmltodict==0.12.0
 pylint==2.5.3
 pytest==5.4.3
+sqlite-utils==3.33

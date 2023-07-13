@@ -11,6 +11,7 @@ from lib.calculate_terms import calculate_terms
 from lib.regress_course import regress_course
 from lib.load_courses import load_some_courses
 from lib.save_term import save_term
+from lib.save_data import write_to_database
 from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
@@ -34,7 +35,8 @@ def one_term(args, term):
 
     log(pretty_term, 'Saving term')
     for f in args.format:
-        save_term(term, courses, kind=f, root_path=args.out_dir)
+        # save_term(term, courses, kind=f, root_path=args.out_dir)
+        write_to_database(courses)
 
 
 def run(args):

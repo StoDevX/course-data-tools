@@ -7,7 +7,7 @@ There are three scripts: `download.py`, `maintain-datafiles.py`, and `bundle.py`
 
 All of these tools expect the [course data][course-data] to be one folder up from the CWD, in `../course-data`.
 
-These scripts require `python3` >= 3.7, as well as `beautifulsoup4`, `requests`, `xmltodict`.
+These scripts require `python3` >= 3.7, as well as `beautifulsoup4`, `requests`, `xmltodict`, `sqlite-utils`.
 
 The libraries are also specified in the `Pipfile` file, so a `pip3 install pipenv` and `pipenv run $command`
 
