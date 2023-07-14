@@ -7,9 +7,9 @@ set -ve
 
 for y in $(seq 1994 "$(date +%Y)"); do
     for s in $(seq 1 5); do
-        echo "$y$s"
+        course-data-tools download "$y-$s" > "../course-data/raw/$y-$s.xml"
     done
-done | xargs -t -n1 -P1 -- course-data-tools download --force-terms -w 1
+done
 
 course-data-tools maintain-datafiles
 
