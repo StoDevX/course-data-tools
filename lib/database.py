@@ -48,9 +48,9 @@ def insert_course_data(db, course):
 
         # countstowards
         "gereq": gereqs,
-        # "corereq": "",
-        # "major": "",
-        # "concentration": "",
+        "corereq": "",
+        "major": "",
+        "concentration": "",
     }
     db["section"].insert(section_row, pk="id")
 
@@ -76,7 +76,7 @@ def extract_columns_post_insertion(db):
     # section_enrollment
     db["section"].extract(["status", "max", "total", "firstyear", "sophomore", "junior", "senior"], table="section_enrollment", fk_column="section_enrollment_id")
     # section_countstowards
-    db["section"].extract(["gereq"], table="section_countstowards", fk_column="section_countstowards_id")
+    db["section"].extract(["gereq", "corereq", "major", "concentration"], table="section_countstowards", fk_column="section_countstowards_id")
 
 
 def tracer(sql, params):
