@@ -12,7 +12,7 @@ from lib.calculate_terms import calculate_terms
 from lib.regress_course import regress_course
 from lib.load_courses import load_some_courses
 from lib.save_term import save_term
-from lib.database import write_to_database
+from lib.database import insert_course
 from lib.database import tracer
 from lib.paths import COURSE_DATA
 from lib.log import log
@@ -43,7 +43,8 @@ def one_term(args, term):
 
 def generate_sqlite_db(courses, should_trace):
     db = Database("catalog.db", tracer=tracer if should_trace else None)
-    write_to_database(db, courses)
+    [insert_course(db, course) for course in courses]
+
 
 
 def run(args):
