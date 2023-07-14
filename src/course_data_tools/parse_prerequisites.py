@@ -3,14 +3,14 @@ def parse_prerequisites(course):
 
     prereqs_list = [
         para[para.index(search_str) :]
-        for para in course.get("description", [])
+        for para in course.get("description") or []
         if search_str in para
     ]
 
     if not prereqs_list:
         prereqs_list = [
             note[note.index(search_str) :]
-            for note in course.get("notes", [])
+            for note in course.get("notes") or []
             if search_str in note
         ]
 

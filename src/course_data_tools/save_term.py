@@ -1,11 +1,14 @@
 import json
 import os
 
-from .log import log
+from structlog.stdlib import get_logger
+
 from .save_data import save_data
 from .paths import make_built_term_path
 from .csvify import csvify
 from .xmlify import xmlify
+
+logger = get_logger()
 
 
 def save_json_term(term_path, courses):
@@ -31,7 +34,7 @@ def save_term(term, courses, kind, root_path):
 
     term_path = os.path.join(root_path, "terms", make_built_term_path(term, kind))
 
-    log(f"saving term {term} to {term_path}")
+    logger.info("saving term %s to %s", term, term_path)
     if kind == "json":
         save_json_term(term_path, courses)
     elif kind == "csv":

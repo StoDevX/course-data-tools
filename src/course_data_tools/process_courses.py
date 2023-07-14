@@ -1,10 +1,11 @@
 import json
 import re
 import html
-import logging
 import os
 
-from .check_for_course_revisions import check_for_revisions
+from structlog.stdlib import get_logger
+
+# from .check_for_course_revisions import check_for_revisions
 from .data import course_types
 from .parse_links_for_text import parse_links_for_text
 from .parse_paragraph_as_list import parse_paragraph_as_list
@@ -13,6 +14,8 @@ from .save_data import save_data
 from .split_and_flip_instructors import split_and_flip_instructors
 from .parse_timestring import parse_timestring
 from .parse_prerequisites import parse_prerequisites
+
+logger = get_logger()
 
 
 def json_date_handler(obj):
@@ -126,14 +129,13 @@ def clean_course(course):
     course["max"] = int(course["max"])
 
     # Turn booleans into booleans
-    course["pn"] = True if course["pn"] is "Y" else False
+    course["pn"] = True if course["pn"] == "Y" else False
 
     # Add the term, year, and semester
     # `term` looks like 20083, where the first four digits represent the
     # year, and the last digit represents the semester
-    course["term"] = int(course["term"])
-    course["year"] = int(str(course["term"])[:4])  # Get the first four digits
-    course["semester"] = int(str(course["term"])[4])  # Get the last digit
+    course["year"] = int(course["term"][:4])  # Get the first four digits
+    course["semester"] = course["term"][4]  # Get the last char
 
     # Add the course level
     if type(course["number"]) is int:
@@ -168,45 +170,37 @@ def clean_course(course):
     del course["meetingtimes"]
 
     offerings = list(create_offerings(times=times, locations=locations))
-    if offerings:
-        course["offerings"] = offerings
+    course["offerings"] = offerings
 
-    # return the non-None values for serialization
-    return {key: value for key, value in course.items() if value is not None}
+    return course
 
 
-def process_course(course, detail, ignore_revision_keys, dry_run, no_revisions):
-    """Combines the 'course' and the 'detail' objects into one. Also 'cleans' the course, to remove html from various
-    spots, and cleans up the key names, etc. Also records the revisions to the course.
+def process_course(course, detail, *, term):
+    """Combines the 'course' and the 'detail' objects into one. 'Cleans' the course,
+    to remove html from various spots, and cleans up the key names, etc. Records any
+    revisions to the course.
     """
-    ignore_revision_keys = [] if ignore_revision_keys is None else ignore_revision_keys
+    title = detail.get("title", None)
+    description = detail.get("description", None)
 
-    course["title"] = detail.get("title", None)
-    course["description"] = detail.get("description", None)
+    cleaned = clean_course({**course, "term": term})
 
-    cleaned = clean_course(course)
+    if title and cleaned["name"] != title:
+        cleaned["title"] = title
 
-    if "title" in cleaned and cleaned.get("name") == cleaned.get("title"):
-        del cleaned["title"]
+    cleaned["description"] = description
 
     # course[''] = extract_notes(cleaned)
     cleaned["prerequisites"] = parse_prerequisites(cleaned)
 
-    # I don't remember why I added this check for "did the course already exist", but I needed it for something.
+    # I don't remember why I added this check for "did the course already exist", but
+    # I needed it for something...
     # TODO: document this
-    course_existed_before = check_for_course_file_existence(cleaned["clbid"])
-    revisions = check_for_revisions(
-        cleaned, ignore_revision_keys=ignore_revision_keys, no_revisions=no_revisions
-    )
-    if course_existed_before and revisions:
-        cleaned["revisions"] = revisions
-
-    # There's no reason to save the course if nothing has changed,
-    # but we should save if we didn't look for changes.
-    # We also must save it if it didn't exist before.
-    should_save = not dry_run
-    if should_save:
-        logging.debug(f"Saving course {cleaned['clbid']}")
-        save_course(cleaned)
+    # course_existed_before = check_for_course_file_existence(cleaned["clbid"])
+    # revisions = check_for_revisions(
+    #     cleaned, ignore_revision_keys=ignore_revision_keys, no_revisions=no_revisions
+    # )
+    # if course_existed_before and revisions:
+    #     cleaned["revisions"] = revisions
 
     return cleaned

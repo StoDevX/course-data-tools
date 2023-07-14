@@ -2,9 +2,12 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 import json
 
+from structlog.stdlib import get_logger
+
 from .get_old_dict_values import get_old_dict_values
-from .log import log
 from .paths import make_course_path
+
+logger = get_logger()
 
 
 def load_previous(course_path):
@@ -14,7 +17,7 @@ def load_previous(course_path):
     except FileNotFoundError:
         return None
     except json.JSONDecodeError:
-        log("Error decoding old jsonified course %s", course_path)
+        logger.error("Error decoding old jsonified course %s", course_path)
 
 
 def sort_diff(diff, ignore_revision_keys):

@@ -7,6 +7,7 @@ import pathlib
 from typing import Collection
 
 import click
+from structlog.contextvars import bind_contextvars
 from structlog.stdlib import get_logger
 
 from course_data_tools.json_folder_map import json_folder_map
@@ -29,15 +30,15 @@ def list_all_course_index_files():
 
 
 def one_term(term, *, legacy: bool, format: Collection[str], out_dir: pathlib.Path):
-    log = logger.bind(term=f"{str(term)[:4]}:{str(term)[4]}")
+    bind_contextvars(term=f"{str(term)[:4]}:{str(term)[4]}")
 
-    log.info("loading courses")
+    logger.info("loading courses")
     courses = list(load_some_courses(term))
 
     if legacy:
         [regress_course(c) for c in courses]
 
-    log.info("saving term data")
+    logger.info("saving term data")
     for f in format:
         save_term(term, courses, kind=f, root_path=out_dir)
 

@@ -1,15 +1,13 @@
-import xmltodict
-import requests
-import urllib.parse
 import re
-import logging
+import urllib.parse
 
-from .paths import make_xml_term_path
-from .save_data import save_data
+import requests
+import sqlite_utils
+import xmltodict
+from ratelimit import limits, sleep_and_retry
+from structlog.stdlib import get_logger
 
-
-class BadDataException(Exception):
-    pass
+logger = get_logger()
 
 
 def fix_invalid_xml(raw):
@@ -17,120 +15,105 @@ def fix_invalid_xml(raw):
     return re.sub(r"&(?!(?:[a-z]+|#[0-9]+|#x[0-9a-f]+);)", "&amp;", raw)
 
 
-def build_term_url(term):
+@sleep_and_retry
+@limits(calls=1, period=1)
+def build_term_url(term: str) -> str:
+    if "-" in term:
+        year, term = term.split("-")
+        term = f"{year}{term}"
     base_url = "https://sis.stolaf.edu/sis/public-acl-inez.cfm"
-    # Yes, the request needs all of these extra parameters in order to run.
     querystring = urllib.parse.urlencode({"searchyearterm": str(term)})
     return f"{base_url}?{querystring}"
 
 
-def build_static_term_url(term):
+def build_static_term_url(term: str) -> str:
+    if "-" in term:
+        year, term = term.split("-")
+        term = f"{year}{term}"
     return f"https://sis.stolaf.edu/sis/static-classlab/{term}.xml"
 
 
-def request_from_server(url):
+def get(session: requests.Session, url: str) -> requests.Response:
     try:
-        r = requests.get(url)
+        r = session.get(url)
         r.raise_for_status()
-    except requests.exceptions.Timeout:
-        logging.warning(f"Timeout requesting {url}")
-        return None
+        return r
+
     except requests.HTTPError as err:
-        if err.response.status_code == 404:
-            raise err
-        if "Sorry, there's been an error." in err.response.text:
-            logging.warning("Whoops! Made another error in the server:")
-            logging.warning(f"{r.text}")
-        if "The request has exceeded the allowable time limit" in err.response.text:
-            logging.warning(
-                "We exceeded the server's internal time limit for the request."
+        response: requests.Response = err.response
+        body = err.response.text
+
+        server_error_msg = "Sorry, there's been an error"
+        if server_error_msg in body:
+            raise requests.HTTPError(
+                "Server Error: %s for url: %s",
+                server_error_msg,
+                response.url,
             )
+
+        timeout_exceeded_msg = "The request has exceeded the allowable time limit"
+        if timeout_exceeded_msg in body:
+            raise requests.HTTPError(
+                "Server Timeout Error: %s for url: %s",
+                timeout_exceeded_msg,
+                response.url,
+            )
+
         raise err
 
-    return r.text
 
-
-def request_data(url, term):
-    raw_data = request_from_server(url)
-    if not raw_data:
-        logging.info(f"No data returned for {term}")
-        return None
-
+def get_xml_body(
+    session: requests.Session,
+    url: str,
+) -> str:
     try:
+        body = get(session, url).text
         # remove the coldfusion debugging output
-        end = "</searchresults>"
-        end_idx = raw_data.index(end) + len(end)
-        raw_data = raw_data[:end_idx]
+        end_str = "</searchresults>"
+        end_idx = body.index(end_str) + len(end_str)
+        return body[:end_idx]
     except ValueError:
-        raise BadDataException(f"{term} did not return any xml")
-
-    # remove invalid xml entities
-    valid_data = fix_invalid_xml(raw_data)
-
-    # Parse the data into an actual data structure
-    return xmltodict.parse(valid_data, force_list=["course"])
+        raise ValueError(f"{url} did not return any xml")
 
 
-def load_data_from_server(term, dry_run=False):
-    url = build_static_term_url(term)
+def fetch_term(session: requests.Session, term: str) -> str:
     try:
-        parsed_data = request_data(url, term)
-    except BadDataException:
-        static_url = url
+        static_data_url = build_static_term_url(term)
+        return get_xml_body(session, static_data_url)
+    except requests.HTTPError as exception:
+        if exception.response.status_code != 404:
+            raise exception
+
         url = build_term_url(term)
-        print(
-            f"{term}: static file {static_url} is invlid xml; attempting database query {url}"
+        return get_xml_body(session, url)
+
+
+def load_term(
+    session: requests.Session,
+    *,
+    term: str,
+    term_cache: sqlite_utils.db.Table,
+) -> list[dict]:
+    body = ""
+
+    try:
+        if cached_body := term_cache.get(term):
+            body = cached_body["body"]
+    except sqlite_utils.db.NotFoundError:
+        pass
+
+    if not body:
+        body = fetch_term(session, term)
+
+        term_cache.upsert(
+            pk="term",  # type: ignore
+            record=dict(term=term, body=body),
         )
-        try:
-            parsed_data = request_data(url, term)
-        except BadDataException:
-            print(f"{term}: fetching attempt #1 failed")
-            try:
-                parsed_data = request_data(url, term)
-            except BadDataException:
-                print(f"{term}: fetching attempt #2 failed")
-                try:
-                    parsed_data = request_data(url, term)
-                except BadDataException:
-                    print(f"{term}: fetching attempt #3 failed")
-                    print(f"{term}: no xml returned after three tries")
-                    return None
 
-    if not parsed_data["searchresults"]:
-        logging.info(f"No data returned for {term}")
-        return None
+    body = fix_invalid_xml(body)
 
-    # We sort the courses here, before we save it to disk, so that we don't
-    # need to re-sort every time we load from disk.
-    parsed_data["searchresults"]["course"].sort(key=lambda c: c["clbid"])
+    parsed = xmltodict.parse(body, force_list=["course"])
 
-    # Embed the term into each course individually
-    for course in parsed_data["searchresults"]["course"]:
-        course["term"] = term
+    search_results = parsed["searchresults"] or {}
 
-    if not dry_run:
-        destination = make_xml_term_path(term)
-        serialized_data = xmltodict.unparse(parsed_data, pretty=True)
-        save_data(serialized_data, destination)
-        logging.debug(f"Fetched {destination}")
-
-    return parsed_data
-
-
-def load_term(term, force_download=False, dry_run=False):
-    if not force_download:
-        try:
-            logging.info(f"Loading {term} from disk")
-            term_path = make_xml_term_path(term)
-            with open(term_path, "rb") as infile:
-                data = xmltodict.parse(infile, force_list=["course"])
-        except FileNotFoundError:
-            logging.info(f"Requesting {term} from server")
-            data = load_data_from_server(term, dry_run=dry_run)
-    else:
-        logging.info(f"Forced to request {term} from server")
-        data = load_data_from_server(term, dry_run=dry_run)
-
-    if data:
-        for course in data["searchresults"]["course"]:
-            yield course
+    return search_results.get("course", [])

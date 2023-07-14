@@ -38,7 +38,7 @@ def json_folder_map(root, folder, name="index", dry_run=False):
     output["files"] = sorted(output["files"], key=lambda item: item["path"])
     output = OrderedDict(sorted(output.items()))
 
-    logger.info("Hashed files")
+    logger.info("hashed files")
     if dry_run:
         return
 
@@ -46,4 +46,4 @@ def json_folder_map(root, folder, name="index", dry_run=False):
     with open(index_path, "w") as outfile:
         json.dump(output, outfile, indent="\t", ensure_ascii=False)
         outfile.write("\n")
-        logger.info("Wrote %s", index_path)
+        logger.info("wrote %s", index_path)

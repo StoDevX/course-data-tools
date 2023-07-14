@@ -1,91 +1,36 @@
-from typing import Iterator
-from .flattened import flatten
+from typing import Iterable, Iterator
 from datetime import date
 
 
-def year_plus_term(year, term):
-    return int(f"{year}{term}")
+def year_plus_term(year: str | int, term: str) -> str:
+    return f"{year}-{term}"
 
 
-def find_terms_for_year(year, now=date.today()) -> list[int]:
-    current_month = now.month
-    current_year = now.year
-
-    all_terms = [1, 2, 3, 4, 5]
-    limited_terms = [1, 2, 3]
-
-    # St. Olaf publishes initial Fall, Interim, and Spring data in April
-    # of each year. Full data is published by August.
-    if year == current_year:
-        if current_month < 3:
-            return []
-        elif current_month <= 7:
-            return [year_plus_term(year, term) for term in limited_terms]
-        else:
-            return [year_plus_term(year, term) for term in all_terms]
-
-    elif year > current_year:
-        return []
-
-    else:
-        return [year_plus_term(year, term) for term in all_terms]
-
-
-def find_terms(
-    start_year=None, end_year=None, this_year=False, now=date.today()
-) -> list[int]:
-    start_year = start_year or 1994
-    end_year = end_year or now.year
-    current_year = end_year if end_year is not start_year else end_year + 1
-    current_month = now.month
-
-    if this_year:
-        start_year = current_year - 1 if current_month <= 7 else current_year
-
-    if current_month >= 3:
-        current_year = current_year + 1
-
-    most_years = range(start_year, current_year)
-    term_list = [
-        term for year in most_years for term in find_terms_for_year(year, now=now)
-    ]
-
-    # Sort the list of terms to 20081, 20082, 20091
-    # (instead of 20081, 20091, 20082)
-    term_list = sorted(term_list)
-
-    return term_list
-
-
-def get_years_and_terms(terms_and_years) -> tuple[list[int], list[int]]:
-    terms_and_years = flatten(
-        item.split(" ") if type(item) is str else item for item in terms_and_years
-    )
-
+def get_years_and_terms(terms_and_years: Iterable[str]) -> tuple[list[int], list[str]]:
     years, terms = [], []
-    for item in terms_and_years:
-        str_item = str(item)
-        if len(str_item) == 4:
-            years.append(item)
-        elif len(str_item) == 5:
-            terms.append(item)
+
+    for group in terms_and_years:
+        for item in group.split():
+            match len(item):
+                case 4:
+                    years.append(item)
+                case 5:
+                    terms.append(year_plus_term(item[0:4], item[5]))
+                case 6:
+                    terms.append(item)
 
     return years, terms
 
 
-def calculate_terms(terms_and_years, now=date.today()) -> Iterator[str]:
+def calculate_terms(terms_and_years: Iterable[str], now=date.today()) -> Iterator[str]:
+    all_terms = ["1", "2", "3", "4", "5"]
     years, terms = get_years_and_terms(terms_and_years)
 
-    if (not terms) and (not years):
-        calculated_terms = find_terms(now=now)
-    elif 0 in years:
-        calculated_terms = find_terms(this_year=True, now=now)
-    else:
-        calculated_terms = terms + [
-            term
-            for year in years
-            for term in find_terms(start_year=year, end_year=year, now=now)
-        ]
+    yield from terms
 
-    for term in calculated_terms:
-        yield str(term)
+    if not years and not terms:
+        years = range(1994, now.year + 1)
+
+    for year in years:
+        for term in all_terms:
+            yield year_plus_term(year, term)

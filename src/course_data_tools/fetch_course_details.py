@@ -1,11 +1,13 @@
-import requests
-import logging
-import json
 import html
+import json
 import re
 
-from .paths import make_detail_path
-from .save_data import save_data
+import requests_cache
+from ratelimit import limits, sleep_and_retry
+import sqlite_utils
+from structlog.stdlib import get_logger
+
+logger = get_logger()
 
 apology = "Sorry, no description is available for this course."
 
@@ -19,84 +21,84 @@ bad_beginnings = []
 html_regex = re.compile(r"<[^>]*>")
 
 
-def request_detailed_course_data(clbid):
-    url = f"https://www.stolaf.edu/sis/public-coursedesc-json.cfm?clbid={clbid}"
-    r = requests.get(url)
-    r.raise_for_status()
-    return r.text
+@sleep_and_retry
+@limits(calls=1, period=1)
+def rate_limit():
+    pass
 
 
-def get_details(clbid, force_download, dry_run):
-    html_term_path = make_detail_path(clbid)
+def get_details(
+    session: requests_cache.CachedSession,
+    clbid: str,
+    detail_cache: sqlite_utils.db.Table,
+):
+    body = ""
 
-    if not force_download:
-        try:
-            logging.debug(f"Loading {clbid} from disk")
-            with open(html_term_path, "r", encoding="utf-8") as infile:
-                soup = json.load(infile)
-        except FileNotFoundError:
-            logging.debug(f"Nope. Requesting {clbid} from server")
-            raw_data = request_detailed_course_data(clbid)
-            soup = clean_markup(raw_data, clbid, dry_run)
-    else:
-        logging.debug(f"Forced to request {clbid} from server")
-        raw_data = request_detailed_course_data(clbid)
-        soup = clean_markup(raw_data, clbid, dry_run)
+    try:
+        if cached_body := detail_cache.get(clbid):
+            body = cached_body["body"]
+    except sqlite_utils.db.NotFoundError:
+        pass
 
-    return soup
+    if not body:
+        url = f"https://sis.stolaf.edu/sis/public-coursedesc-json.cfm?clbid={clbid}"
+
+        if not session.cache.has_url(url):
+            rate_limit()
+
+        # logger.debug("fetching %s", url)
+        response = session.get(url)
+        response.raise_for_status()
+
+        body = response.text
+
+        detail_cache.upsert(
+            pk="clbid",  # type: ignore
+            record=dict(clbid=clbid, body=body),
+        )
+
+    soup = clean_markup(body)
+    cleaned = clean_details(soup)
+
+    return cleaned
 
 
-def clean_markup(raw_data, clbid, dry_run):
+def clean_markup(raw_data: str) -> dict:
     start_str = "<!-- content:start -->"
     end_str = "<!-- content:end -->"
 
-    try:
-        start_idx = raw_data.index(start_str) + len(start_str)
-        end_idx = raw_data.index(end_str)
-    except ValueError:
-        raise Exception(f'"{clbid}" did not return any data, or returned an error')
+    start_idx = raw_data.index(start_str) + len(start_str)
+    end_idx = raw_data.index(end_str)
 
     extracted_data = raw_data[start_idx:end_idx]
     data = json.loads(extracted_data)
 
     if len(data) == 0:
-        raise Exception(f'"{clbid}" had zero results! {extracted_data}')
+        raise Exception(f"zero results! {extracted_data}")
     elif len(data) > 1:
-        raise Exception(f'"{clbid}" had more than one result! {extracted_data}')
+        raise Exception(f"more than one result! {extracted_data}")
 
-    data = data[clbid]
-
-    if not dry_run:
-        detail_path = make_detail_path(clbid)
-        save_data(
-            json.dumps(data, indent="\t", ensure_ascii=False, sort_keys=True) + "\n",
-            detail_path,
-        )
-
-    return data
+    return next(iter(data.values()))
 
 
 def sanitize_for_unicode(string: str):
-    # Remove html entities
-    string = html.unescape(string)
-
-    string = string.replace("\u0091", "‘")
-    string = string.replace("\u0092", "’")
-    string = string.replace("\u0093", "“")
-    string = string.replace("\u0094", "”")
-
-    string = string.replace("\u0096", "–")
-    string = string.replace("\u0097", "—")
-
-    string = string.replace("\u00ad", "-")
-    string = string.replace("\u00ae", "®")
-
-    return string
+    """Remove html entities"""
+    return (
+        html.unescape(string)
+        .replace("\u0091", "‘")
+        .replace("\u0092", "’")
+        .replace("\u0093", "“")
+        .replace("\u0094", "”")
+        .replace("\u0096", "–")
+        .replace("\u0097", "—")
+        .replace("\u00ad", "-")
+        .replace("\u00ae", "®")
+    )
 
 
-def clean_details(data):
-    title = data["fullname"] if "fullname" in data else None
-    description = data["description"] if "description" in data else None
+def clean_details(data: dict) -> dict:
+    title = data.get("fullname")
+    description = data.get("description")
 
     if title:
         title = sanitize_for_unicode(title)
@@ -157,10 +159,3 @@ def clean_details(data):
         title = None
 
     return {"title": title, "description": description}
-
-
-def fetch_course_details(clbid, dry_run=False, force_download=False):
-    clbid = str(clbid).zfill(10)
-
-    data = get_details(clbid, force_download, dry_run)
-    return clean_details(data)
