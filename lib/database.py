@@ -4,7 +4,7 @@ def insert_course(db, course):
     gereqs = ",".join(course.get("gereqs", []))
     instructors = ",".join(course["instructors"])
     note = "".join(course.get("note", []))
-    offerings = course["offerings"] if len(course.get("offerings", [])) else []
+    offerings = get_offerings(course)
     pass_nopass = 1 if "Pass or No Pass (P/N) only" in description else 0
 
     db["section"].insert({
@@ -40,17 +40,22 @@ def insert_course(db, course):
         "major": "",
         "concentration": "",
         }, pk="id"
-    )
+    ).m2m("offerings", offerings, pk="id")
 
-    for offering in offerings:
-        meeting_row = {
-            "clbid": int(course["clbid"]),
-            "location": offering["location"],
-            "days": offering["day"],
-            "start": offering["start"],
-            "end": offering["end"]
-        }
-        db["meeting"].insert(meeting_row, pk="id")
+
+def build_offering(data):
+    return {
+        "location": data["location"],
+        "days": data["day"],
+        "start": data["start"],
+        "end": data["end"]
+    }
+
+
+def get_offerings(course):
+    course_offerings = course["offerings"] if len(course.get("offerings", [])) else []
+    offerings = [build_offering(data) for data in course_offerings if len(course_offerings)]
+    return offerings
 
 
 def tracer(sql, params):
