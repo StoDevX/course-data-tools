@@ -5,13 +5,15 @@ from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 import os
+from sqlite_utils import Database
 
 from lib.json_folder_map import json_folder_map
 from lib.calculate_terms import calculate_terms
 from lib.regress_course import regress_course
 from lib.load_courses import load_some_courses
 from lib.save_term import save_term
-from lib.save_data import write_to_database
+from lib.database import write_to_database
+from lib.database import tracer
 from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
@@ -36,7 +38,12 @@ def one_term(args, term):
     log(pretty_term, 'Saving term')
     for f in args.format:
         # save_term(term, courses, kind=f, root_path=args.out_dir)
-        write_to_database(courses)
+        generate_sqlite_db(courses, should_trace=args.trace)
+
+
+def generate_sqlite_db(courses, should_trace):
+    db = Database("catalog.db", tracer=tracer if should_trace else None)
+    write_to_database(db, courses)
 
 
 def run(args):
@@ -82,6 +89,9 @@ def main():
                            nargs='?',
                            choices=['json', 'csv', 'xml'],
                            help='Change the output filetype')
+    argparser.add_argument('--trace',
+                           action='store_true',
+                           help="Verbose tracing of sqlite queries")    
 
     args = argparser.parse_args()
     args.format = ['json'] if not args.format else args.format
