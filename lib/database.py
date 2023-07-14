@@ -21,7 +21,7 @@ def insert_course(db, course):
     ).m2m("description", {
         "content": description
         }, pk="id"
-    ).m2m("instructors", {
+    ).m2m("instructor", {
         "name": instructors,
         "fsnum": "",
         }, pk="id"
@@ -34,7 +34,7 @@ def insert_course(db, course):
         "junior": course.get("junior"),
         "senior": course.get("senior"),
         }, pk="id"
-    ).m2m("countstowards", {
+    ).m2m("countstoward", {
         "gereq": gereqs,
         "corereq": "",
         "major": "",
