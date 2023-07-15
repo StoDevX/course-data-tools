@@ -9,6 +9,8 @@ from structlog.stdlib import get_logger
 
 logger = get_logger()
 
+maintenance = "The St. Olaf SIS is down for maintenance"
+
 apology = "Sorry, no description is available for this course."
 
 bad_endings = [
@@ -57,26 +59,30 @@ def get_details(
             record=dict(clbid=clbid, body=body),
         )
 
-    soup = clean_markup(body)
+    soup = clean_markup(clbid, body)
     cleaned = clean_details(soup)
 
     return cleaned
 
 
-def clean_markup(raw_data: str) -> dict:
+def clean_markup(clbid: str, raw_data: str) -> dict:
     start_str = "<!-- content:start -->"
     end_str = "<!-- content:end -->"
 
-    start_idx = raw_data.index(start_str) + len(start_str)
-    end_idx = raw_data.index(end_str)
+    if raw_data.find(maintenance):
+        fallback = {clbid: {"description": [apology]}}
+        data = json.loads(json.dumps(fallback))
+    else:
+        start_idx = raw_data.index(start_str) + len(start_str)
+        end_idx = raw_data.index(end_str)
 
-    extracted_data = raw_data[start_idx:end_idx]
-    data = json.loads(extracted_data)
+        extracted_data = raw_data[start_idx:end_idx]
+        data = json.loads(extracted_data)
 
-    if len(data) == 0:
-        raise Exception(f"zero results! {extracted_data}")
-    elif len(data) > 1:
-        raise Exception(f"more than one result! {extracted_data}")
+        if len(data) == 0:
+            raise Exception(f"zero results! {extracted_data}")
+        elif len(data) > 1:
+            raise Exception(f"more than one result! {extracted_data}")
 
     return next(iter(data.values()))
 
