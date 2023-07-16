@@ -69,9 +69,8 @@ def clean_markup(clbid: str, raw_data: str) -> dict:
     start_str = "<!-- content:start -->"
     end_str = "<!-- content:end -->"
 
-        fallback = {clbid: {"description": [apology]}}
-        data = json.loads(json.dumps(fallback))
     if raw_data.find(maintenance) != -1:
+        data = {clbid: {"description": None}}
     else:
         start_idx = raw_data.index(start_str) + len(start_str)
         end_idx = raw_data.index(end_str)
