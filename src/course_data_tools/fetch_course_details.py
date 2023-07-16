@@ -9,8 +9,6 @@ from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-maintenance = "The St. Olaf SIS is down for maintenance"
-
 apology = "Sorry, no description is available for this course."
 
 bad_endings = [
@@ -69,9 +67,7 @@ def clean_markup(clbid: str, raw_data: str) -> dict:
     start_str = "<!-- content:start -->"
     end_str = "<!-- content:end -->"
 
-    if raw_data.find(maintenance) != -1:
-        data = {clbid: {"description": None}}
-    else:
+    try:
         start_idx = raw_data.index(start_str) + len(start_str)
         end_idx = raw_data.index(end_str)
 
@@ -82,6 +78,8 @@ def clean_markup(clbid: str, raw_data: str) -> dict:
             raise Exception(f"zero results! {extracted_data}")
         elif len(data) > 1:
             raise Exception(f"more than one result! {extracted_data}")
+    except ValueError:
+        data = {clbid: {"description": None}}
 
     return next(iter(data.values()))
 
