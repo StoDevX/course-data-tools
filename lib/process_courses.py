@@ -108,7 +108,10 @@ def clean_course(course):
         course['number'] = course['coursenumber']
     del course['coursenumber']
 
-    course['credits'] = float(course['credits'])
+    try:
+        course['credits'] = float(course['credits'])
+    except ValueError:
+        course['credits'] = -1.0
 
     course['enrolled'] = int(course['enroll'])
     del course['enroll']
