@@ -26,9 +26,9 @@ fi
 git add .
 git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
 if [[ $GITHUB_BRANCH == "master" ]]; then
-	git push "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" master
+	git push origin master
 else
-	git push --force "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" "$GITHUB_BRANCH"
+	git push --force origin "$GITHUB_BRANCH"
 fi
 
 # prepare the gh-pages branch
@@ -51,5 +51,5 @@ if [[ $GITHUB_BRANCH == "master" ]]; then
 	git add --all ./
 	git commit --quiet -m "course data bundles" --quiet
 
-    git push -f "https://$GITHUB_OAUTH@github.com/StoDevX/course-data.git" gh-pages
+    git push -f origin gh-pages
 fi

@@ -3,6 +3,7 @@ name: Update Course Data
 on:
   schedule:
     - cron:  '0 2 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,9 +20,17 @@ jobs:
         python-version: ["3.7"]
 
     steps:
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.COURSE_DATA_BOT_APP_ID }}
+          private-key: ${{ secrets.COURSE_DATA_BOT_APP_PEM }}
+          installation-id: ${{ github.event.installation.id }}
+
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Start check-in
         if: github.event_name == 'schedule'
@@ -46,7 +55,7 @@ jobs:
         env:
           GITHUB_BRANCH: ${{ github.ref_name }}
           head_ref: ${{ github.ref }}
-          GITHUB_OAUTH: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Finish check-in
         if: github.event_name == 'schedule'
