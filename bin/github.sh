@@ -26,9 +26,9 @@ fi
 git add .
 git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
 if [[ $GITHUB_BRANCH == "master" ]]; then
-	git push origin master
+	git push origin master -o ci.token=$GH_TOKEN
 else
-	git push --force origin "$GITHUB_BRANCH"
+	git push --force origin "$GITHUB_BRANCH" -o ci.token=$GH_TOKEN
 fi
 
 # prepare the gh-pages branch
@@ -51,5 +51,5 @@ if [[ $GITHUB_BRANCH == "master" ]]; then
 	git add --all ./
 	git commit --quiet -m "course data bundles" --quiet
 
-    git push -f origin gh-pages
+    git push -f origin gh-pages -o ci.token=$GH_TOKEN
 fi
