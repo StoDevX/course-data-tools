@@ -4,7 +4,7 @@
 set -ve
 
 # prepare the repositories
-git clone --depth=1 https://github.com/StoDevX/course-data.git
+git clone --depth=1 git@github.com:StoDevX/course-data.git
 cd course-data
 
 git config user.name "Github Databot"
@@ -26,9 +26,9 @@ fi
 git add .
 git commit --quiet -m "course data update $(date)" || (echo "No updates found." && exit 0)
 if [[ $GITHUB_BRANCH == "master" ]]; then
-	git push origin master -o ci.token=$GH_TOKEN
+	git push git@github.com:StoDevX/course-data.git master -o ci.token=$GH_TOKEN
 else
-	git push --force origin "$GITHUB_BRANCH" -o ci.token=$GH_TOKEN
+	git push --force git@github.com:StoDevX/course-data.git "$GITHUB_BRANCH" -o ci.token=$GH_TOKEN
 fi
 
 # prepare the gh-pages branch
@@ -51,5 +51,5 @@ if [[ $GITHUB_BRANCH == "master" ]]; then
 	git add --all ./
 	git commit --quiet -m "course data bundles" --quiet
 
-    git push -f origin gh-pages -o ci.token=$GH_TOKEN
+    git push -f git@github.com:StoDevX/course-data.git gh-pages -o ci.token=$GH_TOKEN
 fi
