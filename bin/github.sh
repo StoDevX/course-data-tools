@@ -4,7 +4,7 @@
 set -ve
 
 # prepare the repositories
-git clone --depth=1 git@github.com:StoDevX/course-data.git
+git clone --depth=1 git@github.com:StoDevX/course-data.git -o ci.token=$GH_TOKEN
 cd course-data
 
 git config user.name "Github Databot"
