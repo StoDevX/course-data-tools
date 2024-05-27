@@ -1,4 +1,4 @@
-name: Check dependencies and lint
+name: Check dependencies
 on:
   push: {branches: [master]}
   pull_request:
