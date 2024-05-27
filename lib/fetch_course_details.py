@@ -59,7 +59,7 @@ def clean_markup(raw_data, clbid, dry_run):
     extracted_data = raw_data[start_idx:end_idx]
     data = json.loads(extracted_data)
 
-    if len(data) is 0:
+    if len(data) == 0:
         raise Exception(f'"{clbid}" had zero results! {extracted_data}')
     elif len(data) > 1:
         raise Exception(f'"{clbid}" had more than one result! {extracted_data}')
