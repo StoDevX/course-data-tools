@@ -39,11 +39,14 @@ fi
 git checkout --quiet -B "$PAGES_BRANCH" "$GITHUB_BRANCH" --no-track
 
 # update bundled information for public consumption
-uv run --project .. ../bundle.py --out-dir ../course-data --format json --format xml --format csv
+uv run --project .. ../bundle.py --out-dir ../course-data --format json --format xml --format csv --format sqlite
 uv run --project .. ../bundle.py --legacy --out-dir ../course-data/legacy --format json
 
 # remove the source files (quietly)
 git rm -rf --quiet details/ raw_xml/
+
+# The catalog ships as a release asset, so keep it out of the gh-pages commit.
+mv catalog.db "${GITHUB_WORKSPACE:-..}/catalog.db"
 
 # and … push
 if [[ $GITHUB_BRANCH == "master" ]]; then

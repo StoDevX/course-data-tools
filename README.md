@@ -48,9 +48,31 @@ You can pass a mix of years and terms to `bundle.py`. A term is a year followed 
 ###### Arguments:
 
 - `-w` — how many processes to spawn
-- `--format (json|csv|xml)` — how to output the bundle. can be given multiple times to generate multiple formats
+- `--format (json|csv|xml|sqlite)` — how to output the bundle. can be given multiple times to generate multiple formats
 - `--legacy` — create files in the legacy gobbldygook format
 - `--out-dir` — path to a folder to contain the output
+- `--trace` — print every sqlite query as it runs
+
+###### The course catalog database:
+
+`--format sqlite` writes a normalized `catalog.db` into `--out-dir`. Unlike the per-term
+bundles it covers every requested term in one file, and it is rebuilt from scratch on each
+run — the JSON course files remain the source of truth.
+
+```
+section(clbid PK, crsid, term, year, semester, department, number, section,
+        level, type, name, title, description, credits, pass_nopass,
+        learning_mode, status, enrolled, max, firstyear, sophomore,
+        junior, senior, notes)
+offering(id PK, clbid → section, day, start, end, location)
+instructor(id PK, name)  ⟷  section_instructor(clbid, instructor_id)
+gereq(id PK, code)       ⟷  section_gereq(clbid, gereq_id)
+```
+
+The nightly workflow publishes it to a rolling release tag, so this URL always serves the
+most recent build:
+
+<https://github.com/StoDevX/course-data/releases/download/catalog/catalog.db>
 
 ## `maintain-datafiles.py`
 
