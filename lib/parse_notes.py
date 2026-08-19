@@ -1,3 +1,7 @@
+import re
+from textwrap import dedent
+
+
 def parse_notes(course):
     if course['notes'] and 'Will also meet' in course['notes']:
         info = dedent(f'''

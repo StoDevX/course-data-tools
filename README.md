@@ -6,9 +6,9 @@ There are three scripts: `download.py`, `maintain-datafiles.py`, and `bundle.py`
 
 All of these tools expect the [course data][course-data] to be one folder up from the CWD, in `../course-data`.
 
-These scripts require `python3` >= 3.8, as well as `beautifulsoup4`, `requests`, `xmltodict`, `sqlite-utils`.
+These scripts require `python3` >= 3.13 and [uv][uv].
 
-The libraries are also specified in the `Pipfile` file, so a `pip3 install pipenv` and `pipenv run $command`
+Run `uv sync` once, then invoke the tools with `uv run ./download.py` and friends.
 
 ## `download.py`
 
@@ -63,3 +63,4 @@ You can pass a mix of years and terms to `bundle.py`. A term is a year followed 
 `maintain-datafiles.py` takes no arguments and does one thing: it loads every course in `../course-data`, and it collects lists of departments, gereqs, instructors, locations, times, and types into `../course-data/data-lists`.
 
 [course-data]: https://github.com/stodevx/course-data
+[uv]: https://docs.astral.sh/uv/

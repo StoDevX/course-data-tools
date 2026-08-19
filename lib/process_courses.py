@@ -118,7 +118,7 @@ def clean_course(course):
     course['max'] = int(course['max'])
 
     # Turn booleans into booleans
-    course['pn'] = True if course['pn'] is 'Y' else False
+    course['pn'] = True if course['pn'] == 'Y' else False
 
     # Add the term, year, and semester
     # `term` looks like 20083, where the first four digits represent the

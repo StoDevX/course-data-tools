@@ -1,0 +1,21 @@
+[project]
+name = "course-data-tools"
+version = "0.1.0"
+description = "Tools for extracting course data from the St. Olaf SIS"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "requests>=2.32.4",
+    "xmltodict>=0.13",
+    "sqlite-utils>=4.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pylint>=3.3",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["lib", "."]
+python_files = ["test_*.py"]
