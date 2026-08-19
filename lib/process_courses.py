@@ -86,8 +86,9 @@ def clean_course(course):
     del course['varcredits']
 
     # Flesh out coursesubtype
-    if course['coursesubtype'] and course['coursesubtype'] in course_types:
-        course['type'] = course_types[course['coursesubtype']]
+    types = course_types()
+    if course['coursesubtype'] and course['coursesubtype'] in types:
+        course['type'] = types[course['coursesubtype']]
     else:
         course['type'] = course['coursesubtype']
         raise UserWarning(f"'{course['type']}' doesn't appear in the types list, in", course)

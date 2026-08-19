@@ -1,4 +1,14 @@
+import pytest
+
+from . import data
 from .process_courses import clean_course
+
+
+@pytest.fixture(autouse=True)
+def course_types(monkeypatch):
+    """The real mapping is owned by the course-data repo, which these unit
+    tests do not require a checkout of."""
+    monkeypatch.setattr(data, '_cache', {'R': 'Research'})
 
 
 def base_course(**overrides):
