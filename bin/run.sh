@@ -30,8 +30,7 @@ fi
 git checkout -B gh-pages master --no-track
 
 # update bundled information for public consumption
-# python3 ../bundle.py --out-dir ../course-data --format json --format xml --format csv
-python3 ../bundle.py --out-dir ../course-data --format json --format xml
+python3 ../bundle.py --out-dir ../course-data --format json --format xml --format csv
 python3 ../bundle.py --legacy --out-dir ../course-data/legacy --format json
 
 # remove the source files (quietly)

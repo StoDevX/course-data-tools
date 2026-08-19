@@ -1,5 +1,4 @@
-St. Olaf Course Data Tools
-==========================
+# St. Olaf Course Data Tools
 
 Here lie the tools for extracting course data from the St. Olaf SIS.
 
@@ -7,12 +6,12 @@ There are three scripts: `download.py`, `maintain-datafiles.py`, and `bundle.py`
 
 All of these tools expect the [course data][course-data] to be one folder up from the CWD, in `../course-data`.
 
-These scripts require `python3` >= 3.7, as well as `beautifulsoup4`, `requests`, `xmltodict`, `sqlite-utils`.
+These scripts require `python3` >= 3.8, as well as `beautifulsoup4`, `requests`, `xmltodict`, `sqlite-utils`.
 
 The libraries are also specified in the `Pipfile` file, so a `pip3 install pipenv` and `pipenv run $command`
 
-
 ## `download.py`
+
 ###### Usage:
 
 ```console
@@ -24,6 +23,7 @@ The libraries are also specified in the `Pipfile` file, so a `pip3 install pipen
 You can pass a mix of years and terms to `download.py`. A term is a year followed by `1-5` – 1 for fall, 5 for summer session 2.
 
 ###### Arguments:
+
 - `-w, --workers` — how many processes to spawn
 - `--force-terms` — force downloading the terms from the SIS
 - `--force-details` — force downloading the course details from the SIS
@@ -31,8 +31,8 @@ You can pass a mix of years and terms to `download.py`. A term is a year followe
 - `--ignore-revisions $PROP` — don't check for revisions in these properties
 - `-q, --quiet` — be quieter
 
-
 ## `bundle.py`
+
 ###### Usage:
 
 ```console
@@ -46,13 +46,14 @@ You can pass a mix of years and terms to `bundle.py`. A term is a year followed 
 `bundle.py` outputs bundles into `../course-data/terms`.
 
 ###### Arguments:
+
 - `-w` — how many processes to spawn
 - `--format (json|csv|xml)` — how to output the bundle. can be given multiple times to generate multiple formats
 - `--legacy` — create files in the legacy gobbldygook format
 - `--out-dir` — path to a folder to contain the output
 
-
 ## `maintain-datafiles.py`
+
 ###### Usage:
 
 ```console
@@ -60,6 +61,5 @@ You can pass a mix of years and terms to `bundle.py`. A term is a year followed 
 ```
 
 `maintain-datafiles.py` takes no arguments and does one thing: it loads every course in `../course-data`, and it collects lists of departments, gereqs, instructors, locations, times, and types into `../course-data/data-lists`.
-
 
 [course-data]: https://github.com/stodevx/course-data

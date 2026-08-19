@@ -12,7 +12,7 @@ def csvify(data):
             item.pop('revisions')
         for key in item:
             if type(item[key]) is list:
-                item[key] = ';'.join(item[key])
+                item[key] = ';'.join(str(x) if not isinstance(x, str) else x for x in item[key])
             if type(item[key]) is str:
                 item[key] = item[key].replace('\n', '\\n')
     with io.StringIO() as outfile:
