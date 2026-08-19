@@ -163,6 +163,10 @@ def clean_course(course):
     if offerings:
         course['offerings'] = offerings
 
+    # An absent learning mode means "All Learning Modes", which is a value in
+    # its own right; default it so the None-stripping below can't discard it.
+    course['learningmode'] = course.get('learningmode') or ''
+
     # return the non-None values for serialization
     return {key: value for key, value in course.items() if value is not None}
 
