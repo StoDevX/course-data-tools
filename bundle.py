@@ -5,12 +5,16 @@ from multiprocessing import cpu_count
 from argparse import ArgumentParser
 import functools
 import os
+from sqlite_utils import Database
 
 from lib.json_folder_map import json_folder_map
 from lib.calculate_terms import calculate_terms
 from lib.regress_course import regress_course
 from lib.load_courses import load_some_courses
 from lib.save_term import save_term
+from lib.database import create_schema
+from lib.database import insert_course
+from lib.database import tracer
 from lib.paths import COURSE_DATA
 from lib.log import log
 from lib.paths import term_clbid_mapping_path
@@ -34,14 +38,38 @@ def one_term(args, term):
 
     log(pretty_term, 'Saving term')
     for f in args.format:
+        if f == 'sqlite':
+            continue
         save_term(term, courses, kind=f, root_path=args.out_dir)
 
 
+def build_database(path, courses, should_trace=False):
+    """Rebuild the catalog from scratch at `path`."""
+    if os.path.exists(path):
+        os.remove(path)
+
+    db = Database(path, tracer=tracer if should_trace else None)
+    create_schema(db)
+    with db.conn:
+        for course in courses:
+            insert_course(db, course)
+    return db
+
+
+
+def resolve_terms(term_or_year):
+    """The terms to bundle, as a list.
+
+    Both sources are generators, and the sqlite pass walks the terms a second
+    time after the format passes have already consumed them once.
+    """
+    if term_or_year:
+        return list(calculate_terms(term_or_year))
+    return list(list_all_course_index_files())
+
+
 def run(args):
-    if args.term_or_year:
-        terms = calculate_terms(args.term_or_year)
-    else:
-        terms = list_all_course_index_files()
+    terms = resolve_terms(args.term_or_year)
     edit_one_term = functools.partial(one_term, args)
 
     if args.workers > 1:
@@ -50,7 +78,15 @@ def run(args):
     else:
         list(map(edit_one_term, terms))
 
-    json_folder_map(root=args.out_dir, folder='terms', name='info')
+    if 'sqlite' in args.format:
+        log('sqlite', 'Building catalog')
+        courses = (c for term in terms for c in load_some_courses(term))
+        build_database(os.path.join(args.out_dir, 'catalog.db'),
+                       courses,
+                       should_trace=args.trace)
+
+    if set(args.format) & {'json', 'csv', 'xml'}:
+        json_folder_map(root=args.out_dir, folder='terms', name='info')
 
 
 def main():
@@ -78,8 +114,11 @@ def main():
     argparser.add_argument('--format',
                            action='append',
                            nargs='?',
-                           choices=['json', 'csv', 'xml'],
+                           choices=['json', 'csv', 'xml', 'sqlite'],
                            help='Change the output filetype')
+    argparser.add_argument('--trace',
+                           action='store_true',
+                           help="Verbose tracing of sqlite queries")    
 
     args = argparser.parse_args()
     args.format = ['json'] if not args.format else args.format

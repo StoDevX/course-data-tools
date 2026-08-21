@@ -16,8 +16,8 @@ git config user.name "Github Databot"
 git config user.email "hawkrives+sto-course-databot@gmail.com"
 
 # update course data files
-python3 ../download.py --force-terms 2015 2016 -w 2
-python3 ../maintain-datafiles.py
+uv run --project .. ../download.py --force-terms 2015 2016 -w 2
+uv run --project .. ../maintain-datafiles.py
 
 git add .
 git commit -m "course data update $(date)" || (echo "No updates found." && exit 0)
@@ -30,8 +30,8 @@ fi
 git checkout -B gh-pages master --no-track
 
 # update bundled information for public consumption
-python3 ../bundle.py --out-dir ../course-data --format json --format xml --format csv
-python3 ../bundle.py --legacy --out-dir ../course-data/legacy --format json
+uv run --project .. ../bundle.py --out-dir ../course-data --format json --format xml --format csv
+uv run --project .. ../bundle.py --legacy --out-dir ../course-data/legacy --format json
 
 # remove the source files (quietly)
 git rm -rf --quiet courses/ details/ raw_xml/

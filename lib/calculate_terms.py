@@ -61,9 +61,9 @@ def get_years_and_terms(terms_and_years):
     years, terms = [], []
     for item in terms_and_years:
         str_item = str(item)
-        if len(str_item) is 4:
+        if len(str_item) == 4:
             years.append(item)
-        elif len(str_item) is 5:
+        elif len(str_item) == 5:
             terms.append(item)
 
     return years, terms

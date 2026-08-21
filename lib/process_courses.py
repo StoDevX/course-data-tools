@@ -6,7 +6,7 @@ import os
 from textwrap import dedent
 
 from .check_for_course_revisions import check_for_revisions
-from .data import course_types
+from . import data
 from .parse_links_for_text import parse_links_for_text
 from .parse_paragraph_as_list import parse_paragraph_as_list
 from .paths import make_course_path
@@ -86,8 +86,9 @@ def clean_course(course):
     del course['varcredits']
 
     # Flesh out coursesubtype
-    if course['coursesubtype'] and course['coursesubtype'] in course_types:
-        course['type'] = course_types[course['coursesubtype']]
+    types = data.course_types()
+    if course['coursesubtype'] and course['coursesubtype'] in types:
+        course['type'] = types[course['coursesubtype']]
     else:
         course['type'] = course['coursesubtype']
         raise UserWarning(f"'{course['type']}' doesn't appear in the types list, in", course)
@@ -118,7 +119,7 @@ def clean_course(course):
     course['max'] = int(course['max'])
 
     # Turn booleans into booleans
-    course['pn'] = True if course['pn'] is 'Y' else False
+    course['pn'] = True if course['pn'] == 'Y' else False
 
     # Add the term, year, and semester
     # `term` looks like 20083, where the first four digits represent the
@@ -162,6 +163,10 @@ def clean_course(course):
     offerings = list(create_offerings(times=times, locations=locations))
     if offerings:
         course['offerings'] = offerings
+
+    # An absent learning mode means "All Learning Modes", which is a value in
+    # its own right; default it so the None-stripping below can't discard it.
+    course['learningmode'] = course.get('learningmode') or ''
 
     # return the non-None values for serialization
     return {key: value for key, value in course.items() if value is not None}

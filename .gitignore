@@ -2,5 +2,11 @@
 __pycache__
 .nfs*
 venv/
+.venv/
 ./course-data
 .pytest_cache/
+
+# derived database artifacts
+*.db
+*.sqlite
+*.sqlite3

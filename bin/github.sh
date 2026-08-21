@@ -16,8 +16,8 @@ for y in $(seq 1994 $(date +%Y)); do
     for s in $(seq 1 5); do
         echo "$y$s"
     done
-done | xargs -t -n1 -P1 -- python3 ../download.py --force-terms -w 1
-python3 ../maintain-datafiles.py
+done | xargs -t -n1 -P1 -- uv run --project .. ../download.py --force-terms -w 1
+uv run --project .. ../maintain-datafiles.py
 
 if [[ $GITHUB_BRANCH != "master" ]]; then
 	git checkout --quiet -b "$GITHUB_BRANCH"
@@ -39,11 +39,14 @@ fi
 git checkout --quiet -B "$PAGES_BRANCH" "$GITHUB_BRANCH" --no-track
 
 # update bundled information for public consumption
-python3 ../bundle.py --out-dir ../course-data --format json --format xml --format csv
-python3 ../bundle.py --legacy --out-dir ../course-data/legacy --format json
+uv run --project .. ../bundle.py --out-dir ../course-data --format json --format xml --format csv --format sqlite
+uv run --project .. ../bundle.py --legacy --out-dir ../course-data/legacy --format json
 
 # remove the source files (quietly)
 git rm -rf --quiet details/ raw_xml/
+
+# The catalog ships as a release asset, so keep it out of the gh-pages commit.
+mv catalog.db "${GITHUB_WORKSPACE:-..}/catalog.db"
 
 # and … push
 if [[ $GITHUB_BRANCH == "master" ]]; then
