@@ -6,7 +6,7 @@ import os
 from textwrap import dedent
 
 from .check_for_course_revisions import check_for_revisions
-from .data import course_types
+from . import data
 from .parse_links_for_text import parse_links_for_text
 from .parse_paragraph_as_list import parse_paragraph_as_list
 from .paths import make_course_path
@@ -86,7 +86,7 @@ def clean_course(course):
     del course['varcredits']
 
     # Flesh out coursesubtype
-    types = course_types()
+    types = data.course_types()
     if course['coursesubtype'] and course['coursesubtype'] in types:
         course['type'] = types[course['coursesubtype']]
     else:
