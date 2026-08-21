@@ -35,11 +35,11 @@ def create_schema(db):
         "learning_mode": str,
         "status": str,
         "enrolled": int,
-        "max": int,
-        "firstyear": str,
-        "sophomore": str,
-        "junior": str,
-        "senior": str,
+        "enrollment_max": int,
+        "enrollment_fy": str,
+        "enrollment_so": str,
+        "enrollment_jr": str,
+        "enrollment_sr": str,
         "notes": str,
     }, pk="clbid", if_not_exists=True)
     db["section"].create_index(["term"], if_not_exists=True)
@@ -109,11 +109,11 @@ def build_section(course):
         "learning_mode": course.get("learningmode") or "",
         "status": course.get("status"),
         "enrolled": course.get("enrolled"),
-        "max": course.get("max"),
-        "firstyear": course.get("firstyear"),
-        "sophomore": course.get("sophomore"),
-        "junior": course.get("junior"),
-        "senior": course.get("senior"),
+        "enrollment_max": course.get("max"),
+        "enrollment_fy": course.get("firstyear"),
+        "enrollment_so": course.get("sophomore"),
+        "enrollment_jr": course.get("junior"),
+        "enrollment_sr": course.get("senior"),
         "notes": join_paragraphs(course.get("notes")),
     }
 

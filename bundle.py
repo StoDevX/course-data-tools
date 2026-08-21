@@ -38,8 +38,6 @@ def one_term(args, term):
 
     log(pretty_term, 'Saving term')
     for f in args.format:
-        # sqlite is built once, serially, after every term has been written;
-        # see run(). Several processes writing one sqlite file would collide.
         if f == 'sqlite':
             continue
         save_term(term, courses, kind=f, root_path=args.out_dir)
@@ -87,7 +85,8 @@ def run(args):
                        courses,
                        should_trace=args.trace)
 
-    json_folder_map(root=args.out_dir, folder='terms', name='info')
+    if set(args.format) & {'json', 'csv', 'xml'}:
+        json_folder_map(root=args.out_dir, folder='terms', name='info')
 
 
 def main():

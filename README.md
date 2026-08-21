@@ -62,8 +62,8 @@ run — the JSON course files remain the source of truth.
 ```
 section(clbid PK, crsid, term, year, semester, department, number, section,
         level, type, name, title, description, credits, pass_nopass,
-        learning_mode, status, enrolled, max, firstyear, sophomore,
-        junior, senior, notes)
+        learning_mode, status, enrolled, enrollment_max, enrollment_fy,
+        enrollment_so, enrollment_jr, enrollment_sr, notes)
 offering(id PK, clbid → section, day, start, end, location)
 instructor(id PK, name)  ⟷  section_instructor(clbid, instructor_id)
 gereq(id PK, code)       ⟷  section_gereq(clbid, gereq_id)
