@@ -9,7 +9,9 @@ from lib.save_term_clbid_list import save_term_clbid_list
 from lib.fetch_course_details import fetch_course_details
 from lib.calculate_terms import calculate_terms
 from lib.process_courses import process_course
+from lib.process_course_from_api import process_course_from_api
 from lib.fetch_term_data import load_term
+from lib.fetch_term_via_api import fetch_term_via_api
 
 
 def one_term(args, term):
@@ -17,9 +19,9 @@ def one_term(args, term):
 
     clbids = []
     print(pretty_term, 'Processing term')
-    for course in load_term(term, force_download=args.force_terms):
+    for course in fetch_term_via_api(term):
         details = fetch_course_details(course['clbid'], dry_run=args.dry_run, force_download=args.force_details)
-        course = process_course(course, details, dry_run=args.dry_run, ignore_revision_keys=args.ignore_revision_keys, no_revisions=args.no_revisions)
+        course = process_course_from_api(course, details, dry_run=args.dry_run, ignore_revision_keys=args.ignore_revision_keys, no_revisions=args.no_revisions)
         clbids.append(course['clbid'])
 
     if not clbids:
