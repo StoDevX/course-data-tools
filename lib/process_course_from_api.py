@@ -65,11 +65,6 @@ def process_course_from_api(course, detail, ignore_revision_keys, dry_run, no_re
     if course.get('description'):
         course['prerequisites'] = parse_prerequisites(course)
 
-    # Drop instructors_full (FSNUM data) from JSON output for now
-    # The database can use it directly; JSON consumers expect just names
-    if 'instructors_full' in course:
-        del course['instructors_full']
-
     # Handle revisions
     course_existed_before = check_for_course_file_existence(course['clbid'])
     revisions = check_for_revisions(course, ignore_revision_keys=ignore_revision_keys, no_revisions=no_revisions)
