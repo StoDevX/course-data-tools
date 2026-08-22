@@ -5,14 +5,6 @@ rebuilt from scratch on every run. Sections are keyed on their clbid so that a
 rebuild updates rows in place rather than accumulating duplicates.
 """
 
-# Instructors and gereqs are shared across sections, so each lives in its own
-# lookup table joined many-to-many. Everything here maps a lookup table to the
-# column holding its value and the join table pointing back at a section.
-LOOKUPS = {
-    'instructors': ('instructor', 'name', 'section_instructor', 'instructor_id'),
-    'gereqs': ('gereq', 'code', 'section_gereq', 'gereq_id'),
-}
-
 # Text fields interned into their own lookup tables for compression.
 # Maps JSON key -> (table_name, section_fk_column, is_list).
 # is_list=True means the JSON value is a list of strings to join.
@@ -68,9 +60,11 @@ def create_schema(db):
 
     db["instructor"].create({
         "id": int,
+        "fsnum": str,
         "name": str,
     }, pk="id", if_not_exists=True)
-    db["instructor"].create_index(["name"], unique=True, if_not_exists=True)
+    db["instructor"].create_index(["fsnum"], unique=True, if_not_exists=True)
+    db["instructor"].create_index(["name"], if_not_exists=True)  # not unique - names can change
 
     db["gereq"].create({
         "id": int,
@@ -240,16 +234,54 @@ def build_offering(db, clbid, offering):
     }
 
 
+def _link_instructors(db, clbid, course):
+    """Link section to instructor rows, using FSNUM when available."""
+    db["section_instructor"].delete_where("clbid = ?", [clbid])
+
+    instructors_full = course.get("instructors_full") or []
+    instructors = course.get("instructors") or []
+
+    # Build a map from name to fsnum for fast lookup
+    fsnum_by_name = {i["name"]: i.get("fsnum") for i in instructors_full}
+
+    for name in instructors:
+        fsnum = fsnum_by_name.get(name)
+
+        if fsnum:
+            # FSNUM-based lookup: update name if it changed
+            existing = list(db["instructor"].rows_where("fsnum = ?", [fsnum]))
+            if existing:
+                row_id = existing[0]["id"]
+                if existing[0]["name"] != name:
+                    db["instructor"].update(row_id, {"name": name})
+            else:
+                row_id = db["instructor"].insert({"fsnum": fsnum, "name": name}).last_pk
+        else:
+            # No FSNUM: fall back to name-based lookup
+            existing = list(db["instructor"].rows_where("name = ? AND fsnum IS NULL", [name]))
+            if existing:
+                row_id = existing[0]["id"]
+            else:
+                row_id = db["instructor"].insert({"fsnum": None, "name": name}).last_pk
+
+        db["section_instructor"].insert(
+            {"clbid": clbid, "instructor_id": row_id},
+            replace=True,
+        )
+
+
 def link_lookups(db, clbid, course):
     """Point this section at its shared instructor and gereq rows."""
-    for key, (table, column, join_table, join_column) in LOOKUPS.items():
-        db[join_table].delete_where("clbid = ?", [clbid])
-        for value in course.get(key) or []:
-            row_id = db[table].lookup({column: value})
-            db[join_table].insert(
-                {"clbid": clbid, join_column: row_id},
-                replace=True,
-            )
+    _link_instructors(db, clbid, course)
+
+    # Gereqs use simple name-based lookup
+    db["section_gereq"].delete_where("clbid = ?", [clbid])
+    for code in course.get("gereqs") or []:
+        row_id = db["gereq"].lookup({"code": code})
+        db["section_gereq"].insert(
+            {"clbid": clbid, "gereq_id": row_id},
+            replace=True,
+        )
 
 
 def insert_course(db, course):

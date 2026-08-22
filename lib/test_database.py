@@ -278,3 +278,44 @@ def test_offering_full_view_joins_timeslot_and_location(db):
     assert row['start'] == '12:55'
     assert row['end'] == '13:50'
     assert row['location'] == 'HH 429'
+
+
+# --- FSNUM instructor identity ---
+
+def test_instructor_stores_fsnum_when_available(db):
+    """Instructors from API have FSNUM for stable identity."""
+    insert_course(db, course(
+        instructors=['Dietz, Jill'],
+        instructors_full=[{'fsnum': '12345', 'name': 'Dietz, Jill'}],
+    ))
+    rows = list(db['instructor'].rows)
+    assert len(rows) == 1
+    assert rows[0]['name'] == 'Dietz, Jill'
+    assert rows[0]['fsnum'] == '12345'
+
+
+def test_instructor_without_fsnum_still_works(db):
+    """Old data without FSNUM uses name-based lookup."""
+    insert_course(db, course(instructors=['Dietz, Jill']))
+    rows = list(db['instructor'].rows)
+    assert len(rows) == 1
+    assert rows[0]['name'] == 'Dietz, Jill'
+    assert rows[0]['fsnum'] is None
+
+
+def test_same_fsnum_different_name_updates_name(db):
+    """If FSNUM matches but name changed, update the name."""
+    insert_course(db, course(
+        clbid='0000000001',
+        instructors=['Smith, Jane'],
+        instructors_full=[{'fsnum': '12345', 'name': 'Smith, Jane'}],
+    ))
+    insert_course(db, course(
+        clbid='0000000002',
+        instructors=['Smith-Jones, Jane'],
+        instructors_full=[{'fsnum': '12345', 'name': 'Smith-Jones, Jane'}],
+    ))
+    rows = list(db['instructor'].rows)
+    assert len(rows) == 1
+    assert rows[0]['fsnum'] == '12345'
+    assert rows[0]['name'] == 'Smith-Jones, Jane'
