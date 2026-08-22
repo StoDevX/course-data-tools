@@ -51,10 +51,14 @@ def create_schema(db):
         "status": str,
         "enrolled": int,
         "enrollment_max": int,
-        "enrollment_fy": str,
-        "enrollment_so": str,
-        "enrollment_jr": str,
-        "enrollment_sr": str,
+        "enrolled_fy": int,
+        "enrolled_so": int,
+        "enrolled_jr": int,
+        "enrolled_sr": int,
+        "max_fy": int,
+        "max_so": int,
+        "max_jr": int,
+        "max_sr": int,
         "notes_id": int,
     }, pk="clbid", foreign_keys=[
         (fk_col, table, "id") for table, fk_col, _ in INTERNED_TEXT.values()
@@ -127,7 +131,8 @@ def create_schema(db):
             d.text AS description,
             s.credits, s.pass_nopass, s.learning_mode, s.status,
             s.enrolled, s.enrollment_max,
-            s.enrollment_fy, s.enrollment_so, s.enrollment_jr, s.enrollment_sr,
+            s.enrolled_fy, s.enrolled_so, s.enrolled_jr, s.enrolled_sr,
+            s.max_fy, s.max_so, s.max_jr, s.max_sr,
             nt.text AS notes
         FROM section s
         LEFT JOIN name_text n ON s.name_id = n.id
@@ -163,7 +168,31 @@ def intern_text(db, table, text):
     return db[table].lookup({"text": text})
 
 
+def _parse_class_year_enrollment(course, old_key, new_enrolled_key, new_max_key):
+    """Extract enrolled/max from either old "0/0" format or new integer columns."""
+    # New API format: separate integer columns
+    if new_enrolled_key in course:
+        return course.get(new_enrolled_key), course.get(new_max_key)
+    # Old format: "enrolled/max" string
+    value = course.get(old_key)
+    if value and "/" in str(value):
+        parts = str(value).split("/")
+        enrolled = int(parts[0]) if parts[0].isdigit() else None
+        max_val = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else None
+        return enrolled, max_val
+    return None, None
+
+
 def build_section(db, course):
+    fy_enrolled, fy_max = _parse_class_year_enrollment(
+        course, "firstyear", "enrollment_fy", "max_fy")
+    so_enrolled, so_max = _parse_class_year_enrollment(
+        course, "sophomore", "enrollment_so", "max_so")
+    jr_enrolled, jr_max = _parse_class_year_enrollment(
+        course, "junior", "enrollment_jr", "max_jr")
+    sr_enrolled, sr_max = _parse_class_year_enrollment(
+        course, "senior", "enrollment_sr", "max_sr")
+
     row = {
         "clbid": int(course["clbid"]),
         "crsid": int(course["crsid"]),
@@ -181,10 +210,14 @@ def build_section(db, course):
         "status": course.get("status"),
         "enrolled": course.get("enrolled"),
         "enrollment_max": course.get("max"),
-        "enrollment_fy": course.get("firstyear"),
-        "enrollment_so": course.get("sophomore"),
-        "enrollment_jr": course.get("junior"),
-        "enrollment_sr": course.get("senior"),
+        "enrolled_fy": fy_enrolled,
+        "enrolled_so": so_enrolled,
+        "enrolled_jr": jr_enrolled,
+        "enrolled_sr": sr_enrolled,
+        "max_fy": fy_max,
+        "max_so": so_max,
+        "max_jr": jr_max,
+        "max_sr": sr_max,
     }
     for json_key, (table, fk_col, is_list) in INTERNED_TEXT.items():
         value = course.get(json_key)
