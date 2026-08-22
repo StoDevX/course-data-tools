@@ -45,9 +45,6 @@ uv run --project .. ../bundle.py --legacy --out-dir ../course-data/legacy --form
 # remove the source files (quietly)
 git rm -rf --quiet details/ raw_xml/
 
-# The catalog ships as a release asset, so keep it out of the gh-pages commit.
-mv catalog.db "${GITHUB_WORKSPACE:-..}/catalog.db"
-
 # and … push
 if [[ $GITHUB_BRANCH == "master" ]]; then
 	git add --all ./

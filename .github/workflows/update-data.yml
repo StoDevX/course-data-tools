@@ -35,16 +35,3 @@ jobs:
           GITHUB_BRANCH: ${{ github.ref_name }}
           head_ref: ${{ github.ref }}
           GITHUB_OAUTH: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}
-
-      - name: publish-course-catalog
-        if: github.ref_name == 'master'
-        run: |
-          gh release create catalog \
-            --repo StoDevX/course-data \
-            --title "Course catalog database" \
-            --notes "Rolling SQLite build of the St. Olaf course catalog. Rebuilt nightly." \
-            || echo "release already exists"
-          gh release upload catalog "$GITHUB_WORKSPACE/catalog.db" \
-            --repo StoDevX/course-data --clobber
-        env:
-          GH_TOKEN: ${{ secrets.COURSE_DATA_TOOLS_GH_PUSH_TOKEN }}

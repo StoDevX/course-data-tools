@@ -69,10 +69,12 @@ instructor(id PK, name)  ⟷  section_instructor(clbid, instructor_id)
 gereq(id PK, code)       ⟷  section_gereq(clbid, gereq_id)
 ```
 
-The nightly workflow publishes it to a rolling release tag, so this URL always serves the
-most recent build:
+The nightly workflow commits it to the `gh-pages` branch alongside the other bundles, so
+these URLs always serve the most recent build:
 
-<https://github.com/StoDevX/course-data/releases/download/catalog/catalog.db>
+<https://raw.githubusercontent.com/StoDevX/course-data/gh-pages/catalog.db>
+
+<http://stolaf.dev/course-data/catalog.db>
 
 ## `maintain-datafiles.py`
 
