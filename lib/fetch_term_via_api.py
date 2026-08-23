@@ -113,19 +113,79 @@ DAY_MAP = {
 
 
 def _normalize_time(t):
-    """Convert '0935' to '09:35'."""
+    """Convert '0935' or '0255PM' to '09:35' or '14:55'."""
+    t = t.strip()
+    is_pm = t.endswith("PM")
+    is_am = t.endswith("AM")
+    if is_pm or is_am:
+        t = t[:-2]
+
+    # Handle HHMM format
     if len(t) == 4 and t.isdigit():
-        return f"{t[:2]}:{t[2:]}"
+        hour = int(t[:2])
+        minute = t[2:]
+        if is_pm and hour < 12:
+            hour += 12
+        elif is_am and hour == 12:
+            hour = 0
+        return f"{hour:02d}:{minute}"
+
+    # Already has colon
+    if ":" in t:
+        if is_pm or is_am:
+            hour, minute = t.split(":")
+            hour = int(hour)
+            if is_pm and hour < 12:
+                hour += 12
+            elif is_am and hour == 12:
+                hour = 0
+            return f"{hour:02d}:{minute}"
+        return t
+
     return t
 
 
+def _expand_days(day_str):
+    """Expand compound days like 'MWF' into ['Mo', 'We', 'Fr']."""
+    # Handle ranges like 'M-F' or 'M-Th'
+    if "-" in day_str:
+        day_order = ["M", "T", "W", "Th", "F", "Sa", "Su"]
+        start, end = day_str.split("-", 1)
+        try:
+            start_idx = day_order.index(start)
+            end_idx = day_order.index(end)
+            return [DAY_MAP[d] for d in day_order[start_idx:end_idx + 1]]
+        except ValueError:
+            return [day_str]
+
+    # Handle compound like 'MWF', 'TTh', 'MTW', etc.
+    result = []
+    i = 0
+    while i < len(day_str):
+        # Check for two-char day codes first (Th, Sa, Su)
+        if i + 1 < len(day_str) and day_str[i:i+2] in DAY_MAP:
+            result.append(DAY_MAP[day_str[i:i+2]])
+            i += 2
+        elif day_str[i] in DAY_MAP:
+            result.append(DAY_MAP[day_str[i]])
+            i += 1
+        else:
+            i += 1  # skip unknown
+
+    return result if result else [day_str]
+
+
 def _parse_schedule(sched_str):
-    """Parse 'Day|Start-End|Location:::...' into list of offering dicts."""
+    """Parse 'Day|Start-End|Location:::...' into list of offering dicts.
+
+    Expands compound days like 'MWF' into separate offerings.
+    Handles times like '0200-0255PM' where PM applies to both times.
+    """
     result = []
     for part in sched_str.split(":::"):
         pieces = part.split("|")
         if len(pieces) >= 3:
-            day = pieces[0]
+            day_str = pieces[0]
             times = pieces[1]
             location = pieces[2] if len(pieces) > 2 else ""
 
@@ -134,10 +194,21 @@ def _parse_schedule(sched_str):
             else:
                 start = end = times
 
-            result.append({
-                "day": DAY_MAP.get(day, day),
-                "start": _normalize_time(start),
-                "end": _normalize_time(end),
-                "location": location,
-            })
+            # If end has AM/PM suffix but start doesn't, apply it to start too
+            if end.endswith("PM") and not start.endswith(("AM", "PM")):
+                start = start + "PM"
+            elif end.endswith("AM") and not start.endswith(("AM", "PM")):
+                start = start + "AM"
+
+            start = _normalize_time(start)
+            end = _normalize_time(end)
+
+            # Expand compound days into separate offerings
+            for day in _expand_days(day_str):
+                result.append({
+                    "day": day,
+                    "start": start,
+                    "end": end,
+                    "location": location,
+                })
     return result
