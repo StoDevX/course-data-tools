@@ -43,6 +43,14 @@ def one_term(args, term):
         save_term(term, courses, kind=f, root_path=args.out_dir)
 
 
+def strip_build_indexes(db):
+    """Drop text indexes used only for deduplication during build."""
+    for idx in ['idx_description_text_text', 'idx_name_text_text',
+                'idx_title_text_text', 'idx_notes_text_text']:
+        db.execute(f'DROP INDEX IF EXISTS {idx}')
+    db.execute('VACUUM')
+
+
 def build_database(path, courses, should_trace=False):
     """Rebuild the catalog from scratch at `path`."""
     if os.path.exists(path):
@@ -53,6 +61,7 @@ def build_database(path, courses, should_trace=False):
     with db.conn:
         for course in courses:
             insert_course(db, course)
+    strip_build_indexes(db)
     return db
 
 
@@ -79,9 +88,20 @@ def run(args):
         list(map(edit_one_term, terms))
 
     if 'sqlite' in args.format:
-        log('sqlite', 'Building catalog')
+        from datetime import date
+        current_year = date.today().year
+
+        log('sqlite', 'Building catalog.db (all data)')
         courses = (c for term in terms for c in load_some_courses(term))
         build_database(os.path.join(args.out_dir, 'catalog.db'),
+                       courses,
+                       should_trace=args.trace)
+
+        recent_cutoff = current_year - 5
+        recent_terms = [t for t in terms if int(str(t)[:4]) >= recent_cutoff]
+        log('sqlite', f'Building catalog-recent.db ({recent_cutoff}+)')
+        courses = (c for term in recent_terms for c in load_some_courses(term))
+        build_database(os.path.join(args.out_dir, 'catalog-recent.db'),
                        courses,
                        should_trace=args.trace)
 
