@@ -43,6 +43,14 @@ def one_term(args, term):
         save_term(term, courses, kind=f, root_path=args.out_dir)
 
 
+def strip_build_indexes(db):
+    """Drop text indexes used only for deduplication during build."""
+    for idx in ['idx_description_text_text', 'idx_name_text_text',
+                'idx_title_text_text', 'idx_notes_text_text']:
+        db.execute(f'DROP INDEX IF EXISTS {idx}')
+    db.execute('VACUUM')
+
+
 def build_database(path, courses, should_trace=False):
     """Rebuild the catalog from scratch at `path`."""
     if os.path.exists(path):
@@ -53,6 +61,7 @@ def build_database(path, courses, should_trace=False):
     with db.conn:
         for course in courses:
             insert_course(db, course)
+    strip_build_indexes(db)
     return db
 
 
