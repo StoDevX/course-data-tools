@@ -13,6 +13,7 @@ INTERNED_TEXT = {
     'name': ('name_text', 'name_id', False),
     'title': ('title_text', 'title_id', False),
     'notes': ('notes_text', 'notes_id', True),
+    'prerequisites': ('prerequisites_text', 'prerequisites_id', False),
 }
 
 
@@ -52,6 +53,7 @@ def create_schema(db):
         "max_jr": int,
         "max_sr": int,
         "notes_id": int,
+        "prerequisites_id": int,
     }, pk="clbid", foreign_keys=[
         (fk_col, table, "id") for table, fk_col, _ in INTERNED_TEXT.values()
     ], if_not_exists=True)
@@ -101,6 +103,8 @@ def create_schema(db):
     db["section_instructor"].create({
         "clbid": int,
         "instructor_id": int,
+        # Where the instructor falls in the section's listing.
+        "position": int,
     }, pk=("clbid", "instructor_id"), foreign_keys=[
         ("clbid", "section", "clbid"),
         ("instructor_id", "instructor", "id"),
@@ -127,12 +131,14 @@ def create_schema(db):
             s.enrolled, s.enrollment_max,
             s.enrolled_fy, s.enrolled_so, s.enrolled_jr, s.enrolled_sr,
             s.max_fy, s.max_so, s.max_jr, s.max_sr,
-            nt.text AS notes
+            nt.text AS notes,
+            p.text AS prerequisites
         FROM section s
         LEFT JOIN name_text n ON s.name_id = n.id
         LEFT JOIN title_text t ON s.title_id = t.id
         LEFT JOIN description_text d ON s.description_id = d.id
         LEFT JOIN notes_text nt ON s.notes_id = nt.id
+        LEFT JOIN prerequisites_text p ON s.prerequisites_id = p.id
     """)
 
     db.execute("""
@@ -244,7 +250,7 @@ def _link_instructors(db, clbid, course):
     # Build a map from name to fsnum for fast lookup
     fsnum_by_name = {i["name"]: i.get("fsnum") for i in instructors_full}
 
-    for name in instructors:
+    for position, name in enumerate(instructors):
         fsnum = fsnum_by_name.get(name)
 
         if fsnum:
@@ -265,7 +271,7 @@ def _link_instructors(db, clbid, course):
                 row_id = db["instructor"].insert({"fsnum": None, "name": name}).last_pk
 
         db["section_instructor"].insert(
-            {"clbid": clbid, "instructor_id": row_id},
+            {"clbid": clbid, "instructor_id": row_id, "position": position},
             replace=True,
         )
 

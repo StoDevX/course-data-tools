@@ -319,3 +319,45 @@ def test_same_fsnum_different_name_updates_name(db):
     assert len(rows) == 1
     assert rows[0]['fsnum'] == '12345'
     assert rows[0]['name'] == 'Smith-Jones, Jane'
+
+
+def test_prerequisites_are_interned_into_lookup_table(db):
+    insert_course(db, course(prerequisites='Mathematics 220.'))
+    section = next(db['section'].rows)
+    prereq_row = db['prerequisites_text'].get(section['prerequisites_id'])
+    assert prereq_row['text'] == 'Mathematics 220.'
+
+
+def test_no_prerequisites_stores_null(db):
+    """The JSON says `false` when a course has no prerequisites."""
+    insert_course(db, course(prerequisites=False))
+    assert next(db['section'].rows)['prerequisites_id'] is None
+
+
+def test_section_full_view_joins_prerequisites(db):
+    insert_course(db, course(prerequisites='Mathematics 220.'))
+    row = next(db.query('SELECT prerequisites FROM section_full'))
+    assert row['prerequisites'] == 'Mathematics 220.'
+
+
+def test_instructors_keep_their_listed_order(db):
+    # Inserted in reverse first, so the second section's instructor ids run
+    # opposite to its listed order.
+    insert_course(db, course(clbid='0000000001', instructors=['Rives, Hawken', 'Dietz, Jill']))
+    insert_course(db, course(clbid='0000000002', instructors=['Dietz, Jill', 'Rives, Hawken']))
+    names = [r['name'] for r in db.query("""
+        SELECT i.name FROM section_instructor si
+        JOIN instructor i ON i.id = si.instructor_id
+        WHERE si.clbid = 2 ORDER BY si.position
+    """)]
+    assert names == ['Dietz, Jill', 'Rives, Hawken']
+
+
+
+def test_course_numbers_are_text(db):
+    """Most numbers are digits, but placeholders such as `2XX` are not."""
+    insert_course(db, course(clbid='0000000001', number=252))
+    insert_course(db, course(clbid='0000000002', number='2XX'))
+    rows = [(r['number'], r['kind']) for r in db.query(
+        'SELECT number, typeof(number) AS kind FROM section ORDER BY clbid')]
+    assert rows == [('252', 'text'), ('2XX', 'text')]
