@@ -63,16 +63,17 @@ run — the JSON course files remain the source of truth.
 section(clbid PK, crsid, term, year, semester, department, number, section,
         level, type, name_id, title_id, description_id, credits, pass_nopass,
         learning_mode, status, enrolled, enrollment_max, enrollment_fy,
-        enrollment_so, enrollment_jr, enrollment_sr, notes_id)
+        enrollment_so, enrollment_jr, enrollment_sr, notes_id, prerequisites_id)
 offering(id PK, clbid → section, timeslot_id → timeslot, location_id → location)
 
 -- interned text (deduplicated across sections)
 description_text(id PK, text)    name_text(id PK, text)
 title_text(id PK, text)          notes_text(id PK, text)
+prerequisites_text(id PK, text)
 location(id PK, name)            timeslot(id PK, day, start, end)
 
 -- many-to-many lookups
-instructor(id PK, name)  ⟷  section_instructor(clbid, instructor_id)
+instructor(id PK, name)  ⟷  section_instructor(clbid, instructor_id, position)
 gereq(id PK, code)       ⟷  section_gereq(clbid, gereq_id)
 
 -- compatibility views (join interned text back for simple queries)

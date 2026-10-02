@@ -46,7 +46,8 @@ def one_term(args, term):
 def strip_build_indexes(db):
     """Drop text indexes used only for deduplication during build."""
     for idx in ['idx_description_text_text', 'idx_name_text_text',
-                'idx_title_text_text', 'idx_notes_text_text']:
+                'idx_title_text_text', 'idx_notes_text_text',
+                'idx_prerequisites_text_text']:
         db.execute(f'DROP INDEX IF EXISTS {idx}')
     db.execute('VACUUM')
 
