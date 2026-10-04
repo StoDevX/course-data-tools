@@ -194,14 +194,21 @@ def _parse_schedule(sched_str):
             else:
                 start = end = times
 
-            # If end has AM/PM suffix but start doesn't, apply it to start too
-            if end.endswith("PM") and not start.endswith(("AM", "PM")):
-                start = start + "PM"
-            elif end.endswith("AM") and not start.endswith(("AM", "PM")):
-                start = start + "AM"
+            end_time = _normalize_time(end)
 
-            start = _normalize_time(start)
-            end = _normalize_time(end)
+            # If end has AM/PM suffix but start doesn't, apply it to start too,
+            # unless that would put the start after the end (e.g. '1145-0110PM'
+            # is 11:45 AM to 1:10 PM, not 11:45 PM to 1:10 PM)
+            if end.endswith("PM") and not start.endswith(("AM", "PM")):
+                start_time = _normalize_time(start + "PM")
+                if start_time > end_time:
+                    start_time = _normalize_time(start)
+            elif end.endswith("AM") and not start.endswith(("AM", "PM")):
+                start_time = _normalize_time(start + "AM")
+            else:
+                start_time = _normalize_time(start)
+
+            start, end = start_time, end_time
 
             # Expand compound days into separate offerings
             for day in _expand_days(day_str):

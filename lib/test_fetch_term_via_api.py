@@ -191,3 +191,16 @@ def test_parse_schedule_applies_pm_to_start():
     offerings = _parse_schedule("T|0200-0255PM|RNS 100")
     assert offerings[0]["start"] == "14:00"
     assert offerings[0]["end"] == "14:55"
+
+
+def test_parse_schedule_does_not_apply_pm_when_start_would_follow_end():
+    """A morning start with a PM end stays in the morning (e.g. CSCI 333)."""
+    offerings = _parse_schedule("T|1145-0110PM|RNS 100:::Th|1245-0205PM|RNS 100")
+    assert [(o["day"], o["start"], o["end"]) for o in offerings] == [
+        ("Tu", "11:45", "13:10"),
+        ("Th", "12:45", "14:05"),
+    ]
+
+    assert _parse_schedule("MWF|1145-1240PM|X")[0]["start"] == "11:45"
+    assert _parse_schedule("MWF|0700-0230PM|X")[0]["start"] == "07:00"
+    assert _parse_schedule("MWF|1200-0100PM|X")[0]["start"] == "12:00"
